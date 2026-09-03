@@ -1,0 +1,144 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import Image from "next/image";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { getSellerOrders } from "@/actions/seller/get-orders";
+import { formatCurrency } from "@/lib/utils";
+import { getOrderStatusLabel } from "@/lib/orders/order-utils";
+import { format } from "date-fns";
+
+export const metadata: Metadata = {
+  title: "Orders | Seller Dashboard",
+};
+
+export default async function SellerOrdersPage() {
+  const orderItems = await getSellerOrders();
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="font-serif text-4xl text-neutral-900">Orders</h1>
+        <p className="mt-2 text-muted-foreground">
+          {orderItems.length} {orderItems.length === 1 ? "order" : "orders"}
+        </p>
+      </div>
+
+      {/* Orders List */}
+      {orderItems.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <div className="mb-4 text-6xl">📦</div>
+            <h3 className="mb-2 text-lg font-semibold">No orders yet</h3>
+            <p className="text-muted-foreground">
+              Orders will appear here when customers purchase your products
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-4">
+          {orderItems.map((item) => {
+            const attributes = item.variant.attributes as Record<
+              string,
+              string
+            > | null;
+
+            return (
+              <Card key={item.id}>
+                <CardContent className="p-6">
+                  <div className="flex gap-4">
+                    {/* Product Image */}
+                    <div className="relative size-20 shrink-0 overflow-hidden rounded">
+                      {item.product.thumbnail ? (
+                        <Image
+                          src={item.product.thumbnail}
+                          alt={item.product.name}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="flex size-full items-center justify-center bg-muted">
+                          📦
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Order Info */}
+                    <div className="flex flex-1 flex-col gap-2">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <Link
+                            href={`/seller/orders/${item.id}`}
+                            className="text-lg font-semibold hover:text-primary"
+                          >
+                            {item.product.name}
+                          </Link>
+                          <div className="mt-1 text-sm text-muted-foreground">
+                            Order: {item.order.orderNumber}
+                          </div>
+                          {attributes && (
+                            <div className="mt-1 text-sm text-muted-foreground">
+                              {Object.entries(attributes)
+                                .slice(0, 2)
+                                .map(([key, value]) => (
+                                  <span key={key}>
+                                    {key}: {value} |{" "}
+                                  </span>
+                                ))}
+                            </div>
+                          )}
+                        </div>
+
+                        <Badge variant="outline">
+                          {getOrderStatusLabel(item.order.orderStatus)}
+                        </Badge>
+                      </div>
+
+                      <div className="mt-2 grid grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <div className="text-muted-foreground">Customer</div>
+                          <div className="font-medium">
+                            {item.order.user.name}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Quantity</div>
+                          <div className="font-medium">{item.quantity}</div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Amount</div>
+                          <div className="font-semibold">
+                            {formatCurrency(Number(item.total))}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-muted-foreground">Date</div>
+                          <div className="font-medium">
+                            {format(
+                              new Date(item.order.createdAt),
+                              "MMM dd, yyyy",
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-2 flex gap-2">
+                        <Link href={`/seller/orders/${item.id}`}>
+                          <Button variant="outline" size="sm">
+                            View Details
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

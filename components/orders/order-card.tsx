@@ -1,0 +1,73 @@
+import Link from "next/link";
+import Image from "next/image";
+import { formatCurrency } from "@/lib/utils";
+import { getOrderStatusLabel, getOrderStatusColor } from "@/lib/orders/order-utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ChevronRight } from "lucide-react";
+import type { OrderWithDetails } from "@/types/order";
+import { format } from "date-fns";
+
+type OrderCardProps = {
+  order: OrderWithDetails;
+};
+
+export function OrderCard({ order }: OrderCardProps) {
+  const statusColor = getOrderStatusColor(order.orderStatus);
+  const firstItem = order.items[0];
+
+  return (
+    <Link
+      href={`/orders/${order.id}`}
+      className="block rounded-lg border p-6 transition-colors hover:border-primary"
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <div className="mb-2 flex items-center gap-3">
+            <span className="font-semibold">Order #{order.orderNumber}</span>
+            <Badge className={`bg-${statusColor}-100 text-${statusColor}-700`}>
+              {getOrderStatusLabel(order.orderStatus)}
+            </Badge>
+          </div>
+
+          <div className="mb-4 text-sm text-muted-foreground">
+            Placed on {format(new Date(order.createdAt), "MMM dd, yyyy")}
+          </div>
+
+          <div className="flex items-start gap-4">
+            {firstItem && (
+              <div className="relative size-20 shrink-0 overflow-hidden rounded">
+                {firstItem.product.thumbnail ? (
+                  <Image
+                    src={firstItem.product.thumbnail}
+                    alt={firstItem.productName}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="flex size-full items-center justify-center bg-muted text-3xl">
+                    📦
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex-1">
+              <div className="font-medium">{firstItem?.productName}</div>
+              {order.items.length > 1 && (
+                <div className="mt-1 text-sm text-muted-foreground">
+                  +{order.items.length - 1} more item(s)
+                </div>
+              )}
+              <div className="mt-2 text-sm font-semibold">
+                Total: {formatCurrency(Number(order.total))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ChevronRight className="size-5 text-muted-foreground" />
+      </div>
+    </Link>
+  );
+}

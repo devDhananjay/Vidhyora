@@ -1,7 +1,11 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getCart } from "@/actions/cart/get-cart";
-import { calculateCartSummary } from "@/lib/cart/cart-utils";
+import {
+  calculateCartSubtotal,
+  calculateCartSummary,
+} from "@/lib/cart/cart-utils";
+import { resolveCartCouponDiscount } from "@/lib/coupons/coupon-utils";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { CheckoutSteps } from "@/components/checkout/checkout-steps";
@@ -26,7 +30,16 @@ export default async function CheckoutPage() {
     orderBy: [{ isDefault: "desc" }, { createdAt: "desc" }],
   });
 
-  const summary = calculateCartSummary(cart);
+  const subtotal = calculateCartSubtotal(cart);
+  const applied = await resolveCartCouponDiscount(
+    cart.couponCode,
+    cart.userId,
+    subtotal,
+  );
+  const summary = calculateCartSummary(cart, {
+    discount: applied?.discount ?? 0,
+    couponCode: applied?.code ?? null,
+  });
 
   return (
     <div className="container mx-auto px-4 py-8">

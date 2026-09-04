@@ -8,6 +8,7 @@ import { createOrderSchema } from "@/lib/validations/order";
 import { razorpayService } from "@/lib/payments/razorpay-service";
 import { recordEarningsForOrder } from "@/lib/payouts/record-earnings";
 import { cartTotals, createShopOrder, stockError } from "@/lib/orders/place-order";
+import { resolveCartCouponDiscount } from "@/lib/coupons/coupon-utils";
 import type { ActionResult } from "@/lib/utils";
 
 type CreateOrderResult = {
@@ -60,7 +61,21 @@ export async function createOrder(
       return { success: false, error: availability };
     }
 
-    const totals = cartTotals(cart.items);
+    const lineSubtotal = cart.items.reduce(
+      (sum, item) => sum + Number(item.variant.price) * item.quantity,
+      0,
+    );
+    const applied = await resolveCartCouponDiscount(
+      cart.couponCode,
+      session.user.id,
+      lineSubtotal,
+    );
+    const couponOptions = {
+      discount: applied?.discount ?? 0,
+      couponCode: applied?.code ?? null,
+      couponId: applied?.coupon.id ?? null,
+    };
+    const totals = cartTotals(cart.items, { discount: couponOptions.discount });
 
     if (validatedData.paymentMethod === "RAZORPAY") {
       const razorpayOrder = await razorpayService.createOrder({
@@ -70,6 +85,7 @@ export async function createOrder(
         notes: {
           userId: session.user.id,
           addressId: address.id,
+          couponCode: couponOptions.couponCode ?? "",
         },
       });
 
@@ -95,6 +111,7 @@ export async function createOrder(
         paymentStatus: "PENDING",
         orderStatus: "ORDERED",
         deductStock: false,
+        ...couponOptions,
       });
 
       await tx.payment.create({
@@ -196,6 +213,21 @@ export async function confirmRazorpayOrder(input: {
       return { success: false, error: availability };
     }
 
+    const lineSubtotal = cart.items.reduce(
+      (sum, item) => sum + Number(item.variant.price) * item.quantity,
+      0,
+    );
+    const applied = await resolveCartCouponDiscount(
+      cart.couponCode,
+      session.user.id,
+      lineSubtotal,
+    );
+    const couponOptions = {
+      discount: applied?.discount ?? 0,
+      couponCode: applied?.code ?? null,
+      couponId: applied?.coupon.id ?? null,
+    };
+
     const { order } = await prisma.$transaction(async (tx) => {
       const placed = await createShopOrder(tx, {
         userId: session.user.id,
@@ -205,6 +237,7 @@ export async function confirmRazorpayOrder(input: {
         paymentStatus: "PAID",
         orderStatus: "CONFIRMED",
         deductStock: true,
+        ...couponOptions,
       });
 
       await tx.payment.create({

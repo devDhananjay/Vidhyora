@@ -1,22 +1,30 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import prisma from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Breadcrumbs } from "@/components/products/breadcrumbs";
 import { VariantSelector } from "@/components/products/variant-selector";
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
-import { ProductSpecs } from "@/components/products/product-specs";
 import { SellerInfo } from "@/components/products/seller-info";
 import { ProductPolicy } from "@/components/products/product-policy";
 import { RelatedProducts } from "@/components/products/related-products";
+import { JewelleryDetails } from "@/components/products/jewellery-details";
+import { ProductTrustPanel } from "@/components/products/product-trust-panel";
+import { ProductShareButton } from "@/components/products/product-share-button";
+import { DeliveryPincodeChecker } from "@/components/products/delivery-pincode-checker";
+import { ProductGallery } from "@/components/products/product-gallery";
+import { FloatingAddToCartBar } from "@/components/products/floating-add-to-cart-bar";
+import { ProductTrustStrip } from "@/components/products/product-trust-strip";
+import { WishlistButton } from "@/components/wishlist/wishlist-button";
 import { ReviewStatsCard } from "@/components/reviews/review-stats-card";
 import { ReviewsList } from "@/components/reviews/reviews-list";
-import { Heart, Share2, Shield, Star, TruckIcon } from "lucide-react";
-import { generateProductStructuredData, generateBreadcrumbStructuredData } from "@/lib/structured-data";
+import { Sparkles, Star } from "lucide-react";
+import {
+  generateProductStructuredData,
+  generateBreadcrumbStructuredData,
+} from "@/lib/structured-data";
 import { getProductReviews } from "@/actions/reviews/get-reviews";
+import { getWishlistProductIds } from "@/actions/wishlist/manage-wishlist";
 import { isBestSellerFlag } from "@/lib/products/product-card-data";
 
 async function getProduct(slug: string) {
@@ -45,7 +53,11 @@ async function getProduct(slug: string) {
     },
   });
 
-  if (!product || product.status !== "ACTIVE" || product.approvalStatus !== "APPROVED") {
+  if (
+    !product ||
+    product.status !== "ACTIVE" ||
+    product.approvalStatus !== "APPROVED"
+  ) {
     return null;
   }
 
@@ -65,11 +77,6 @@ export async function generateMetadata({
       title: "Product Not Found",
     };
   }
-
-  const price = Number(product.basePrice);
-  const comparePrice = product.compareAtPrice
-    ? Number(product.compareAtPrice)
-    : null;
 
   return {
     title: `${product.name} | VIDYORA`,
@@ -110,223 +117,217 @@ export default async function ProductDetailPage({
 
   const defaultVariant = product.variants[0];
   const inStock = defaultVariant ? defaultVariant.stock > 0 : false;
+  const wishlistIds = await getWishlistProductIds();
+  const isInWishlist = wishlistIds.includes(product.id);
+  const reviews = await getProductReviews(product.id);
 
-  // Generate structured data for SEO
   const productStructuredData = generateProductStructuredData(product);
   const breadcrumbStructuredData = generateBreadcrumbStructuredData([
     { name: "Home", url: process.env.NEXT_PUBLIC_APP_URL || "/" },
-    { name: product.category.name, url: `${process.env.NEXT_PUBLIC_APP_URL}/categories/${product.category.slug}` },
-    { name: product.name, url: `${process.env.NEXT_PUBLIC_APP_URL}/products/${product.slug}` },
+    {
+      name: product.category.name,
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/categories/${product.category.slug}`,
+    },
+    {
+      name: product.name,
+      url: `${process.env.NEXT_PUBLIC_APP_URL}/products/${product.slug}`,
+    },
   ]);
 
   return (
     <>
-      {/* Structured Data for SEO */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productStructuredData) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(productStructuredData),
+        }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(breadcrumbStructuredData),
+        }}
       />
 
-      <div className="container mx-auto px-4 py-6">
-      {/* Breadcrumbs */}
-      <Breadcrumbs
-        items={[
-          { label: "Home", href: "/" },
-          { label: product.category.name, href: `/categories/${product.category.slug}` },
-          { label: product.name, href: "#" },
-        ]}
-      />
+      <div className="bg-[radial-gradient(ellipse_at_top,_rgba(246,235,232,0.65),_transparent_55%)]">
+        <div className="mx-auto max-w-6xl px-4 py-6 md:py-8">
+          <Breadcrumbs
+            items={[
+              { label: "Home", href: "/" },
+              {
+                label: product.category.name,
+                href: `/categories/${product.category.slug}`,
+              },
+              { label: product.name, href: "#" },
+            ]}
+          />
 
-      {/* Main Product Section */}
-      <div className="mt-6 grid gap-8 lg:grid-cols-2">
-        {/* Image Gallery */}
-        <div className="space-y-4">
-          <div className="relative aspect-square overflow-hidden rounded-lg border bg-muted">
-            {product.thumbnail && !product.thumbnail.includes("placeholder") ? (
-              <Image
-                src={product.thumbnail}
-                alt={product.name}
-                fill
-                className="object-cover"
-                priority
-                sizes="(max-width: 1024px) 100vw, 50vw"
+          <div className="mt-6 grid gap-8 lg:grid-cols-2 lg:gap-12">
+            <ProductGallery
+              name={product.name}
+              thumbnail={product.thumbnail}
+              images={product.images}
+              discount={discount}
+            />
+
+            <div className="space-y-5 md:space-y-6">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-xs tracking-[0.22em] text-[#8b2e2e] uppercase">
+                    {product.brand}
+                  </p>
+                  <span className="inline-flex items-center gap-1 rounded-full bg-[#f6ebe8] px-2 py-0.5 text-[10px] font-medium tracking-[0.08em] text-[#8b2e2e] uppercase">
+                    <Sparkles className="size-2.5" strokeWidth={2} />
+                    Fine jewellery
+                  </span>
+                </div>
+                <h1 className="mt-2 font-serif text-3xl leading-tight text-neutral-900 md:text-[2.5rem]">
+                  {product.name}
+                </h1>
+                {isBestSellerFlag(product.attributes) ? (
+                  <span className="mt-3 inline-flex items-center gap-1 rounded-md bg-[#c5a46e] px-2.5 py-1 text-[10px] font-semibold tracking-[0.12em] text-white">
+                    <Star className="size-2.5 fill-white" strokeWidth={0} />
+                    BESTSELLER
+                  </span>
+                ) : null}
+                {product.shortDescription ? (
+                  <p className="mt-3 max-w-xl text-sm leading-relaxed text-neutral-500 md:text-[15px]">
+                    {product.shortDescription}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="rounded-2xl border border-[#ead9c4]/70 bg-gradient-to-br from-white via-[#fffdfa] to-[#faf6f0] px-4 py-4 md:px-5">
+                <div className="flex flex-wrap items-end gap-3">
+                  <span className="font-serif text-3xl text-neutral-900 md:text-4xl">
+                    {formatCurrency(basePrice)}
+                  </span>
+                  {compareAtPrice ? (
+                    <>
+                      <span className="pb-1 text-lg text-neutral-400 line-through">
+                        {formatCurrency(compareAtPrice)}
+                      </span>
+                      <span className="mb-1 rounded-full bg-[#8b2e2e] px-2.5 py-0.5 text-xs font-semibold text-white">
+                        {discount}% OFF
+                      </span>
+                    </>
+                  ) : null}
+                </div>
+                <p className="mt-2 text-xs text-neutral-500">
+                  Inclusive of all taxes · No hidden making charges at checkout
+                </p>
+                <div className="mt-3">
+                  {inStock ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e8f5ef] px-3 py-1 text-xs font-medium text-[#2f6b4f]">
+                      <span className="size-1.5 rounded-full bg-[#2f6b4f]" />
+                      In Stock — ready to ship
+                    </span>
+                  ) : (
+                    <span className="inline-flex rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
+                      Out of Stock
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <ProductTrustStrip />
+
+              {product.variants.length > 0 ? (
+                <VariantSelector
+                  variants={product.variants}
+                  productId={product.id}
+                />
+              ) : null}
+
+              <div id="product-main-actions" className="flex items-center gap-3">
+                <AddToCartButton
+                  productId={product.id}
+                  variantId={defaultVariant?.id}
+                  inStock={inStock}
+                  className="flex-1 shadow-[0_10px_28px_rgba(139,46,46,0.28)]"
+                />
+                <WishlistButton
+                  productId={product.id}
+                  isInWishlist={isInWishlist}
+                />
+                <ProductShareButton
+                  title={product.name}
+                  text={product.shortDescription || undefined}
+                />
+              </div>
+
+              <DeliveryPincodeChecker />
+
+              <ProductTrustPanel
+                productId={product.id}
+                productName={product.name}
               />
-            ) : (
-              <div className="flex size-full flex-col items-center justify-center bg-gradient-to-br from-amber-50 to-amber-100/40">
-                <span className="font-serif text-2xl text-amber-700">VIDYORA</span>
-              </div>
-            )}
-            {discount > 0 && (
-              <Badge className="absolute right-4 top-4 bg-destructive text-white">
-                {discount}% OFF
-              </Badge>
-            )}
-          </div>
 
-          {/* Thumbnail Grid */}
-          {product.images.length > 0 && (
-            <div className="grid grid-cols-4 gap-2">
-              {product.images.slice(0, 4).map((image) => (
-                <div
-                  key={image.id}
-                  className="relative aspect-square cursor-pointer overflow-hidden rounded border hover:border-primary"
-                >
-                  <Image
-                    src={image.url}
-                    alt={image.altText || product.name}
-                    fill
-                    className="object-cover"
-                    sizes="25vw"
-                  />
-                </div>
-              ))}
+              <SellerInfo seller={product.seller} />
             </div>
-          )}
-        </div>
-
-        {/* Product Info */}
-        <div className="space-y-6">
-          {/* Brand & Title */}
-          <div>
-            <div className="mb-2 text-sm text-muted-foreground">
-              {product.brand}
-            </div>
-            <h1 className="font-serif text-4xl text-neutral-900">{product.name}</h1>
-            {isBestSellerFlag(product.attributes) ? (
-              <span className="mt-3 inline-flex items-center gap-1 rounded-md bg-[#c5a46e] px-2.5 py-1 text-[10px] font-semibold tracking-[0.12em] text-white">
-                <Star className="size-2.5 fill-white" strokeWidth={0} />
-                BESTSELLER
-              </span>
-            ) : null}
-            {product.shortDescription && (
-              <p className="mt-2 text-muted-foreground">
-                {product.shortDescription}
-              </p>
-            )}
           </div>
 
-          {/* Price */}
-          <div className="flex items-baseline gap-3">
-            <span className="font-serif text-4xl text-neutral-900">{formatCurrency(basePrice)}</span>
-            {compareAtPrice && (
-              <>
-                <span className="text-xl text-muted-foreground line-through">
-                  {formatCurrency(compareAtPrice)}
-                </span>
-                <Badge variant="destructive">{discount}% OFF</Badge>
-              </>
-            )}
-          </div>
-
-          {/* Stock Status */}
-          <div>
-            {inStock ? (
-              <Badge variant="default" className="bg-green-600">
-                In Stock
-              </Badge>
-            ) : (
-              <Badge variant="destructive">Out of Stock</Badge>
-            )}
-          </div>
-
-          {/* Variant Selector */}
-          {product.variants.length > 0 && (
-            <VariantSelector variants={product.variants} productId={product.id} />
-          )}
-
-          {/* Add to Cart */}
-          <div className="flex gap-3">
-            <AddToCartButton
-              productId={product.id}
-              variantId={defaultVariant?.id}
-              inStock={inStock}
-              className="flex-1"
+          <div className="mt-14 space-y-6">
+            <JewelleryDetails
+              name={product.name}
+              description={product.description}
+              thumbnail={product.thumbnail}
+              sku={defaultVariant?.sku}
+              basePrice={basePrice}
+              compareAtPrice={compareAtPrice}
+              taxPercent={Number(product.tax) || 3}
+              attributes={
+                (product.attributes as Record<string, unknown> | null) ?? null
+              }
             />
-            <Button variant="outline" size="icon">
-              <Heart className="size-5" />
-            </Button>
-            <Button variant="outline" size="icon">
-              <Share2 className="size-5" />
-            </Button>
+
+            {product.policy ? <ProductPolicy policy={product.policy} /> : null}
           </div>
 
-          {/* Delivery Info */}
-          <div className="space-y-3 rounded-lg border p-4">
-            <div className="flex items-center gap-3">
-              <TruckIcon className="size-5 text-primary" />
-              <div>
-                <div className="font-medium">Free Delivery</div>
-                <div className="text-sm text-muted-foreground">
-                  On orders above ₹500
-                </div>
+          <div className="mt-14">
+            <h2 className="mb-6 font-serif text-2xl text-[#8b2e2e] md:text-3xl">
+              Customer Reviews
+            </h2>
+            <div className="grid gap-8 lg:grid-cols-3">
+              <div className="lg:col-span-1">
+                <ReviewStatsCard stats={reviews.stats} />
               </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Shield className="size-5 text-primary" />
-              <div>
-                <div className="font-medium">Secure Transaction</div>
-                <div className="text-sm text-muted-foreground">
-                  100% payment protection
-                </div>
+              <div className="lg:col-span-2">
+                <ReviewsList
+                  initialReviews={reviews.reviews}
+                  productId={product.id}
+                />
               </div>
             </div>
           </div>
 
-          {/* Seller Info */}
-          <SellerInfo seller={product.seller} />
-        </div>
-      </div>
-
-      {/* Product Details Tabs */}
-      <div className="mt-12 space-y-8">
-        {/* Description */}
-        <div className="rounded-lg border p-6">
-          <h2 className="mb-4 text-xl font-bold">Product Description</h2>
-          <div className="prose max-w-none text-muted-foreground">
-            {product.description}
-          </div>
-        </div>
-
-        {/* Specifications */}
-        {product.attributes && (
-          <ProductSpecs attributes={product.attributes as Record<string, string>} />
-        )}
-
-        {/* Return Policy */}
-        {product.policy && <ProductPolicy policy={product.policy} />}
-      </div>
-
-      {/* Reviews Section */}
-      <div className="mt-12">
-        <h2 className="mb-6 text-2xl font-bold">Customer Reviews</h2>
-        <div className="grid gap-8 lg:grid-cols-3">
-          {/* Review Stats */}
-          <div className="lg:col-span-1">
-            <ReviewStatsCard stats={await getProductReviews(product.id).then(r => r.stats)} />
-          </div>
-
-          {/* Reviews List */}
-          <div className="lg:col-span-2">
-            <ReviewsList 
-              initialReviews={await getProductReviews(product.id).then(r => r.reviews)} 
-              productId={product.id}
+          <div className="mt-14 pb-24 md:pb-28">
+            <RelatedProducts
+              categoryId={product.categoryId}
+              currentProductId={product.id}
             />
           </div>
         </div>
       </div>
 
-      {/* Related Products */}
-      <div className="mt-12">
-        <RelatedProducts
-          categoryId={product.categoryId}
-          currentProductId={product.id}
-        />
-      </div>
-    </div>
+      <FloatingAddToCartBar
+        productId={product.id}
+        variantId={defaultVariant?.id}
+        price={
+          defaultVariant ? Number(defaultVariant.price) : basePrice
+        }
+        weightLabel={
+          defaultVariant?.weight
+            ? `${Number(defaultVariant.weight)} g`
+            : typeof (product.attributes as Record<string, unknown> | null)
+                ?.weight === "string"
+              ? String(
+                  (product.attributes as Record<string, unknown>).weight,
+                )
+              : null
+        }
+        inStock={inStock}
+      />
     </>
   );
 }

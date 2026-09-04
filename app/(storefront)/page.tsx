@@ -20,6 +20,9 @@ import {
 } from "@/lib/products/product-card-data";
 import { StyleStories } from "@/components/storefront/style-stories";
 import { ChooseYourLook } from "@/components/storefront/choose-your-look";
+import { WeddingMoodboard } from "@/components/storefront/wedding-moodboard";
+import { ExploreTraditions } from "@/components/storefront/explore-traditions";
+import { HeroBannerSlider } from "@/components/storefront/hero-banner-slider";
 
 const CATEGORIES = [
   {
@@ -145,32 +148,7 @@ export default async function HomePage() {
 
   return (
     <div className="bg-white text-[#2b1a16]">
-      {/* Hero */}
-      <section className="relative h-[70vh] min-h-[480px] w-full overflow-hidden md:h-[82vh]">
-        <Image
-          src="/images/hero-festival.jpg"
-          alt="Festival of Diamonds"
-          fill
-          priority
-          className="object-cover object-[center_20%]"
-          sizes="100vw"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent" />
-        <div className="absolute inset-0 flex flex-col items-center justify-end pb-16 text-center md:pb-24">
-          <p className="mb-2 text-xs tracking-[0.35em] text-white/90">
-            FESTIVAL OF DIAMONDS
-          </p>
-          <h1 className="font-serif text-4xl text-white drop-shadow-md md:text-6xl">
-            Designs crafted to sparkle
-          </h1>
-          <Link
-            href={shopHref({ type: "diamond", collection: "Festival of Diamonds" })}
-            className="mt-8 bg-white px-8 py-3 font-serif text-sm tracking-[0.2em] text-black shadow-lg transition hover:bg-neutral-100"
-          >
-            EXPLORE NOW
-          </Link>
-        </div>
-      </section>
+      <HeroBannerSlider />
 
       {/* Collections mosaic */}
       <section className="mx-auto max-w-6xl px-4 py-16 md:py-20">
@@ -181,7 +159,7 @@ export default async function HomePage() {
         <div className="grid gap-4 md:grid-cols-2 md:grid-rows-2">
           <Link
             href={shopHref({ maxPrice: "50000", collection: "Under 50K" })}
-            className="group relative min-h-[280px] overflow-hidden md:row-span-2 md:min-h-[540px]"
+            className="group relative min-h-[280px] overflow-hidden rounded-2xl md:row-span-2 md:min-h-[540px]"
           >
             <Image
               src="https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=1200&q=80"
@@ -198,7 +176,7 @@ export default async function HomePage() {
           </Link>
           <Link
             href={shopHref({ item: "earrings", collection: "Earrings" })}
-            className="group relative min-h-[240px] overflow-hidden"
+            className="group relative min-h-[240px] overflow-hidden rounded-2xl"
           >
             <Image
               src="https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=1000&q=80"
@@ -214,7 +192,7 @@ export default async function HomePage() {
           </Link>
           <Link
             href={shopHref({ type: "gold", occasion: "daily", collection: "Gold Daily Wear" })}
-            className="group relative min-h-[240px] overflow-hidden"
+            className="group relative min-h-[240px] overflow-hidden rounded-2xl"
           >
             <Image
               src="https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=1000&q=80"
@@ -244,7 +222,7 @@ export default async function HomePage() {
               href={category.href}
               className="group text-center"
             >
-              <div className="relative aspect-square overflow-hidden bg-[#dce8e6]">
+              <div className="relative aspect-square overflow-hidden rounded-2xl bg-[#dce8e6]">
                 <Image
                   src={category.image}
                   alt={category.name}
@@ -260,7 +238,7 @@ export default async function HomePage() {
           ))}
           <Link
             href={ROUTES.products}
-            className="flex aspect-square flex-col items-center justify-center border border-neutral-200 bg-white p-6 text-center"
+            className="flex aspect-square flex-col items-center justify-center rounded-2xl border border-neutral-200 bg-white p-6 text-center"
           >
             <p className="font-serif text-2xl text-[#8b2e2e]">10+</p>
             <p className="mt-1 text-sm text-neutral-700">
@@ -282,7 +260,7 @@ export default async function HomePage() {
         <div className="grid gap-6 md:grid-cols-3">
           {TRENDING.map((item) => (
             <Link key={item.title} href={item.href} className="group">
-              <div className="relative aspect-square overflow-hidden">
+              <div className="relative aspect-square overflow-hidden rounded-2xl">
                 <Image
                   src={item.image}
                   alt={item.title}
@@ -306,7 +284,10 @@ export default async function HomePage() {
           subtitle="A companion for every occasion"
         />
         <div className="grid gap-4 md:grid-cols-2">
-          <Link href={shopHref({ occasion: "wedding", collection: "Wedding Jewellery" })} className="group relative overflow-hidden">
+          <Link
+            href={shopHref({ occasion: "wedding", collection: "Wedding Jewellery" })}
+            className="group relative overflow-hidden rounded-2xl"
+          >
             <Image
               src="/images/bridal-rivaah.jpg"
               alt="Bridal jewellery"
@@ -324,7 +305,7 @@ export default async function HomePage() {
           <div className="grid gap-4">
             <Link
               href={shopHref({ type: "diamond", collection: "Diamond" })}
-              className="group relative min-h-[240px] overflow-hidden"
+              className="group relative min-h-[240px] overflow-hidden rounded-2xl"
             >
               <Image
                 src="https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=1000&q=80"
@@ -339,7 +320,7 @@ export default async function HomePage() {
             </Link>
             <Link
               href={shopHref({ type: "gold", collection: "Gold" })}
-              className="group relative min-h-[240px] overflow-hidden"
+              className="group relative min-h-[240px] overflow-hidden rounded-2xl"
             >
               <Image
                 src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1000&q=80"
@@ -355,6 +336,9 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      <WeddingMoodboard />
+      <ExploreTraditions />
 
       {/* Featured products */}
       <section className="mx-auto max-w-6xl px-4 py-16">

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Bodoni_Moda, Montserrat } from "next/font/google";
+import { Bodoni_Moda, Caveat, Montserrat } from "next/font/google";
 import "./globals.css";
 import { APP_NAME, APP_DESCRIPTION, APP_TAGLINE, BRAND_LOGO_SRC } from "@/lib/constants";
 
@@ -11,6 +11,11 @@ const montserrat = Montserrat({
 const bodoni = Bodoni_Moda({
   subsets: ["latin"],
   variable: "--font-bodoni",
+});
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  variable: "--font-caveat",
 });
 
 export const metadata: Metadata = {
@@ -53,7 +58,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${montserrat.variable} ${bodoni.variable} font-sans antialiased`}>
+      <body
+        className={`${montserrat.variable} ${bodoni.variable} ${caveat.variable} font-sans antialiased`}
+      >
         {children}
       </body>
     </html>

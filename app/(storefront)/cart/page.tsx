@@ -1,7 +1,12 @@
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getCart } from "@/actions/cart/get-cart";
-import { calculateCartSummary } from "@/lib/cart/cart-utils";
+import { getPublicOffers } from "@/actions/content/get-offers";
+import {
+  calculateCartSubtotal,
+  calculateCartSummary,
+} from "@/lib/cart/cart-utils";
+import { resolveCartCouponDiscount } from "@/lib/coupons/coupon-utils";
 import { CartItemCard } from "@/components/cart/cart-item-card";
 import { CartSummary } from "@/components/cart/cart-summary";
 import { EmptyCart } from "@/components/cart/empty-cart";
@@ -27,7 +32,26 @@ export default async function CartPage() {
     return <EmptyCart />;
   }
 
-  const summary = calculateCartSummary(cart);
+  const subtotal = calculateCartSubtotal(cart);
+  const [applied, offers] = await Promise.all([
+    resolveCartCouponDiscount(cart.couponCode, cart.userId, subtotal),
+    getPublicOffers(),
+  ]);
+  const summary = calculateCartSummary(cart, {
+    discount: applied?.discount ?? 0,
+    couponCode: applied?.code ?? null,
+  });
+  const availablePromos = offers.map((offer) => ({
+    id: offer.id,
+    code: offer.code,
+    description: offer.description,
+    discountType: offer.discountType,
+    discountValue: Number(offer.discountValue),
+    minimumOrderValue: Number(offer.minimumOrderValue),
+    maximumDiscount: offer.maximumDiscount
+      ? Number(offer.maximumDiscount)
+      : null,
+  }));
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -60,7 +84,10 @@ export default async function CartPage() {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
-              <CartSummary summary={summary} />
+              <CartSummary
+                summary={summary}
+                availablePromos={availablePromos}
+              />
             </div>
           </div>
         </div>

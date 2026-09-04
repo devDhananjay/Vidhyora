@@ -29,13 +29,17 @@ export function addressSnapshot(address: Address) {
   };
 }
 
-export function cartTotals(items: CartLine[]) {
+export function cartTotals(
+  items: CartLine[],
+  options?: { discount?: number },
+) {
   return calculateOrderTotals(
     items.map((item) => ({
       price: Number(item.variant.price),
       quantity: item.quantity,
       tax: Number(item.product.tax),
     })),
+    options,
   );
 }
 
@@ -59,9 +63,12 @@ export async function createShopOrder(
     paymentStatus: "PENDING" | "PAID";
     orderStatus: "ORDERED" | "CONFIRMED";
     deductStock: boolean;
+    discount?: number;
+    couponCode?: string | null;
+    couponId?: string | null;
   },
 ) {
-  const totals = cartTotals(options.items);
+  const totals = cartTotals(options.items, { discount: options.discount });
   const orderNumber = generateOrderNumber();
 
   for (const item of options.items) {
@@ -87,6 +94,7 @@ export async function createShopOrder(
       shippingFee: totals.shippingFee,
       tax: totals.tax,
       total: totals.total,
+      couponCode: options.couponCode ?? null,
       paymentStatus: options.paymentStatus,
       orderStatus: options.orderStatus,
       shippingAddress: addressSnapshot(options.address),
@@ -109,11 +117,30 @@ export async function createShopOrder(
     },
   });
 
+  if (options.couponId && options.couponCode && totals.discount > 0) {
+    await tx.couponUsage.create({
+      data: {
+        couponId: options.couponId,
+        userId: options.userId,
+        orderId: order.id,
+      },
+    });
+    await tx.coupon.update({
+      where: { id: options.couponId },
+      data: { usageCount: { increment: 1 } },
+    });
+  }
+
   await tx.cartItem.deleteMany({
     where: {
       cartId: options.cartId,
       savedForLater: false,
     },
+  });
+
+  await tx.cart.update({
+    where: { id: options.cartId },
+    data: { couponCode: null },
   });
 
   await tx.orderStatusHistory.create({

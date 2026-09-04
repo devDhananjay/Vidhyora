@@ -159,6 +159,20 @@ export function CheckoutSummary({
           <span>{formatCurrency(summary.subtotal)}</span>
         </div>
 
+        {summary.discount > 0 && (
+          <div className="flex justify-between text-green-700">
+            <span>
+              Promo discount
+              {summary.couponCode ? (
+                <span className="ml-1 font-mono text-xs">
+                  ({summary.couponCode})
+                </span>
+              ) : null}
+            </span>
+            <span>-{formatCurrency(summary.discount)}</span>
+          </div>
+        )}
+
         <div className="flex justify-between">
           <span className="text-muted-foreground">Delivery Charges</span>
           <span>

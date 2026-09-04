@@ -53,7 +53,10 @@ export function AddToCartButton({
       size="lg"
       onClick={handleAddToCart}
       disabled={!inStock || isPending}
-      className={cn(className)}
+      className={cn(
+        "h-12 rounded-full bg-[#8b2e2e] text-white hover:bg-[#7a2727]",
+        className,
+      )}
     >
       {added ? (
         <>

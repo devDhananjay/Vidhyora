@@ -6,21 +6,24 @@ export function generateOrderNumber(): string {
   return `ORD${timestamp.slice(-8)}${random}`;
 }
 
-export function calculateOrderTotals(items: Array<{ price: number; quantity: number; tax: number }>) {
+export function calculateOrderTotals(
+  items: Array<{ price: number; quantity: number; tax: number }>,
+  options?: { discount?: number },
+) {
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tax = items.reduce((sum, item) => sum + Number(item.tax) * item.quantity, 0);
   
   // Shipping logic: Free for orders >= ₹500
   const shippingFee = subtotal >= 500 ? 0 : 50;
-  
-  const total = subtotal + tax + shippingFee;
+  const discount = Math.min(Math.max(0, options?.discount ?? 0), subtotal);
+  const total = Math.max(0, subtotal + tax + shippingFee - discount);
 
   return {
     subtotal,
     tax,
     shippingFee,
     total,
-    discount: 0, // Can be extended for coupon support
+    discount,
   };
 }
 

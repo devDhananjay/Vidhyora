@@ -3,15 +3,32 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import type { CartSummary as CartSummaryType } from "@/types/cart";
 import { ShoppingBag, Truck } from "lucide-react";
+import {
+  PromoCodeForm,
+  type AvailablePromo,
+} from "@/components/cart/promo-code-form";
 
 type CartSummaryProps = {
   summary: CartSummaryType;
+  availablePromos?: AvailablePromo[];
 };
 
-export function CartSummary({ summary }: CartSummaryProps) {
+export function CartSummary({
+  summary,
+  availablePromos = [],
+}: CartSummaryProps) {
   return (
     <div className="rounded-lg border p-6">
       <h2 className="mb-4 text-lg font-semibold">Order Summary</h2>
+
+      <div className="mb-4">
+        <PromoCodeForm
+          appliedCode={summary.couponCode}
+          discount={summary.discount}
+          subtotal={summary.subtotal}
+          availablePromos={availablePromos}
+        />
+      </div>
 
       <div className="space-y-3 text-sm">
         <div className="flex justify-between">
@@ -20,6 +37,20 @@ export function CartSummary({ summary }: CartSummaryProps) {
           </span>
           <span>{formatCurrency(summary.subtotal)}</span>
         </div>
+
+        {summary.discount > 0 && (
+          <div className="flex justify-between text-green-700">
+            <span>
+              Promo
+              {summary.couponCode ? (
+                <span className="ml-1 font-mono text-xs">
+                  ({summary.couponCode})
+                </span>
+              ) : null}
+            </span>
+            <span>-{formatCurrency(summary.discount)}</span>
+          </div>
+        )}
 
         <div className="flex justify-between">
           <span className="text-muted-foreground">Tax (GST 18%)</span>

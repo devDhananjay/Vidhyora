@@ -12,14 +12,18 @@ type SellerInfoProps = {
 
 export function SellerInfo({ seller }: SellerInfoProps) {
   return (
-    <div className="rounded-lg border p-4">
+    <div className="rounded-2xl border border-neutral-200 bg-white p-4">
       <div className="flex items-center gap-3">
-        <div className="flex size-12 items-center justify-center rounded-full bg-primary/10">
-          <Store className="size-6 text-primary" />
+        <div className="flex size-11 items-center justify-center rounded-full bg-[#8b2e2e]/10">
+          <Store className="size-5 text-[#8b2e2e]" strokeWidth={1.6} />
         </div>
         <div>
-          <div className="font-medium">Sold by</div>
-          <div className="text-sm text-primary">{seller.businessName}</div>
+          <p className="text-xs tracking-[0.14em] text-neutral-500 uppercase">
+            Sold by
+          </p>
+          <p className="mt-0.5 text-sm font-medium text-[#8b2e2e]">
+            {seller.businessName}
+          </p>
         </div>
       </div>
     </div>

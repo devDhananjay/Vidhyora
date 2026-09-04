@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import { getOrderStatusLabel } from "@/lib/orders/order-utils";
 import { format } from "date-fns";
+import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 
 export const metadata: Metadata = {
   title: "Order Details | Super Admin",
@@ -60,14 +61,10 @@ export default async function AdminOrderDetailPage({
             <Badge variant="outline">
               {getOrderStatusLabel(order.orderStatus)}
             </Badge>
-            <Badge
-              className={
-                order.paymentStatus === "PAID" ? "bg-green-600" : undefined
-              }
-              variant={order.paymentStatus === "PAID" ? "default" : "outline"}
-            >
-              {order.paymentStatus}
-            </Badge>
+            <PaymentStatusBadge
+              status={order.paymentStatus}
+              provider={order.payments[0]?.provider}
+            />
           </div>
         </div>
       </div>

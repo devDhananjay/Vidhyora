@@ -170,6 +170,38 @@ export const EMAIL_TEMPLATES = {
   }),
 };
 
+type EmailProviderMessage = {
+  to: string | string[] | EmailRecipient | EmailRecipient[];
+  subject: string;
+  html: string;
+  text?: string;
+};
+
+function toRecipients(
+  to: EmailProviderMessage["to"],
+): EmailRecipient | EmailRecipient[] {
+  if (Array.isArray(to)) {
+    return to.map((item) =>
+      typeof item === "string" ? { email: item } : item,
+    );
+  }
+  return typeof to === "string" ? { email: to } : to;
+}
+
+/** Adapter used by auth emails (`send-verification`, `send-password-reset`). */
+export function getEmailProvider() {
+  return {
+    send(message: EmailProviderMessage) {
+      return sendEmail({
+        to: toRecipients(message.to),
+        subject: message.subject,
+        html: message.html,
+        text: message.text,
+      });
+    },
+  };
+}
+
 /**
  * Send email using configured provider
  * For development: Logs to console

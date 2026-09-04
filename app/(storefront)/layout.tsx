@@ -1,19 +1,10 @@
 import Link from "next/link";
-import {
-  Handshake,
-  Heart,
-  Mail,
-  MapPin,
-  Phone,
-  Search,
-  User,
-} from "lucide-react";
-import { UserMenu } from "@/components/auth/user-menu";
+import { Mail, Phone } from "lucide-react";
 import { CartIndicator } from "@/components/cart/cart-indicator";
-import { MegaNav } from "@/components/storefront/mega-nav";
 import { SiteFooter } from "@/components/storefront/site-footer";
+import { StorefrontHeader } from "@/components/storefront/storefront-header";
 import { auth } from "@/lib/auth";
-import { APP_NAME, ROUTES } from "@/lib/constants";
+import { ROUTES } from "@/lib/constants";
 
 export default async function StorefrontLayout({
   children,
@@ -21,6 +12,15 @@ export default async function StorefrontLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
+  const user = session?.user
+    ? {
+        id: session.user.id,
+        email: session.user.email ?? "",
+        name: session.user.name ?? null,
+        role: session.user.role,
+        image: session.user.image ?? null,
+      }
+    : null;
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
@@ -48,88 +48,18 @@ export default async function StorefrontLayout({
               Track Order
             </Link>
             <span className="h-3 w-px bg-neutral-300" />
-            <Link href="/store-locator" className="px-3 hover:text-[#8b2e2e]">
+            <Link href={ROUTES.storeLocator} className="px-3 hover:text-[#8b2e2e]">
               Store Locator
             </Link>
             <span className="h-3 w-px bg-neutral-300" />
-            <Link href="/help" className="pl-3 hover:text-[#8b2e2e]">
+            <Link href={ROUTES.help} className="pl-3 hover:text-[#8b2e2e]">
               Help
             </Link>
           </div>
         </div>
       </div>
 
-      <header className="sticky top-0 z-50 overflow-visible border-b border-neutral-100 bg-white">
-        <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-4">
-          <Link href={ROUTES.home} className="shrink-0">
-            <span className="font-serif text-[32px] font-medium tracking-[0.12em] text-[#8b2e2e]">
-              {APP_NAME}
-            </span>
-          </Link>
-
-          <div className="hidden flex-1 justify-center md:flex">
-            <form action={ROUTES.products} className="relative w-full max-w-xl">
-              <input
-                type="search"
-                name="q"
-                placeholder="Search for gold necklace, diamond jewellery"
-                className="h-10 w-full rounded-full border border-neutral-200 bg-white px-5 pr-11 text-sm text-neutral-700 outline-none placeholder:text-neutral-400 focus:border-neutral-400"
-                aria-label="Search jewellery"
-              />
-              <button
-                type="submit"
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500"
-                aria-label="Search"
-              >
-                <Search className="size-4" />
-              </button>
-            </form>
-          </div>
-
-          <nav className="ml-auto flex items-center gap-1 text-neutral-700">
-            <Link
-              href={ROUTES.auth.sellerRegister}
-              className="mr-1 hidden items-center gap-1.5 rounded-full border border-[#8b2e2e]/20 bg-[#8b2e2e]/5 px-3 py-1.5 text-[12px] font-medium text-[#8b2e2e] transition hover:bg-[#8b2e2e] hover:text-white lg:inline-flex"
-            >
-              <Handshake className="size-3.5" strokeWidth={1.75} />
-              Partner with Us
-            </Link>
-            <Link
-              href="/store-locator"
-              className="rounded-full p-2 hover:bg-neutral-50"
-              aria-label="Store locator"
-            >
-              <MapPin className="size-5" strokeWidth={1.5} />
-            </Link>
-            {session?.user ? (
-              <>
-                <Link
-                  href={ROUTES.wishlist}
-                  className="rounded-full p-2 hover:bg-neutral-50"
-                  aria-label="Wishlist"
-                >
-                  <Heart className="size-5" strokeWidth={1.5} />
-                </Link>
-                <UserMenu user={session.user} />
-                <CartIndicator />
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="rounded-full p-2 hover:bg-neutral-50"
-                  aria-label="Login"
-                >
-                  <User className="size-5" strokeWidth={1.5} />
-                </Link>
-                <CartIndicator />
-              </>
-            )}
-          </nav>
-        </div>
-
-        <MegaNav />
-      </header>
+      <StorefrontHeader user={user} cartSlot={<CartIndicator />} />
 
       <main className="flex-1">{children}</main>
 

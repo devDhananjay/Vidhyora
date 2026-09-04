@@ -110,6 +110,12 @@ function CategoryCard({
                     <span>/{category.slug}</span>
                     <span>•</span>
                     <span>{category._count.products} products</span>
+                    {category.commissionPercentage != null && (
+                      <>
+                        <span>•</span>
+                        <span>{Number(category.commissionPercentage)}% commission</span>
+                      </>
+                    )}
                     {hasChildren && (
                       <>
                         <span>•</span>

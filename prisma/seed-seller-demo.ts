@@ -4,6 +4,225 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 const PASSWORD = "Password@123";
 
+function splitSale(gross: number, rate = 10) {
+  const commissionAmount = Math.round(((gross * rate) / 100) * 100) / 100;
+  const netAmount = Math.round((gross - commissionAmount) * 100) / 100;
+  return { commissionAmount, netAmount, rate };
+}
+
+function daysAgo(days: number) {
+  return new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+}
+
+async function ensurePaidOrder(options: {
+  orderNumber: string;
+  sellerId: string;
+  customerId: string;
+  product: {
+    id: string;
+    name: string;
+    variants: Array<{ id: string; sku: string; price: unknown }>;
+  };
+  address: Record<string, string>;
+  daysOld: number;
+  trackingNumber: string;
+}) {
+  const existing = await prisma.order.findUnique({
+    where: { orderNumber: options.orderNumber },
+    include: { items: true },
+  });
+  if (existing) return existing;
+
+  const variant = options.product.variants[0];
+  const price = Number(variant.price);
+  const tax = Math.round(price * 0.03);
+  const createdAt = daysAgo(options.daysOld);
+
+  return prisma.order.create({
+    data: {
+      orderNumber: options.orderNumber,
+      userId: options.customerId,
+      subtotal: price,
+      discount: 0,
+      shippingFee: 0,
+      tax,
+      total: price + tax,
+      paymentStatus: "PAID",
+      orderStatus: "DELIVERED",
+      shippingAddress: options.address,
+      billingAddress: options.address,
+      createdAt,
+      items: {
+        create: {
+          productId: options.product.id,
+          variantId: variant.id,
+          sellerId: options.sellerId,
+          quantity: 1,
+          price,
+          tax,
+          total: price,
+          productName: options.product.name,
+          sku: variant.sku,
+          variantLabel: "Standard",
+        },
+      },
+      payments: {
+        create: {
+          provider: "RAZORPAY",
+          transactionId: `txn_${options.orderNumber.toLowerCase()}`,
+          amount: price + tax,
+          currency: "INR",
+          status: "CAPTURED",
+        },
+      },
+      shipments: {
+        create: {
+          sellerId: options.sellerId,
+          trackingNumber: options.trackingNumber,
+          courier: "Bluedart",
+          shippedAt: daysAgo(options.daysOld - 2),
+          deliveredAt: daysAgo(options.daysOld - 4),
+        },
+      },
+    },
+    include: { items: true },
+  });
+}
+
+async function seedPaymentDemo(options: {
+  sellerId: string;
+  profileId: string;
+  businessName: string;
+  customerId: string;
+  products: Array<{
+    id: string;
+    name: string;
+    variants: Array<{ id: string; sku: string; price: unknown }>;
+  }>;
+  address: Record<string, string>;
+}) {
+  await prisma.sellerProfile.update({
+    where: { id: options.profileId },
+    data: {
+      bankAccountHolder: options.businessName,
+      bankAccountNumber: "50100123456789",
+      bankIfscCode: "HDFC0001822",
+      bankName: "HDFC Bank",
+    },
+  });
+
+  const extraProducts = options.products.filter((product) => product.variants[0]);
+  if (extraProducts[1]) {
+    await ensurePaidOrder({
+      orderNumber: "VDY-PAY-001",
+      sellerId: options.sellerId,
+      customerId: options.customerId,
+      product: extraProducts[1],
+      address: options.address,
+      daysOld: 22,
+      trackingNumber: "VDYPAY001",
+    });
+  }
+  if (extraProducts[4] ?? extraProducts[2]) {
+    await ensurePaidOrder({
+      orderNumber: "VDY-PAY-002",
+      sellerId: options.sellerId,
+      customerId: options.customerId,
+      product: extraProducts[4] ?? extraProducts[2],
+      address: options.address,
+      daysOld: 9,
+      trackingNumber: "VDYPAY002",
+    });
+  }
+
+  const items = await prisma.orderItem.findMany({
+    where: {
+      sellerId: options.sellerId,
+      order: { paymentStatus: "PAID" },
+      earning: { is: null },
+    },
+    include: {
+      order: { select: { id: true, orderNumber: true } },
+    },
+  });
+
+  for (const item of items) {
+    const gross = Number(item.total);
+    const { commissionAmount, netAmount, rate } = splitSale(gross);
+    await prisma.sellerEarning.create({
+      data: {
+        sellerId: options.sellerId,
+        orderId: item.order.id,
+        orderItemId: item.id,
+        orderNumber: item.order.orderNumber,
+        productName: item.productName,
+        grossAmount: gross,
+        commissionRate: rate,
+        commissionAmount,
+        netAmount,
+        status: "AVAILABLE",
+      },
+    });
+  }
+
+  const payoutCount = await prisma.sellerPayout.count({
+    where: { sellerId: options.sellerId },
+  });
+  if (payoutCount > 0) {
+    console.log("⏭️  Seller payouts already exist");
+    return;
+  }
+
+  const available = await prisma.sellerEarning.findMany({
+    where: { sellerId: options.sellerId, status: "AVAILABLE" },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const batches = [available.slice(0, 1), available.slice(1, 2)].filter(
+    (batch) => batch.length > 0,
+  );
+
+  const notes = [
+    "NEFT to HDFC · Aug settlement",
+    "IMPS to HDFC · weekly payout",
+  ];
+  const ages = [21, 8];
+
+  for (let index = 0; index < batches.length; index += 1) {
+    const batch = batches[index];
+    const gross = batch.reduce((sum, row) => sum + Number(row.grossAmount), 0);
+    const commission = batch.reduce(
+      (sum, row) => sum + Number(row.commissionAmount),
+      0,
+    );
+    const amount = batch.reduce((sum, row) => sum + Number(row.netAmount), 0);
+    const paidAt = daysAgo(ages[index] ?? 7);
+
+    const payout = await prisma.sellerPayout.create({
+      data: {
+        sellerId: options.sellerId,
+        gross,
+        commission,
+        amount,
+        status: "PAID",
+        note: notes[index],
+        paidAt,
+        createdAt: paidAt,
+      },
+    });
+
+    await prisma.sellerEarning.updateMany({
+      where: { id: { in: batch.map((row) => row.id) } },
+      data: {
+        status: "INCLUDED",
+        payoutId: payout.id,
+      },
+    });
+  }
+
+  console.log("✅ Seeded dummy payments, earnings, and payouts");
+}
+
 async function main() {
   console.log("🌱 Seeding seller dashboard demo data...");
   const passwordHash = await bcrypt.hash(PASSWORD, 12);
@@ -217,6 +436,15 @@ async function main() {
       console.log("✅ Created approved replacement request");
     }
   }
+
+  await seedPaymentDemo({
+    sellerId: seller.id,
+    profileId: seller.sellerProfile.id,
+    businessName: seller.sellerProfile.businessName,
+    customerId: customer.id,
+    products: withVariants,
+    address,
+  });
 
   console.log("✅ Seller demo ready");
   console.log(`\n📋 Seller login: ${seller.email} / ${PASSWORD}`);

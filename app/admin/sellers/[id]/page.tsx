@@ -5,6 +5,8 @@ import { getSellerById } from "@/actions/admin/manage-sellers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { SellerActions } from "@/components/admin/seller-actions";
+import { SellerCommissionForm } from "@/components/admin/seller-commission-form";
+import { KycActions } from "@/components/admin/kyc-actions";
 import { format } from "date-fns";
 
 export const metadata: Metadata = {
@@ -74,7 +76,7 @@ export default async function AdminSellerDetailPage({
           <CardHeader>
             <CardTitle className="text-sm">KYC Status</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
             <Badge
               variant="outline"
               className={
@@ -82,11 +84,18 @@ export default async function AdminSellerDetailPage({
                   ? "text-green-600"
                   : seller.kycStatus === "PENDING"
                     ? "text-yellow-600"
-                    : ""
+                    : seller.kycStatus === "REJECTED"
+                      ? "text-red-600"
+                      : ""
               }
             >
               {seller.kycStatus}
             </Badge>
+            {seller.kycRejectionReason ? (
+              <p className="text-sm text-destructive">
+                {seller.kycRejectionReason}
+              </p>
+            ) : null}
           </CardContent>
         </Card>
 
@@ -122,6 +131,15 @@ export default async function AdminSellerDetailPage({
             <div>
               <div className="text-sm text-muted-foreground">Commission Rate</div>
               <div className="font-medium">{Number(seller.commissionPercentage)}%</div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Used when the product category has no override.
+              </p>
+              <div className="mt-3">
+                <SellerCommissionForm
+                  sellerId={seller.sellerId}
+                  currentRate={Number(seller.commissionPercentage)}
+                />
+              </div>
             </div>
           </div>
 
@@ -157,6 +175,53 @@ export default async function AdminSellerDetailPage({
               {format(new Date(seller.createdAt), "MMMM dd, yyyy")}
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>KYC documents</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <div className="text-sm text-muted-foreground">GST certificate</div>
+              {seller.kycGstDocumentUrl ? (
+                <a
+                  href={seller.kycGstDocumentUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-medium text-primary hover:underline"
+                >
+                  View GST file
+                </a>
+              ) : (
+                <div className="font-medium text-muted-foreground">Not uploaded</div>
+              )}
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">PAN document</div>
+              {seller.kycPanDocumentUrl ? (
+                <a
+                  href={seller.kycPanDocumentUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-medium text-primary hover:underline"
+                >
+                  View PAN file
+                </a>
+              ) : (
+                <div className="font-medium text-muted-foreground">Not uploaded</div>
+              )}
+            </div>
+          </div>
+          <KycActions
+            sellerId={seller.sellerId}
+            kycStatus={seller.kycStatus}
+            hasDocuments={Boolean(
+              seller.kycGstDocumentUrl && seller.kycPanDocumentUrl,
+            )}
+          />
         </CardContent>
       </Card>
 

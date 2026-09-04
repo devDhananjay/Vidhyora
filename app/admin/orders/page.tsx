@@ -7,17 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import { getOrderStatusLabel } from "@/lib/orders/order-utils";
 import { format } from "date-fns";
+import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 
 export const metadata: Metadata = {
   title: "Orders | Super Admin",
 };
-
-function paymentBadge(status: string) {
-  if (status === "PAID") return <Badge className="bg-green-600">Paid</Badge>;
-  if (status === "FAILED") return <Badge variant="destructive">Failed</Badge>;
-  if (status === "REFUNDED") return <Badge variant="outline">Refunded</Badge>;
-  return <Badge variant="outline">{status}</Badge>;
-}
 
 export default async function AdminOrdersPage() {
   const orders = await getAllOrders();
@@ -92,7 +86,10 @@ export default async function AdminOrdersPage() {
                         <Badge variant="outline">
                           {getOrderStatusLabel(order.orderStatus)}
                         </Badge>
-                        {paymentBadge(order.paymentStatus)}
+                        <PaymentStatusBadge
+                          status={order.paymentStatus}
+                          provider={order.payments[0]?.provider}
+                        />
                       </div>
                     </div>
 

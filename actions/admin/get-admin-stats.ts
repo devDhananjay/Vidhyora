@@ -16,8 +16,11 @@ export type AdminStats = {
   totalRevenue: number;
   todayRevenue: number;
   pendingReviews: number;
+  pendingReturns: number;
   activeCoupons: number;
   totalCategories: number;
+  commissionEarned: number;
+  pendingPayouts: number;
 };
 
 export async function getAdminStats(): Promise<AdminStats> {
@@ -77,6 +80,10 @@ export async function getAdminStats(): Promise<AdminStats> {
       where: { status: "PENDING" },
     });
 
+    const pendingReturns = await prisma.returnRequest.count({
+      where: { status: "PENDING" },
+    });
+
     // Coupon stats
     const activeCoupons = await prisma.coupon.count({
       where: { isActive: true },
@@ -84,6 +91,16 @@ export async function getAdminStats(): Promise<AdminStats> {
 
     // Category stats
     const totalCategories = await prisma.category.count();
+
+    const [commissionAgg, pendingPayoutAgg] = await Promise.all([
+      prisma.sellerEarning.aggregate({
+        _sum: { commissionAmount: true },
+      }),
+      prisma.sellerEarning.aggregate({
+        where: { status: "AVAILABLE" },
+        _sum: { netAmount: true },
+      }),
+    ]);
 
     return {
       totalUsers,
@@ -98,8 +115,11 @@ export async function getAdminStats(): Promise<AdminStats> {
       totalRevenue: Number(revenueData._sum.total || 0),
       todayRevenue: Number(todayRevenueData._sum.total || 0),
       pendingReviews,
+      pendingReturns,
       activeCoupons,
       totalCategories,
+      commissionEarned: Number(commissionAgg._sum.commissionAmount || 0),
+      pendingPayouts: Number(pendingPayoutAgg._sum.netAmount || 0),
     };
   } catch (error) {
     console.error("Get admin stats error:", error);
@@ -116,8 +136,11 @@ export async function getAdminStats(): Promise<AdminStats> {
       totalRevenue: 0,
       todayRevenue: 0,
       pendingReviews: 0,
+      pendingReturns: 0,
       activeCoupons: 0,
       totalCategories: 0,
+      commissionEarned: 0,
+      pendingPayouts: 0,
     };
   }
 }

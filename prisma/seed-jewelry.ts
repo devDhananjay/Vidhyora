@@ -17,6 +17,7 @@ const jewelryProducts = [
       stone: "Diamond",
       weight: "3.5g",
       purity: "18K",
+      bestSeller: true,
     },
   },
   {
@@ -28,7 +29,7 @@ const jewelryProducts = [
     brand: "Golden Era",
     basePrice: 85000,
     compareAtPrice: 95000,
-    attributes: { metal: "22K Gold", weight: "15g", length: "18 inches" },
+    attributes: { metal: "22K Gold", weight: "15g", length: "18 inches", bestSeller: true },
   },
   {
     name: "Emerald Drop Earrings",
@@ -43,6 +44,7 @@ const jewelryProducts = [
       metal: "Sterling Silver",
       stone: "Emerald",
       weight: "4g",
+      bestSeller: true,
     },
   },
   {
@@ -270,6 +272,7 @@ const jewelryProducts = [
       metal: "Sterling Silver",
       stone: "Cubic Zirconia",
       weight: "6g",
+      bestSeller: true,
     },
   },
 ];
@@ -337,6 +340,56 @@ async function main() {
     });
     console.log("✅ Category created");
   }
+
+  const jewelleryChildren = [
+    {
+      name: "Gold",
+      slug: "gold",
+      description: "22K and 18K gold jewellery",
+      sortOrder: 1,
+      commissionPercentage: 8,
+    },
+    {
+      name: "Diamond",
+      slug: "diamond",
+      description: "Diamond jewellery and solitaires",
+      sortOrder: 2,
+      commissionPercentage: 12,
+    },
+    {
+      name: "Accessories",
+      slug: "accessories",
+      description: "Chains, bangles and everyday accessories",
+      sortOrder: 3,
+      commissionPercentage: 10,
+    },
+  ];
+
+  for (const child of jewelleryChildren) {
+    await prisma.category.upsert({
+      where: { slug: child.slug },
+      update: {
+        parentId: category.id,
+        commissionPercentage: child.commissionPercentage,
+        isActive: true,
+      },
+      create: {
+        name: child.name,
+        slug: child.slug,
+        description: child.description,
+        parentId: category.id,
+        isActive: true,
+        sortOrder: child.sortOrder,
+        commissionPercentage: child.commissionPercentage,
+      },
+    });
+  }
+
+  await prisma.category.update({
+    where: { id: category.id },
+    data: { commissionPercentage: 10 },
+  });
+  console.log("✅ Gold / Diamond / Accessories category rates ready");
 
   console.log(`\n📦 Creating ${jewelryProducts.length} jewelry products...\n`);
 

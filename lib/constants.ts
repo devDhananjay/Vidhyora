@@ -1,6 +1,10 @@
 export const APP_NAME = "VIDYORA";
+export const APP_TAGLINE = "Beyond Ornaments";
 export const APP_DESCRIPTION =
   "VIDYORA — India's trusted destination for gold, diamond and fine jewellery.";
+export const BRAND_LOGO_SRC = "/brand/vidyora-logo.png";
+export const BRAND_MONOGRAM_SRC = "/brand/vidyora-monogram.png";
+export const BRAND_FAVICON_SRC = "/favicon.ico";
 
 export const DEFAULT_CURRENCY = "INR";
 export const DEFAULT_COUNTRY = "IN";
@@ -26,6 +30,16 @@ export const ROUTES = {
   account: "/account",
   wishlist: "/wishlist",
   search: "/search",
+  storeLocator: "/store-locator",
+  help: "/help",
+  shipping: "/shipping",
+  returns: "/returns",
+  contact: "/contact",
+  privacy: "/privacy",
+  paymentOptions: "/payment-options",
+  blog: "/blog",
+  offers: "/offers",
+  partner: "/partner",
   seller: {
     root: "/seller",
     products: "/seller/products",
@@ -36,6 +50,8 @@ export const ROUTES = {
     sellers: "/admin/sellers",
     products: "/admin/products",
     categories: "/admin/categories",
+    stores: "/admin/stores",
+    help: "/admin/help",
   },
   auth: {
     login: "/login",

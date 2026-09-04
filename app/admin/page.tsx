@@ -6,10 +6,10 @@ import {
   ShoppingCart, 
   DollarSign,
   TrendingUp,
-  AlertCircle,
   CheckCircle,
   Clock,
-  Star
+  Star,
+  RotateCcw
 } from "lucide-react";
 import { getAdminStats, getRecentActivity } from "@/actions/admin/get-admin-stats";
 import { StatCard } from "@/components/seller/stat-card";
@@ -95,18 +95,26 @@ export default async function AdminDashboardPage() {
             description="Reviews awaiting moderation"
           />
         </Link>
-        <Link href="/admin/coupons">
+        <Link href="/admin/returns">
           <StatCard
-            title="Active Coupons"
-            value={stats.activeCoupons}
-            icon={AlertCircle}
-            description="Currently active discount coupons"
+            title="Returns & Replacements"
+            value={stats.pendingReturns}
+            icon={RotateCcw}
+            description="Requests awaiting Super Admin review"
+          />
+        </Link>
+        <Link href="/admin/payouts">
+          <StatCard
+            title="Pending Payouts"
+            value={formatCurrency(stats.pendingPayouts)}
+            icon={TrendingUp}
+            description={`${formatCurrency(stats.commissionEarned)} commission earned`}
           />
         </Link>
       </div>
 
       {/* Pending Actions Alert */}
-      {(stats.pendingProducts > 0 || stats.pendingSellers > 0 || stats.pendingReviews > 0) && (
+      {(stats.pendingProducts > 0 || stats.pendingSellers > 0 || stats.pendingReviews > 0 || stats.pendingReturns > 0) && (
         <Card className="border-orange-200 bg-orange-50/50">
           <CardHeader>
             <div className="flex items-center gap-2">
@@ -115,7 +123,7 @@ export default async function AdminDashboardPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
               {stats.pendingSellers > 0 && (
                 <Link href="/admin/sellers">
                   <div className="rounded-lg border bg-background p-4 hover:bg-muted">
@@ -148,6 +156,18 @@ export default async function AdminDashboardPage() {
                     </div>
                     <div className="text-sm text-muted-foreground">
                       Review{stats.pendingReviews === 1 ? "" : "s"} to moderate
+                    </div>
+                  </div>
+                </Link>
+              )}
+              {stats.pendingReturns > 0 && (
+                <Link href="/admin/returns">
+                  <div className="rounded-lg border bg-background p-4 hover:bg-muted">
+                    <div className="text-2xl font-bold text-orange-600">
+                      {stats.pendingReturns}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      Return{stats.pendingReturns === 1 ? "" : "s"} to review
                     </div>
                   </div>
                 </Link>

@@ -35,6 +35,7 @@ export async function createCategory(
         parentId: validated.parentId,
         isActive: validated.isActive,
         sortOrder: validated.sortOrder,
+        commissionPercentage: validated.commissionPercentage ?? null,
       },
     });
 
@@ -85,6 +86,7 @@ export async function updateCategory(
         parentId: validated.parentId,
         isActive: validated.isActive,
         sortOrder: validated.sortOrder,
+        commissionPercentage: validated.commissionPercentage ?? null,
       },
     });
 

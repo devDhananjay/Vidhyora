@@ -1,14 +1,20 @@
 import type { Metadata } from "next";
 import { APP_NAME, APP_DESCRIPTION, DEFAULT_CURRENCY } from "@/lib/constants";
+import { DEFAULT_COMMISSION_PERCENTAGE } from "@/lib/commission";
+import { getCommissionSettings } from "@/actions/admin/manage-commission";
+import { CategoryCommissionRow } from "@/components/admin/category-commission-row";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Settings | Super Admin",
 };
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
+  const commission = await getCommissionSettings();
+
   return (
     <div className="space-y-6">
       <div>
@@ -38,6 +44,57 @@ export default function AdminSettingsPage() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>Commission rates</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Split on each paid item: category rate if set, otherwise the seller
+            admin&apos;s rate, otherwise {commission.defaultRate}%. Changing a
+            rate applies to new paid orders only. Per-seller rates are on each{" "}
+            <Link href="/admin/sellers" className="text-primary hover:underline">
+              seller admin
+            </Link>{" "}
+            profile.
+          </p>
+          {commission.categories.length === 0 ? (
+            <div className="text-sm text-muted-foreground">
+              Add categories first, then set jewellery / gold / diamond rates here.
+            </div>
+          ) : (
+            <div>
+              {commission.categories.map((category) => (
+                <div key={category.id}>
+                  <CategoryCommissionRow
+                    categoryId={category.id}
+                    name={category.name}
+                    currentRate={
+                      category.commissionPercentage == null
+                        ? null
+                        : Number(category.commissionPercentage)
+                    }
+                  />
+                  {category.children.map((child) => (
+                    <div key={child.id} className="pl-6">
+                      <CategoryCommissionRow
+                        categoryId={child.id}
+                        name={`${category.name} / ${child.name}`}
+                        currentRate={
+                          child.commissionPercentage == null
+                            ? null
+                            : Number(child.commissionPercentage)
+                        }
+                      />
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -56,7 +113,7 @@ export default function AdminSettingsPage() {
                 <div className="font-medium">Default seller commission</div>
                 <div className="text-sm text-muted-foreground">Applied to new sellers</div>
               </div>
-              <Badge variant="outline">10%</Badge>
+              <Badge variant="outline">{DEFAULT_COMMISSION_PERCENTAGE}%</Badge>
             </div>
             <div className="flex items-center justify-between rounded-xl border px-4 py-3">
               <div>

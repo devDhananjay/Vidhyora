@@ -23,14 +23,10 @@ export async function addToWishlist(
       });
     }
 
-    // Check if already in wishlist
-    const existing = await prisma.wishlistItem.findUnique({
+    const existing = await prisma.wishlistItem.findFirst({
       where: {
-        wishlistId_productId_variantId: {
-          wishlistId: wishlist.id,
-          productId,
-          variantId: null,
-        },
+        wishlistId: wishlist.id,
+        productId,
       },
     });
 
@@ -41,11 +37,17 @@ export async function addToWishlist(
       };
     }
 
-    // Add to wishlist
+    const variant = await prisma.productVariant.findFirst({
+      where: { productId, isActive: true },
+      select: { id: true },
+      orderBy: { price: "asc" },
+    });
+
     await prisma.wishlistItem.create({
       data: {
         wishlistId: wishlist.id,
         productId,
+        variantId: variant?.id,
       },
     });
 
@@ -88,13 +90,10 @@ export async function removeFromWishlist(
       };
     }
 
-    await prisma.wishlistItem.delete({
+    await prisma.wishlistItem.deleteMany({
       where: {
-        wishlistId_productId_variantId: {
-          wishlistId: wishlist.id,
-          productId,
-          variantId: null,
-        },
+        wishlistId: wishlist.id,
+        productId,
       },
     });
 

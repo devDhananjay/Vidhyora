@@ -12,6 +12,11 @@ export const categorySchema = z.object({
   parentId: z.string().optional().nullable(),
   isActive: z.boolean().default(true),
   sortOrder: z.number().int().min(0).default(0),
+  commissionPercentage: z.preprocess((value) => {
+    if (value === "" || value === undefined || value === null) return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }, z.number().min(0).max(100).nullable().optional()),
 });
 
 export const categoryAttributeSchema = z.object({

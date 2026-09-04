@@ -14,6 +14,9 @@ export type SellerStats = {
   thisMonthRevenue: number;
   lowStockProducts: number;
   totalReturns: number;
+  pendingReturns: number;
+  availablePayout: number;
+  commissionDeducted: number;
 };
 
 export async function getSellerStats(): Promise<SellerStats> {
@@ -105,11 +108,27 @@ export async function getSellerStats(): Promise<SellerStats> {
     });
 
     // Get return stats
-    const totalReturns = await prisma.returnRequest.count({
-      where: {
-        orderItem: { sellerId: sellerUserId },
-      },
-    });
+    const [totalReturns, pendingReturns, availablePayoutAgg, commissionAgg] = await Promise.all([
+      prisma.returnRequest.count({
+        where: {
+          orderItem: { sellerId: sellerUserId },
+        },
+      }),
+      prisma.returnRequest.count({
+        where: {
+          status: "PENDING",
+          orderItem: { sellerId: sellerUserId },
+        },
+      }),
+      prisma.sellerEarning.aggregate({
+        where: { sellerId: sellerUserId, status: "AVAILABLE" },
+        _sum: { netAmount: true },
+      }),
+      prisma.sellerEarning.aggregate({
+        where: { sellerId: sellerUserId },
+        _sum: { commissionAmount: true },
+      }),
+    ]);
 
     return {
       totalProducts,
@@ -122,6 +141,9 @@ export async function getSellerStats(): Promise<SellerStats> {
       thisMonthRevenue: Number(thisMonthRevenueData._sum.total || 0),
       lowStockProducts,
       totalReturns,
+      pendingReturns,
+      availablePayout: Number(availablePayoutAgg._sum.netAmount || 0),
+      commissionDeducted: Number(commissionAgg._sum.commissionAmount || 0),
     };
   } catch (error) {
     console.error("Get seller stats error:", error);
@@ -136,6 +158,9 @@ export async function getSellerStats(): Promise<SellerStats> {
       thisMonthRevenue: 0,
       lowStockProducts: 0,
       totalReturns: 0,
+      pendingReturns: 0,
+      availablePayout: 0,
+      commissionDeducted: 0,
     };
   }
 }

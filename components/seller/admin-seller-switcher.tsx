@@ -1,5 +1,7 @@
 "use client";
 
+import { useTransition } from "react";
+import { usePathname } from "next/navigation";
 import { setViewAsSeller } from "@/actions/seller/view-as-seller";
 
 type SellerOption = {
@@ -15,22 +17,35 @@ export function AdminSellerSwitcher({
   sellers: SellerOption[];
   currentSellerId: string;
 }) {
+  const pathname = usePathname();
+  const [isPending, startTransition] = useTransition();
+
+  const switchTo = (sellerId: string) => {
+    if (!sellerId || sellerId === currentSellerId) return;
+
+    startTransition(async () => {
+      await setViewAsSeller(sellerId, pathname);
+    });
+  };
+
+  const current = sellers.find((seller) => seller.sellerId === currentSellerId);
+
   return (
-    <form
-      action={setViewAsSeller}
-      className="flex flex-wrap items-center justify-between gap-3 border-b border-[#ead9c4] bg-[#f6ebe8] px-6 py-3 text-sm"
+    <div
+      className={`flex flex-wrap items-center justify-between gap-3 border-b border-[#ead9c4] bg-[#f6ebe8] px-6 py-3 text-sm ${isPending ? "opacity-70" : ""}`}
     >
       <p className="text-[#8b2e2e]">
-        Super Admin monitoring: you are reviewing a seller admin store. Switch
-        accounts without logging out.
+        {isPending
+          ? "Switching seller admin store…"
+          : `Super Admin monitoring ${current?.businessName ?? "a seller admin store"}. Switch accounts without logging out.`}
       </p>
       <label className="flex items-center gap-2">
         <span className="text-neutral-600">Viewing</span>
         <select
-          name="sellerId"
-          defaultValue={currentSellerId}
-          onChange={(event) => event.currentTarget.form?.requestSubmit()}
-          className="rounded-full border border-[#ead9c4] bg-white px-3 py-1.5 text-sm text-neutral-900"
+          value={currentSellerId}
+          disabled={isPending}
+          onChange={(event) => switchTo(event.target.value)}
+          className="max-w-[min(100%,20rem)] rounded-full border border-[#ead9c4] bg-white px-3 py-1.5 text-sm text-neutral-900 disabled:cursor-wait disabled:opacity-60"
         >
           {sellers.map((seller) => (
             <option key={seller.sellerId} value={seller.sellerId}>
@@ -39,6 +54,6 @@ export function AdminSellerSwitcher({
           ))}
         </select>
       </label>
-    </form>
+    </div>
   );
 }

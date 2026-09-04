@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { LoginForm } from "@/components/auth/login-form";
 import { AuthFrame } from "@/components/auth/auth-frame";
-import { APP_NAME } from "@/lib/constants";
+import { APP_NAME, ROUTES } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -35,7 +35,7 @@ export default async function LoginPage({
           </div>
           <div>
             Want to sell on {APP_NAME}?{" "}
-            <Link href="/seller/register" className="text-[#8b2e2e] hover:underline">
+            <Link href={ROUTES.partner} className="text-[#8b2e2e] hover:underline">
               Partner with Us
             </Link>
           </div>

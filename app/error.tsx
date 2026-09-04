@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { ErrorScreen } from "@/components/error/error-screen";
 
-export default function GlobalError({
+export default function Error({
   error,
   reset,
 }: {
@@ -14,17 +14,5 @@ export default function GlobalError({
     console.error(error);
   }, [error]);
 
-  return (
-    <html lang="en">
-      <body className="flex min-h-screen items-center justify-center p-4">
-        <div className="text-center">
-          <h2 className="mb-2 text-2xl font-bold">Something went wrong</h2>
-          <p className="mb-4 text-muted-foreground">
-            An unexpected error occurred. Please try again.
-          </p>
-          <Button onClick={reset}>Try again</Button>
-        </div>
-      </body>
-    </html>
-  );
+  return <ErrorScreen error={error} reset={reset} />;
 }

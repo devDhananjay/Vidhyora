@@ -5,7 +5,8 @@ import {
   DollarSign, 
   TrendingUp,
   AlertCircle,
-  CheckCircle
+  Wallet,
+  RotateCcw
 } from "lucide-react";
 import { getSellerStats, getRecentOrders, getLowStockProducts } from "@/actions/seller/get-seller-stats";
 import { StatCard } from "@/components/seller/stat-card";
@@ -13,6 +14,7 @@ import { RecentOrdersTable } from "@/components/seller/recent-orders-table";
 import { LowStockAlert } from "@/components/seller/low-stock-alert";
 import { formatCurrency } from "@/lib/utils";
 import { getActingSeller } from "@/lib/seller-context";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Seller Admin | VIDYORA",
@@ -56,12 +58,14 @@ export default async function SellerDashboardPage() {
           icon={TrendingUp}
           description="Revenue this month"
         />
-        <StatCard
-          title="Total Orders"
-          value={stats.totalOrders}
-          icon={ShoppingCart}
-          description={`${stats.pendingOrders} pending`}
-        />
+        <Link href="/seller/orders">
+          <StatCard
+            title="Total Orders"
+            value={stats.totalOrders}
+            icon={ShoppingCart}
+            description={`${stats.pendingOrders} pending`}
+          />
+        </Link>
         <StatCard
           title="Active Products"
           value={stats.activeProducts}
@@ -71,19 +75,29 @@ export default async function SellerDashboardPage() {
       </div>
 
       {/* Action Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Link href="/seller/payments">
+          <StatCard
+            title="Available Payout"
+            value={formatCurrency(stats.availablePayout)}
+            icon={Wallet}
+            description={`${formatCurrency(stats.commissionDeducted)} commission deducted`}
+          />
+        </Link>
         <StatCard
           title="Pending Approval"
           value={stats.pendingApproval}
           icon={AlertCircle}
           description="Products awaiting admin approval"
         />
-        <StatCard
-          title="Completed Orders"
-          value={stats.completedOrders}
-          icon={CheckCircle}
-          description="Successfully delivered"
-        />
+        <Link href="/seller/returns">
+          <StatCard
+            title="Returns & Replacements"
+            value={stats.pendingReturns}
+            icon={RotateCcw}
+            description={`${stats.totalReturns} total requests`}
+          />
+        </Link>
         <StatCard
           title="Low Stock Items"
           value={stats.lowStockProducts}

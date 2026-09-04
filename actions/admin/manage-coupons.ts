@@ -42,6 +42,7 @@ export async function createCoupon(
     });
 
     revalidatePath("/admin/coupons");
+    revalidatePath("/offers");
 
     return {
       success: true,
@@ -94,6 +95,7 @@ export async function updateCoupon(
     });
 
     revalidatePath("/admin/coupons");
+    revalidatePath("/offers");
 
     return {
       success: true,
@@ -117,6 +119,7 @@ export async function deleteCoupon(id: string): Promise<ActionResult<void>> {
     });
 
     revalidatePath("/admin/coupons");
+    revalidatePath("/offers");
 
     return {
       success: true,
@@ -153,6 +156,7 @@ export async function toggleCouponStatus(id: string): Promise<ActionResult<void>
     });
 
     revalidatePath("/admin/coupons");
+    revalidatePath("/offers");
 
     return {
       success: true,

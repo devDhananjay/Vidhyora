@@ -54,7 +54,7 @@ export function ProductFavoriteButton({
       onClick={handleClick}
       disabled={pending}
       aria-label={saved ? "Remove from favourites" : "Add to favourites"}
-      className="absolute right-3 top-3 z-10 flex size-9 items-center justify-center rounded-full bg-white shadow-[0_2px_10px_rgba(0,0,0,0.18)] transition hover:scale-105 disabled:opacity-70"
+      className="absolute right-3 top-3 z-10 flex size-9 items-center justify-center rounded-full bg-white shadow-[0_2px_10px_rgba(0,0,0,0.18)] transition duration-300 hover:scale-110 disabled:opacity-70 group-hover:scale-105"
     >
       <Heart
         className={cn(

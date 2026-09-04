@@ -42,7 +42,7 @@ export function UserMenu({ user }: UserMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" disabled={isLoading}>
-          <User className="size-5" />
+          <User className="size-5 text-[#8b2e2e]" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">

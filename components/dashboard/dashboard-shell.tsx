@@ -16,20 +16,28 @@ import {
   BarChart3,
   TrendingUp,
   RotateCcw,
+  Wallet,
+  MapPin,
+  CircleHelp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { APP_NAME } from "@/lib/constants";
+import { BrandLogo } from "@/components/brand/brand-logo";
 
 const ADMIN_NAV = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Seller Admins", href: "/admin/sellers", icon: Store },
   { label: "Products", href: "/admin/products", icon: Package },
+  { label: "Inventory", href: "/admin/inventory", icon: TrendingUp },
   { label: "Categories", href: "/admin/categories", icon: FolderTree },
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
+  { label: "Returns", href: "/admin/returns", icon: RotateCcw },
   { label: "Reviews", href: "/admin/reviews", icon: Star },
   { label: "Coupons", href: "/admin/coupons", icon: Tag },
   { label: "Payments", href: "/admin/payments", icon: DollarSign },
+  { label: "Payouts", href: "/admin/payouts", icon: Wallet },
+  { label: "Stores", href: "/admin/stores", icon: MapPin },
+  { label: "Help", href: "/admin/help", icon: CircleHelp },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
@@ -40,6 +48,7 @@ const SELLER_NAV = [
   { label: "Orders", href: "/seller/orders", icon: ShoppingCart },
   { label: "Inventory", href: "/seller/inventory", icon: TrendingUp },
   { label: "Returns", href: "/seller/returns", icon: RotateCcw },
+  { label: "Payments", href: "/seller/payments", icon: Wallet },
   { label: "Analytics", href: "/seller/analytics", icon: BarChart3 },
   { label: "Profile", href: "/seller/profile", icon: Store },
   { label: "Settings", href: "/seller/settings", icon: Settings },
@@ -64,11 +73,8 @@ export function DashboardShell({
       <header className="sticky top-0 z-50 border-b border-neutral-100 bg-white">
         <div className="flex h-16 items-center justify-between px-6">
           <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="font-serif text-[28px] tracking-[0.12em] text-[#8b2e2e]"
-            >
-              {APP_NAME}
+            <Link href="/" className="shrink-0" aria-label="VIDYORA home">
+              <BrandLogo size="sm" priority className="h-12 w-12" />
             </Link>
             <span className="rounded-full bg-[#8b2e2e]/10 px-2.5 py-1 text-[10px] font-medium tracking-[0.16em] text-[#8b2e2e] uppercase">
               {badge}

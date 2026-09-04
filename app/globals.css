@@ -86,3 +86,49 @@
     scroll-behavior: smooth;
   }
 }
+
+@keyframes vidyora-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes vidyora-glow {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes vidyora-twinkle {
+  0%,
+  100% {
+    opacity: 0.15;
+    transform: scale(0.55) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1) rotate(18deg);
+  }
+}
+
+.animate-vidyora-float {
+  animation: vidyora-float 4.2s ease-in-out infinite;
+}
+
+.animate-vidyora-glow {
+  animation: vidyora-glow 5s ease-in-out infinite;
+}
+
+.animate-vidyora-twinkle {
+  animation: vidyora-twinkle 2.4s ease-in-out infinite;
+}

@@ -1,6 +1,11 @@
 import { formatCurrency } from "@/lib/utils";
 import type { OrderWithDetails } from "@/types/order";
-import { MapPin, CreditCard, Package } from "lucide-react";
+import { MapPin, CreditCard } from "lucide-react";
+import {
+  getPaymentProviderLabel,
+  paymentProviderFrom,
+} from "@/lib/orders/order-utils";
+import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 
 type OrderSummaryCardProps = {
   order: OrderWithDetails;
@@ -76,8 +81,20 @@ export function OrderSummaryCard({ order }: OrderSummaryCardProps) {
           <CreditCard className="size-5" />
           <h3>Payment</h3>
         </div>
-        <div className="text-sm">
-          <p>Status: {order.paymentStatus}</p>
+        <div className="space-y-2 text-sm">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-muted-foreground">Status</span>
+            <PaymentStatusBadge
+              status={order.paymentStatus}
+              provider={paymentProviderFrom(order.payments)}
+            />
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-muted-foreground">Method</span>
+            <span className="font-medium">
+              {getPaymentProviderLabel(paymentProviderFrom(order.payments))}
+            </span>
+          </div>
         </div>
       </div>
     </div>

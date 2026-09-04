@@ -14,6 +14,12 @@ import prisma from "@/lib/prisma";
 import { ProductCard } from "@/components/products/product-card";
 import { ROUTES } from "@/lib/constants";
 import { shopHref } from "@/lib/nav/mega-menu-data";
+import {
+  imageUrlsForProduct,
+  isBestSellerFlag,
+} from "@/lib/products/product-card-data";
+import { StyleStories } from "@/components/storefront/style-stories";
+import { ChooseYourLook } from "@/components/storefront/choose-your-look";
 
 const CATEGORIES = [
   {
@@ -26,7 +32,7 @@ const CATEGORIES = [
     name: "Finger Rings",
     href: shopHref({ item: "rings", collection: "Finger Rings" }),
     image:
-      "https://images.unsplash.com/photo-1605100804763-247f83b2bdcd?w=800&q=80",
+      "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=800&q=80",
   },
   {
     name: "Pendants",
@@ -71,7 +77,7 @@ const TRENDING = [
     title: "Gifting Jewellery",
     href: shopHref({ occasion: "festive", collection: "Gifting" }),
     image:
-      "https://images.unsplash.com/photo-1611652022419-a73ae642c8fc?w=900&q=80",
+      "https://images.unsplash.com/photo-1589674781759-c21c37956a44?w=900&q=80",
   },
   {
     title: "Everyday Diamonds",
@@ -81,7 +87,7 @@ const TRENDING = [
       collection: "Everyday Diamonds",
     }),
     image:
-      "https://images.unsplash.com/photo-1603561591411-709570eaee86?w=900&q=80",
+      "https://images.unsplash.com/photo-1603561596112-0a132b757442?w=900&q=80",
   },
 ];
 
@@ -96,6 +102,10 @@ async function getFeaturedProducts() {
         where: { isActive: true },
         take: 1,
       },
+      images: {
+        select: { url: true },
+        orderBy: { sortOrder: "asc" },
+      },
     },
     orderBy: { createdAt: "desc" },
     take: 8,
@@ -109,6 +119,8 @@ async function getFeaturedProducts() {
     basePrice: Number(p.basePrice),
     compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
     thumbnail: p.thumbnail,
+    images: imageUrlsForProduct(p),
+    isBestSeller: isBestSellerFlag(p.attributes),
   }));
 }
 
@@ -121,7 +133,8 @@ function SectionHeading({
 }) {
   return (
     <div className="mb-10 text-center">
-      <h2 className="font-serif text-3xl text-[#2b1a16] md:text-5xl">{title}</h2>
+      <h2 className="font-serif text-3xl text-primary md:text-5xl">{title}</h2>
+      <span className="mx-auto mt-4 block h-px w-12 bg-primary/35" />
       <p className="mt-3 text-sm text-neutral-500 md:text-base">{subtitle}</p>
     </div>
   );
@@ -314,7 +327,7 @@ export default async function HomePage() {
               className="group relative min-h-[240px] overflow-hidden"
             >
               <Image
-                src="https://images.unsplash.com/photo-1605100804763-247f83b2bdcd?w=1000&q=80"
+                src="https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=1000&q=80"
                 alt="Diamond jewellery"
                 fill
                 className="object-cover transition duration-700 group-hover:scale-105"
@@ -366,6 +379,10 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
+
+      {/* Choose Your Look + Styling 101 (kept together, above Assurance) */}
+      <ChooseYourLook />
+      <StyleStories />
 
       {/* Assurance */}
       <section className="border-y border-neutral-100 bg-[#faf8f6] py-16">

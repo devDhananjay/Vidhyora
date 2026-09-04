@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { APP_NAME } from "@/lib/constants";
+import { BrandLogo } from "@/components/brand/brand-logo";
 
 export function AuthFrame({
   title,
@@ -18,11 +18,8 @@ export function AuthFrame({
     <div className="flex min-h-screen items-center justify-center bg-[#faf8f6] p-4 py-12">
       <div className={`w-full ${wide ? "max-w-2xl" : "max-w-md"}`}>
         <div className="text-center">
-          <Link
-            href="/"
-            className="font-serif text-[34px] tracking-[0.14em] text-[#8b2e2e]"
-          >
-            {APP_NAME}
+          <Link href="/" className="inline-flex justify-center" aria-label="VIDYORA home">
+            <BrandLogo size="lg" priority />
           </Link>
           <h1 className="mt-6 font-serif text-3xl text-neutral-900">{title}</h1>
           <p className="mt-2 text-sm text-neutral-500">{subtitle}</p>

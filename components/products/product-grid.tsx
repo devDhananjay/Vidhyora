@@ -8,6 +8,10 @@ import {
   getProductOrderBy,
   type ProductListParams,
 } from "@/lib/products/product-query";
+import {
+  imageUrlsForProduct,
+  isBestSellerFlag,
+} from "@/lib/products/product-card-data";
 
 export async function ProductGrid({
   searchParams,
@@ -32,6 +36,11 @@ export async function ProductGrid({
         basePrice: true,
         compareAtPrice: true,
         thumbnail: true,
+        attributes: true,
+        images: {
+          select: { url: true },
+          orderBy: { sortOrder: "asc" },
+        },
       },
       orderBy,
       skip,
@@ -70,6 +79,8 @@ export async function ProductGrid({
               compareAtPrice: product.compareAtPrice
                 ? Number(product.compareAtPrice)
                 : null,
+              images: imageUrlsForProduct(product),
+              isBestSeller: isBestSellerFlag(product.attributes),
             }}
           />
         ))}

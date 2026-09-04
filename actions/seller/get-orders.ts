@@ -44,6 +44,7 @@ export async function getSellerOrders(filters?: {
                 email: true,
               },
             },
+            payments: true,
           },
         },
         product: {
@@ -96,6 +97,8 @@ export async function getSellerOrderById(orderItemId: string) {
                 phone: true,
               },
             },
+            payments: true,
+            shipments: true,
           },
         },
         product: {

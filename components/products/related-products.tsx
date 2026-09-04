@@ -1,5 +1,9 @@
 import prisma from "@/lib/prisma";
 import { ProductCard } from "@/components/products/product-card";
+import {
+  imageUrlsForProduct,
+  isBestSellerFlag,
+} from "@/lib/products/product-card-data";
 
 export async function RelatedProducts({
   categoryId,
@@ -23,6 +27,11 @@ export async function RelatedProducts({
       basePrice: true,
       compareAtPrice: true,
       thumbnail: true,
+      attributes: true,
+      images: {
+        select: { url: true },
+        orderBy: { sortOrder: "asc" },
+      },
     },
     take: 4,
     orderBy: { createdAt: "desc" },
@@ -45,6 +54,8 @@ export async function RelatedProducts({
               compareAtPrice: product.compareAtPrice
                 ? Number(product.compareAtPrice)
                 : null,
+              images: imageUrlsForProduct(product),
+              isBestSeller: isBestSellerFlag(product.attributes),
             }}
           />
         ))}

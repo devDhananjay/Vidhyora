@@ -14,9 +14,10 @@ import { ProductPolicy } from "@/components/products/product-policy";
 import { RelatedProducts } from "@/components/products/related-products";
 import { ReviewStatsCard } from "@/components/reviews/review-stats-card";
 import { ReviewsList } from "@/components/reviews/reviews-list";
-import { Heart, Share2, Shield, TruckIcon } from "lucide-react";
+import { Heart, Share2, Shield, Star, TruckIcon } from "lucide-react";
 import { generateProductStructuredData, generateBreadcrumbStructuredData } from "@/lib/structured-data";
 import { getProductReviews } from "@/actions/reviews/get-reviews";
+import { isBestSellerFlag } from "@/lib/products/product-card-data";
 
 async function getProduct(slug: string) {
   const product = await prisma.product.findUnique({
@@ -195,6 +196,12 @@ export default async function ProductDetailPage({
               {product.brand}
             </div>
             <h1 className="font-serif text-4xl text-neutral-900">{product.name}</h1>
+            {isBestSellerFlag(product.attributes) ? (
+              <span className="mt-3 inline-flex items-center gap-1 rounded-md bg-[#c5a46e] px-2.5 py-1 text-[10px] font-semibold tracking-[0.12em] text-white">
+                <Star className="size-2.5 fill-white" strokeWidth={0} />
+                BESTSELLER
+              </span>
+            ) : null}
             {product.shortDescription && (
               <p className="mt-2 text-muted-foreground">
                 {product.shortDescription}

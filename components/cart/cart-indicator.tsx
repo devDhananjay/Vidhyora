@@ -15,7 +15,7 @@ export async function CartIndicator() {
         className="relative rounded-full p-2 hover:bg-accent"
         aria-label="Shopping cart"
       >
-        <ShoppingBag className="size-5" strokeWidth={1.5} />
+        <ShoppingBag className="size-5 text-[#8b2e2e]" strokeWidth={1.5} />
       </Link>
     );
   }
@@ -41,7 +41,7 @@ export async function CartIndicator() {
       className="relative rounded-full p-2 hover:bg-accent"
       aria-label={`Shopping cart with ${itemCount} items`}
     >
-      <ShoppingBag className="size-5" strokeWidth={1.5} />
+      <ShoppingBag className="size-5 text-[#8b2e2e]" strokeWidth={1.5} />
       {itemCount > 0 && (
         <Badge
           variant="destructive"

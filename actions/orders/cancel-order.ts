@@ -50,13 +50,16 @@ export async function cancelOrder(
         },
       });
 
-      // Release reserved stock
+      // Release reserved stock for unpaid COD, restore deducted stock otherwise
+      const restoreReserved =
+        order.orderStatus === "ORDERED" && order.paymentStatus === "PENDING";
+
       for (const item of order.items) {
         await tx.productVariant.update({
           where: { id: item.variantId },
-          data: {
-            reservedStock: { decrement: item.quantity },
-          },
+          data: restoreReserved
+            ? { reservedStock: { decrement: item.quantity } }
+            : { stock: { increment: item.quantity } },
         });
       }
 

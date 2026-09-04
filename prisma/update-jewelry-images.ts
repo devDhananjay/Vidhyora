@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 const jewelryImages: Record<string, string> = {
   "diamond-solitaire-ring":
-    "https://images.unsplash.com/photo-1605100804763-247f83b2bdcd?w=800&q=80",
+    "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=800&q=80",
   "gold-chain-necklace":
     "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800&q=80",
   "emerald-drop-earrings":
@@ -30,19 +30,19 @@ const jewelryImages: Record<string, string> = {
   "coral-beaded-necklace":
     "https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=800&q=80",
   "rose-gold-charm-bracelet":
-    "https://images.unsplash.com/photo-1611652022419-a73ae642c8fc?w=800&q=80",
+    "https://images.unsplash.com/photo-1589674781759-c21c37956a44?w=800&q=80",
   "amethyst-ring-set":
-    "https://images.unsplash.com/photo-1603561591411-709570eaee86?w=800&q=80",
+    "https://images.unsplash.com/photo-1603561596112-0a132b757442?w=800&q=80",
   "antique-gold-choker":
     "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800&q=80",
   "turquoise-pendant-set":
-    "https://images.unsplash.com/photo-1611652022419-a73ae642c8fc?w=800&q=80",
+    "https://images.unsplash.com/photo-1589674781759-c21c37956a44?w=800&q=80",
   "diamond-stud-earrings":
     "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800&q=80",
   "gold-anklet-pair":
     "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=800&q=80",
   "cubic-zirconia-cocktail-ring":
-    "https://images.unsplash.com/photo-1605100804763-247f83b2bdcd?w=800&q=80",
+    "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=800&q=80",
 };
 
 async function main() {

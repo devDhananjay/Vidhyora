@@ -8,6 +8,8 @@ import { getSellerOrders } from "@/actions/seller/get-orders";
 import { formatCurrency } from "@/lib/utils";
 import { getOrderStatusLabel } from "@/lib/orders/order-utils";
 import { format } from "date-fns";
+import { SellerFulfillmentActions } from "@/components/seller/seller-fulfillment-actions";
+import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 
 export const metadata: Metadata = {
   title: "Orders | Seller Dashboard",
@@ -91,9 +93,15 @@ export default async function SellerOrdersPage() {
                           )}
                         </div>
 
-                        <Badge variant="outline">
-                          {getOrderStatusLabel(item.order.orderStatus)}
-                        </Badge>
+                        <div className="flex flex-col items-end gap-2">
+                          <Badge variant="outline">
+                            {getOrderStatusLabel(item.order.orderStatus)}
+                          </Badge>
+                          <PaymentStatusBadge
+                            status={item.order.paymentStatus}
+                            provider={item.order.payments[0]?.provider}
+                          />
+                        </div>
                       </div>
 
                       <div className="mt-2 grid grid-cols-4 gap-4 text-sm">
@@ -124,12 +132,17 @@ export default async function SellerOrdersPage() {
                         </div>
                       </div>
 
-                      <div className="mt-2 flex gap-2">
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
                         <Link href={`/seller/orders/${item.id}`}>
                           <Button variant="outline" size="sm">
                             View Details
                           </Button>
                         </Link>
+                        <SellerFulfillmentActions
+                          orderItemId={item.id}
+                          currentStatus={item.order.orderStatus}
+                          compact
+                        />
                       </div>
                     </div>
                   </div>

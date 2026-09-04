@@ -3,6 +3,7 @@ import { getActingSeller } from "@/lib/seller-context";
 import prisma from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { KycUploadForm } from "@/components/seller/kyc-upload-form";
 
 export const metadata: Metadata = {
   title: "Profile | Seller Dashboard",
@@ -91,9 +92,46 @@ export default async function SellerProfilePage() {
           </CardHeader>
           <CardContent>
             {getKycBadge(sellerProfile.kycStatus)}
+            {sellerProfile.kycStatus === "REJECTED" &&
+            sellerProfile.kycRejectionReason ? (
+              <p className="mt-2 text-sm text-destructive">
+                Reason: {sellerProfile.kycRejectionReason}
+              </p>
+            ) : null}
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>KYC documents</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {acting?.isAdminView ? (
+            <p className="text-sm text-muted-foreground">
+              Seller admin uploads GST and PAN from their own login. Super Admin
+              verifies on the seller detail page.
+            </p>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2">
+              <KycUploadForm
+                kind="gst"
+                label="GST certificate"
+                currentUrl={sellerProfile.kycGstDocumentUrl}
+              />
+              <KycUploadForm
+                kind="pan"
+                label="PAN document"
+                currentUrl={sellerProfile.kycPanDocumentUrl}
+              />
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">
+            JPG, PNG, WEBP or PDF up to 5 MB. Upload both files, then Super Admin
+            verifies KYC.
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Personal Information */}
       <Card>

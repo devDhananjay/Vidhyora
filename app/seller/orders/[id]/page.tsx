@@ -6,8 +6,14 @@ import { getSellerOrderById } from "@/actions/seller/get-orders";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
-import { getOrderStatusLabel } from "@/lib/orders/order-utils";
+import {
+  getOrderStatusLabel,
+  getPaymentProviderLabel,
+  paymentProviderFrom,
+} from "@/lib/orders/order-utils";
 import { format } from "date-fns";
+import { SellerFulfillmentActions } from "@/components/seller/seller-fulfillment-actions";
+import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 
 export const metadata: Metadata = {
   title: "Order Details | Seller Dashboard",
@@ -212,21 +218,56 @@ export default async function SellerOrderDetailPage({
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Status</span>
-                  <Badge
-                    className={
-                      orderItem.order.paymentStatus === "PAID"
-                        ? "bg-green-600"
-                        : "bg-yellow-600"
-                    }
-                  >
-                    {orderItem.order.paymentStatus}
-                  </Badge>
+                  <PaymentStatusBadge
+                    status={orderItem.order.paymentStatus}
+                    provider={paymentProviderFrom(orderItem.order.payments)}
+                  />
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Method</span>
-                  <span className="font-medium">Online / COD</span>
+                  <span className="font-medium">
+                    {getPaymentProviderLabel(
+                      paymentProviderFrom(orderItem.order.payments),
+                    )}
+                  </span>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Fulfillment</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <SellerFulfillmentActions
+                orderItemId={orderItem.id}
+                currentStatus={orderItem.order.orderStatus}
+              />
+              {orderItem.order.shipments[0] ? (
+                <div className="border-t pt-4 text-sm">
+                  <div className="font-medium">Shipment</div>
+                  {orderItem.order.shipments[0].courier ? (
+                    <p className="mt-1 text-muted-foreground">
+                      Courier: {orderItem.order.shipments[0].courier}
+                    </p>
+                  ) : null}
+                  {orderItem.order.shipments[0].trackingNumber ? (
+                    <p className="text-muted-foreground">
+                      Tracking: {orderItem.order.shipments[0].trackingNumber}
+                    </p>
+                  ) : null}
+                  {orderItem.order.shipments[0].shippedAt ? (
+                    <p className="text-muted-foreground">
+                      Shipped{" "}
+                      {format(
+                        new Date(orderItem.order.shipments[0].shippedAt),
+                        "MMM dd, yyyy",
+                      )}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
             </CardContent>
           </Card>
         </div>

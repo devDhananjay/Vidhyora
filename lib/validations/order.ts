@@ -36,7 +36,22 @@ export const createReturnRequestSchema = z.object({
   type: z.enum(["RETURN", "REPLACEMENT"]),
 });
 
+export const sellerFulfillmentSchema = z.object({
+  orderItemId: z.string().min(1, "Order item is required"),
+  status: z.enum([
+    "CONFIRMED",
+    "PACKED",
+    "SHIPPED",
+    "OUT_FOR_DELIVERY",
+    "DELIVERED",
+  ]),
+  trackingNumber: z.string().optional(),
+  courier: z.string().optional(),
+  note: z.string().optional(),
+});
+
 export type CreateOrderInput = z.infer<typeof createOrderSchema>;
 export type UpdateOrderStatusInput = z.infer<typeof updateOrderStatusSchema>;
+export type SellerFulfillmentInput = z.infer<typeof sellerFulfillmentSchema>;
 export type CancelOrderInput = z.infer<typeof cancelOrderSchema>;
 export type CreateReturnRequestInput = z.infer<typeof createReturnRequestSchema>;

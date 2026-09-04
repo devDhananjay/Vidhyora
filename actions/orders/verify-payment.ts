@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { razorpayService } from "@/lib/payments/razorpay-service";
 import type { ActionResult } from "@/lib/utils";
+import { recordEarningsForOrder } from "@/lib/payouts/record-earnings";
 
 type VerifyPaymentInput = {
   orderId: string;
@@ -95,6 +96,12 @@ export async function verifyPayment(
         },
       });
     });
+
+    try {
+      await recordEarningsForOrder(order.id);
+    } catch (error) {
+      console.error("Record seller earnings error:", error);
+    }
 
     revalidatePath("/orders");
     revalidatePath(`/orders/${order.id}`);

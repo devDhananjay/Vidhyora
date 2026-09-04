@@ -103,6 +103,43 @@ class RazorpayService {
 
     return response.json();
   }
+
+  async refundPayment(paymentId: string, amountRupees?: number) {
+    if (!this.keyId || !this.keySecret) {
+      throw new Error("Razorpay not configured");
+    }
+
+    const auth = Buffer.from(`${this.keyId}:${this.keySecret}`).toString(
+      "base64",
+    );
+
+    const body: { amount?: number; notes?: Record<string, string> } = {};
+    if (amountRupees != null) {
+      body.amount = Math.round(amountRupees * 100);
+    }
+
+    const response = await fetch(
+      `${this.baseUrl}/payments/${paymentId}/refund`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Basic ${auth}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      },
+    );
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      const description =
+        (error as { error?: { description?: string } }).error?.description ??
+        "Refund failed";
+      throw new Error(`Razorpay error: ${description}`);
+    }
+
+    return response.json();
+  }
 } 
 
 export const razorpayService = new RazorpayService();

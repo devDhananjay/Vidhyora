@@ -3,26 +3,31 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowUpRight,
-  Circle,
-  Gem,
-  Gift,
-  Heart,
-  Sparkles,
-} from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { MEGA_MENU, type MegaLink, type MegaMenuItem } from "@/lib/nav/mega-menu-data";
+import {
+  IconBangles,
+  IconDaily,
+  IconDiamond,
+  IconEarrings,
+  IconGem,
+  IconGift,
+  IconNecklace,
+  IconRing,
+  IconWedding,
+  JewelleryLineIcon,
+} from "@/components/storefront/jewellery-icons";
 
-const ICONS = {
-  all: Sparkles,
-  gold: Circle,
-  diamond: Gem,
-  earrings: Sparkles,
-  daily: Circle,
-  gemstone: Gem,
-  wedding: Heart,
-  gifting: Gift,
-  under50k: Gem,
+const NAV_ICONS = {
+  all: IconNecklace,
+  gold: IconBangles,
+  diamond: IconDiamond,
+  earrings: IconEarrings,
+  daily: IconDaily,
+  gemstone: IconGem,
+  wedding: IconWedding,
+  gifting: IconGift,
+  under50k: IconRing,
 } as const;
 
 function splitColumns<T>(items: T[], columnCount: number) {
@@ -32,14 +37,18 @@ function splitColumns<T>(items: T[], columnCount: number) {
   );
 }
 
-export function MegaNav() {
+export function MegaNav({ disabled = false }: { disabled?: boolean }) {
   const [openId, setOpenId] = useState<string | null>(null);
   const [sidebar, setSidebar] = useState("Category");
   const closeTimer = useRef<number | null>(null);
 
-  const active = MEGA_MENU.find((item) => item.id === openId) ?? null;
+  const active =
+    !disabled && openId
+      ? (MEGA_MENU.find((item) => item.id === openId) ?? null)
+      : null;
 
   function open(id: string) {
+    if (disabled) return;
     if (closeTimer.current) {
       window.clearTimeout(closeTimer.current);
       closeTimer.current = null;
@@ -60,14 +69,18 @@ export function MegaNav() {
     };
   }, []);
 
+  useEffect(() => {
+    if (disabled) setOpenId(null);
+  }, [disabled]);
+
   return (
     <div
       className="relative hidden border-t border-neutral-100 md:block"
       onMouseLeave={scheduleClose}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-center gap-7 px-4">
+      <div className="mx-auto flex max-w-7xl items-center justify-center gap-7 px-4 py-1">
         {MEGA_MENU.map((item) => {
-          const Icon = ICONS[item.id as keyof typeof ICONS];
+          const Icon = NAV_ICONS[item.id as keyof typeof NAV_ICONS];
           const isActive = openId === item.id;
           return (
             <Link
@@ -75,17 +88,14 @@ export function MegaNav() {
               href={item.href}
               onMouseEnter={() => open(item.id)}
               onClick={() => setOpenId(null)}
-              className={`relative flex items-center gap-1.5 py-3 text-[11px] tracking-[0.14em] uppercase transition ${
-                isActive
-                  ? "text-[#8b2e2e]"
-                  : "text-neutral-700 hover:text-[#8b2e2e]"
+              className={`relative flex flex-col items-center gap-1 py-1.5 transition ${
+                isActive ? "text-[#8b2e2e]" : "text-[#8b2e2e]/85 hover:text-[#8b2e2e]"
               }`}
             >
-              <Icon
-                className={`size-3.5 ${isActive ? "text-[#8b2e2e]" : "text-[#b08d57]"}`}
-                strokeWidth={1.5}
-              />
-              {item.label}
+              <Icon className="size-[18px] text-[#8b2e2e]" />
+              <span className="text-[10px] font-semibold tracking-[0.14em] text-[#8b2e2e] uppercase">
+                {item.label}
+              </span>
               {isActive ? (
                 <span className="absolute inset-x-0 bottom-0 h-[2px] bg-[#8b2e2e]" />
               ) : null}
@@ -183,7 +193,7 @@ function OptionRow({
     <Link
       href={link.href}
       onClick={onNavigate}
-      className="flex items-center gap-3 rounded-lg px-1 py-1.5 text-[13px] text-neutral-700 transition hover:bg-[#faf7f5] hover:text-[#8b2e2e]"
+      className="flex items-center gap-3 rounded-lg px-1 py-1.5 text-neutral-700 transition hover:bg-[#faf7f5] hover:text-[#8b2e2e]"
     >
       {link.swatch ? (
         <span
@@ -191,17 +201,14 @@ function OptionRow({
           style={{ backgroundColor: link.swatch }}
         />
       ) : (
-        <span className="relative size-11 shrink-0 overflow-hidden rounded-full border border-[#ead9c4] bg-[#faf6f0]">
-          <Image
-            src={link.image}
-            alt=""
-            fill
-            className="object-contain p-1"
-            sizes="44px"
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#f3eee8]">
+          <JewelleryLineIcon
+            label={link.label}
+            className="size-[22px] text-[#6b3f32]"
           />
         </span>
       )}
-      <span className="leading-snug">{link.label}</span>
+      <span className="font-serif text-[14px] leading-snug">{link.label}</span>
     </Link>
   );
 }

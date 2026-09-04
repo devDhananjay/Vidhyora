@@ -1,232 +1,254 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { ZodError } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth-helpers";
+import { AuthError, requireAuth } from "@/lib/auth-helpers";
 import { createOrderSchema } from "@/lib/validations/order";
-import { generateOrderNumber, calculateOrderTotals } from "@/lib/orders/order-utils";
 import { razorpayService } from "@/lib/payments/razorpay-service";
+import { recordEarningsForOrder } from "@/lib/payouts/record-earnings";
+import { cartTotals, createShopOrder, stockError } from "@/lib/orders/place-order";
 import type { ActionResult } from "@/lib/utils";
 
 type CreateOrderResult = {
-  orderId: string;
-  orderNumber: string;
+  orderId?: string;
+  orderNumber?: string;
   razorpayOrderId?: string;
+  razorpayKeyId?: string;
   amount: number;
 };
+
+async function loadCheckoutCart(userId: string) {
+  return prisma.cart.findUnique({
+    where: { userId },
+    include: {
+      items: {
+        where: { savedForLater: false },
+        include: {
+          product: true,
+          variant: true,
+        },
+      },
+    },
+  });
+}
 
 export async function createOrder(
   formData: FormData,
 ): Promise<ActionResult<CreateOrderResult>> {
   try {
     const session = await requireAuth();
-
-    const rawData = {
+    const validatedData = createOrderSchema.parse({
       addressId: formData.get("addressId"),
       paymentMethod: formData.get("paymentMethod") || "RAZORPAY",
-    };
-
-    const validatedData = createOrderSchema.parse(rawData);
-
-    // Get user's cart
-    const cart = await prisma.cart.findUnique({
-      where: { userId: session.user.id },
-      include: {
-        items: {
-          where: { savedForLater: false },
-          include: {
-            product: true,
-            variant: true,
-          },
-        },
-      },
     });
 
+    const cart = await loadCheckoutCart(session.user.id);
     if (!cart || cart.items.length === 0) {
-      return {
-        success: false,
-        error: "Cart is empty",
-      };
+      return { success: false, error: "Cart is empty" };
     }
 
-    // Get address
     const address = await prisma.address.findUnique({
       where: { id: validatedData.addressId },
     });
-
     if (!address || address.userId !== session.user.id) {
+      return { success: false, error: "Invalid address" };
+    }
+
+    const availability = stockError(cart.items);
+    if (availability) {
+      return { success: false, error: availability };
+    }
+
+    const totals = cartTotals(cart.items);
+
+    if (validatedData.paymentMethod === "RAZORPAY") {
+      const razorpayOrder = await razorpayService.createOrder({
+        amount: Math.round(totals.total * 100),
+        currency: "INR",
+        receipt: `chk${Date.now()}`.slice(0, 40),
+        notes: {
+          userId: session.user.id,
+          addressId: address.id,
+        },
+      });
+
       return {
-        success: false,
-        error: "Invalid address",
+        success: true,
+        data: {
+          razorpayOrderId: razorpayOrder.id,
+          razorpayKeyId:
+            process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID ||
+            process.env.RAZORPAY_KEY_ID ||
+            "",
+          amount: totals.total,
+        },
       };
     }
 
-    // Validate stock for all items
-    for (const item of cart.items) {
-      const availableStock = item.variant.stock - item.variant.reservedStock;
-      if (availableStock < item.quantity) {
-        return {
-          success: false,
-          error: `${item.product.name} - Only ${availableStock} items available`,
-        };
-      }
-    }
+    const { order } = await prisma.$transaction(async (tx) => {
+      const placed = await createShopOrder(tx, {
+        userId: session.user.id,
+        address,
+        items: cart.items,
+        cartId: cart.id,
+        paymentStatus: "PENDING",
+        orderStatus: "ORDERED",
+        deductStock: false,
+      });
 
-    // Calculate order totals
-    const orderItems = cart.items.map((item) => ({
-      price: Number(item.variant.price),
-      quantity: item.quantity,
-      tax: Number(item.product.tax),
-    }));
-
-    const totals = calculateOrderTotals(orderItems);
-    const orderNumber = generateOrderNumber();
-
-    // Start transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // Reserve stock
-      for (const item of cart.items) {
-        await tx.productVariant.update({
-          where: { id: item.variantId },
-          data: {
-            reservedStock: { increment: item.quantity },
-          },
-        });
-      }
-
-      // Create order
-      const order = await tx.order.create({
+      await tx.payment.create({
         data: {
-          orderNumber,
-          userId: session.user.id,
-          subtotal: totals.subtotal,
-          discount: totals.discount,
-          shippingFee: totals.shippingFee,
-          tax: totals.tax,
-          total: totals.total,
-          paymentStatus: validatedData.paymentMethod === "COD" ? "PENDING" : "PENDING",
-          orderStatus: "ORDERED",
-          shippingAddress: {
-            name: address.name,
-            phone: address.phone,
-            addressLine1: address.addressLine1,
-            addressLine2: address.addressLine2,
-            city: address.city,
-            state: address.state,
-            country: address.country,
-            postalCode: address.postalCode,
-            landmark: address.landmark,
-          },
-          billingAddress: {
-            name: address.name,
-            phone: address.phone,
-            addressLine1: address.addressLine1,
-            addressLine2: address.addressLine2,
-            city: address.city,
-            state: address.state,
-            country: address.country,
-            postalCode: address.postalCode,
-            landmark: address.landmark,
-          },
-          items: {
-            create: cart.items.map((item) => ({
-              productId: item.productId,
-              variantId: item.variantId,
-              sellerId: item.product.sellerId,
-              quantity: item.quantity,
-              price: Number(item.variant.price),
-              tax: Number(item.product.tax),
-              discount: 0,
-              total: Number(item.variant.price) * item.quantity,
-              productName: item.product.name,
-              productSlug: item.product.slug,
-              sku: item.variant.sku,
-              variantAttributes: item.variant.attributes,
-            })),
-          },
-        },
-      });
-
-      // Clear cart items
-      await tx.cartItem.deleteMany({
-        where: {
-          cartId: cart.id,
-          savedForLater: false,
-        },
-      });
-
-      // Create order status history
-      await tx.orderStatusHistory.create({
-        data: {
-          orderId: order.id,
-          status: "ORDERED",
-          actorId: session.user.id,
-        },
-      });
-
-      return order;
-    });
-
-    // Create Razorpay order if online payment
-    let razorpayOrderId: string | undefined;
-    if (validatedData.paymentMethod === "RAZORPAY") {
-      try {
-        const razorpayOrder = await razorpayService.createOrder({
-          amount: Math.round(totals.total * 100), // Convert to paise
+          orderId: placed.order.id,
+          provider: "COD",
+          transactionId: `cod_${placed.order.orderNumber}`,
+          amount: placed.totals.total,
           currency: "INR",
-          receipt: result.orderNumber,
-          notes: {
-            orderId: result.id,
-            userId: session.user.id,
-          },
-        });
+          status: "CREATED",
+        },
+      });
 
-        razorpayOrderId = razorpayOrder.id;
-
-        // Update order with Razorpay order ID
-        await prisma.order.update({
-          where: { id: result.id },
-          data: {
-            payments: {
-              create: {
-                provider: "RAZORPAY",
-                transactionId: razorpayOrderId,
-                amount: totals.total,
-                currency: "INR",
-                status: "CREATED",
-              },
-            },
-          },
-        });
-      } catch (error) {
-        console.error("Razorpay order creation failed:", error);
-        // Order is created, but payment failed - mark for manual review
-        await prisma.order.update({
-          where: { id: result.id },
-          data: {
-            orderStatus: "PAYMENT_PENDING",
-          },
-        });
-      }
-    }
+      return placed;
+    });
 
     revalidatePath("/cart");
     revalidatePath("/orders");
+    revalidatePath("/checkout");
+    revalidatePath("/seller");
+    revalidatePath("/seller/orders");
+    revalidatePath("/admin/orders");
 
     return {
       success: true,
       data: {
-        orderId: result.id,
-        orderNumber: result.orderNumber,
-        razorpayOrderId,
+        orderId: order.id,
+        orderNumber: order.orderNumber,
         amount: totals.total,
       },
     };
   } catch (error) {
     console.error("Create order error:", error);
+    if (error instanceof AuthError) {
+      return { success: false, error: "Please log in to place an order" };
+    }
+    if (error instanceof ZodError) {
+      return {
+        success: false,
+        error: error.issues[0]?.message ?? "Invalid checkout details",
+      };
+    }
     return {
       success: false,
-      error: "Failed to create order",
+      error:
+        error instanceof Error && error.message.startsWith("Razorpay")
+          ? error.message
+          : "Failed to create order",
     };
+  }
+}
+
+export async function confirmRazorpayOrder(input: {
+  addressId: string;
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}): Promise<ActionResult<{ orderId: string; orderNumber: string }>> {
+  try {
+    const session = await requireAuth();
+
+    const isValid = razorpayService.verifyPaymentSignature({
+      razorpay_order_id: input.razorpay_order_id,
+      razorpay_payment_id: input.razorpay_payment_id,
+      razorpay_signature: input.razorpay_signature,
+    });
+    if (!isValid) {
+      return { success: false, error: "Invalid payment signature" };
+    }
+
+    const existing = await prisma.payment.findUnique({
+      where: { transactionId: input.razorpay_order_id },
+      select: { orderId: true, order: { select: { orderNumber: true } } },
+    });
+    if (existing) {
+      return {
+        success: true,
+        data: {
+          orderId: existing.orderId,
+          orderNumber: existing.order.orderNumber,
+        },
+      };
+    }
+
+    const cart = await loadCheckoutCart(session.user.id);
+    if (!cart || cart.items.length === 0) {
+      return { success: false, error: "Cart is empty" };
+    }
+
+    const address = await prisma.address.findUnique({
+      where: { id: input.addressId },
+    });
+    if (!address || address.userId !== session.user.id) {
+      return { success: false, error: "Invalid address" };
+    }
+
+    const availability = stockError(cart.items);
+    if (availability) {
+      return { success: false, error: availability };
+    }
+
+    const { order } = await prisma.$transaction(async (tx) => {
+      const placed = await createShopOrder(tx, {
+        userId: session.user.id,
+        address,
+        items: cart.items,
+        cartId: cart.id,
+        paymentStatus: "PAID",
+        orderStatus: "CONFIRMED",
+        deductStock: true,
+      });
+
+      await tx.payment.create({
+        data: {
+          orderId: placed.order.id,
+          provider: "RAZORPAY",
+          providerPaymentId: input.razorpay_payment_id,
+          transactionId: input.razorpay_order_id,
+          amount: placed.totals.total,
+          currency: "INR",
+          status: "CAPTURED",
+          metadata: {
+            payment_id: input.razorpay_payment_id,
+            signature: input.razorpay_signature,
+          },
+        },
+      });
+
+      return placed;
+    });
+
+    try {
+      await recordEarningsForOrder(order.id);
+    } catch (error) {
+      console.error("Record seller earnings error:", error);
+    }
+
+    revalidatePath("/cart");
+    revalidatePath("/orders");
+    revalidatePath(`/orders/${order.id}`);
+    revalidatePath("/checkout");
+    revalidatePath("/seller");
+    revalidatePath("/seller/orders");
+    revalidatePath("/admin/orders");
+
+    return {
+      success: true,
+      data: { orderId: order.id, orderNumber: order.orderNumber },
+    };
+  } catch (error) {
+    console.error("Confirm Razorpay order error:", error);
+    if (error instanceof AuthError) {
+      return { success: false, error: "Please log in to place an order" };
+    }
+    return { success: false, error: "Failed to confirm payment" };
   }
 }

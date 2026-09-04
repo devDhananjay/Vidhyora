@@ -37,6 +37,7 @@ export default async function SellerLayout({
     >
       {acting?.isAdminView && sellers.length > 0 ? (
         <AdminSellerSwitcher
+          key={acting.sellerUserId}
           sellers={sellers}
           currentSellerId={acting.sellerUserId}
         />

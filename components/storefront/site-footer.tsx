@@ -1,49 +1,42 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Mail, MessageCircle } from "lucide-react";
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { APP_NAME, ROUTES } from "@/lib/constants";
 
 const USEFUL_LINKS = [
-  { href: "/shipping", label: "Delivery Information" },
-  { href: "/shipping", label: "International Shipping" },
-  { href: "/checkout", label: "Payment Options" },
+  { href: ROUTES.shipping, label: "Delivery Information" },
+  { href: ROUTES.shipping, label: "International Shipping" },
+  { href: ROUTES.paymentOptions, label: "Payment Options" },
   { href: ROUTES.orders, label: "Track your Order" },
-  { href: "/returns", label: "Returns" },
-  { href: "/store-locator", label: "Find a Store" },
+  { href: ROUTES.returns, label: "Returns" },
+  { href: ROUTES.storeLocator, label: "Find a Store" },
 ];
 
 const INFO_LINKS = [
-  { href: "/help", label: "Blog" },
-  { href: "/help", label: "Offers & Contest Details" },
-  { href: "/help", label: "Help & FAQs" },
-  { href: "/contact", label: "About VIDYORA" },
-  { href: "/privacy", label: "Cookie Policy" },
+  { href: ROUTES.blog, label: "Blog" },
+  { href: ROUTES.offers, label: "Offers & Contest Details" },
+  { href: ROUTES.help, label: "Help & FAQs" },
+  { href: ROUTES.contact, label: "About VIDYORA" },
+  { href: ROUTES.privacy, label: "Cookie Policy" },
 ];
 
 export function SiteFooter() {
   return (
     <footer className="bg-[#3b0f14] text-[#f4ece6]">
       <div className="mx-auto max-w-7xl px-4 py-14 md:px-6">
-        <p className="mb-10 font-serif text-[34px] tracking-[0.16em]">{APP_NAME}</p>
+        <div className="grid items-start gap-10 md:grid-cols-[200px_1fr_1fr_1fr] md:gap-8 lg:gap-12">
+          <div className="flex justify-start md:self-center md:-ml-1">
+            <BrandLogo size="lg" className="h-36 w-36 md:h-44 md:w-44" />
+          </div>
 
-        <div className="grid gap-12 md:grid-cols-4">
+          {/* App download section — temporarily hidden
           <div>
             <p className="font-serif text-[22px] leading-snug">
               Download the {APP_NAME} App Now
             </p>
-            <div className="relative mt-5 size-[148px] bg-white p-2.5">
-              <div
-                className="size-full"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(#111 1px, transparent 1px), linear-gradient(90deg, #111 1px, transparent 1px)",
-                  backgroundSize: "7px 7px",
-                }}
-                aria-hidden
-              />
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-1 font-serif text-xs tracking-[0.12em] text-[#3b0f14]">
-                {APP_NAME}
-              </span>
+            <div className="relative mt-5 size-[148px] overflow-hidden bg-white p-1.5">
+              <BrandLogo size="lg" className="size-full" />
             </div>
             <div className="mt-4 flex gap-2">
               <StoreBadge
@@ -66,16 +59,17 @@ export function SiteFooter() {
               />
             </div>
           </div>
+          */}
 
           <FooterColumn title="Useful Links" links={USEFUL_LINKS} />
           <FooterColumn title="Information" links={INFO_LINKS} />
 
           <div>
-            <h3 className="mb-3 font-serif text-[22px]">Contact Us</h3>
+            <h3 className="mb-5 font-serif text-[22px]">Contact Us</h3>
             <a href="tel:1800-123-4567" className="text-sm tracking-wide hover:text-white">
               1800-123-4567
             </a>
-            <h3 className="mt-7 mb-3 font-serif text-[22px]">Chat With Us</h3>
+            <h3 className="mt-7 mb-5 font-serif text-[22px]">Chat With Us</h3>
             <a
               href="https://wa.me/918147349242"
               className="text-sm tracking-wide hover:text-white"
@@ -89,7 +83,7 @@ export function SiteFooter() {
               <CircleIcon href="mailto:support@vidyora.com" label="Email">
                 <Mail className="size-4" strokeWidth={1.6} />
               </CircleIcon>
-              <CircleIcon href="/help" label="Live chat">
+              <CircleIcon href={ROUTES.help} label="Live chat">
                 <svg viewBox="0 0 24 24" className="size-4 fill-current" aria-hidden>
                   <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4V6a2 2 0 0 1 2-2Z" />
                 </svg>

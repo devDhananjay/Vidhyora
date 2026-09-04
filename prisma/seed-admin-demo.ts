@@ -355,6 +355,53 @@ async function main() {
     console.log("⏭️  Order VDY-DEMO-002 already exists");
   }
 
+  const deliveredOrder =
+    (await prisma.order.findUnique({
+      where: { orderNumber: "VDY-DEMO-001" },
+      include: { items: true },
+    })) ?? null;
+
+  if (deliveredOrder?.items[0]) {
+    const existing = await prisma.returnRequest.findFirst({
+      where: { orderItemId: deliveredOrder.items[0].id },
+    });
+    if (!existing) {
+      await prisma.returnRequest.create({
+        data: {
+          orderItemId: deliveredOrder.items[0].id,
+          userId: deliveredOrder.userId,
+          type: "RETURN",
+          reason: "Size / fit not as expected",
+          description:
+            "The ring sits tight on the finger. Requesting a size exchange or refund.",
+          status: "PENDING",
+        },
+      });
+      console.log("✅ Created pending return on VDY-DEMO-001");
+    }
+  }
+
+  if (deliveredOrder?.items[1]) {
+    const existing = await prisma.returnRequest.findFirst({
+      where: { orderItemId: deliveredOrder.items[1].id },
+    });
+    if (!existing) {
+      await prisma.returnRequest.create({
+        data: {
+          orderItemId: deliveredOrder.items[1].id,
+          userId: reviewer.id,
+          type: "REPLACEMENT",
+          reason: "Minor finish issue on clasp",
+          description:
+            "Clasp feels loose after one day of wear. Prefer a replacement piece.",
+          status: "APPROVED",
+          approvedAt: new Date(),
+        },
+      });
+      console.log("✅ Created approved replacement on VDY-DEMO-001");
+    }
+  }
+
   console.log("✅ Admin demo data ready");
 }
 

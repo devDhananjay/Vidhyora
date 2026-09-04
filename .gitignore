@@ -34,6 +34,10 @@ yarn-error.log*
 .env
 .env*.local
 
+# seller KYC uploads
+/public/uploads/kyc/**
+!/public/uploads/kyc/.gitkeep
+
 # vercel
 .vercel
 

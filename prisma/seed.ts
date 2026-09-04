@@ -638,6 +638,9 @@ async function main() {
     });
   }
 
+  const { seedStoreAndHelpContent } = await import("./seed-content");
+  await seedStoreAndHelpContent(prisma);
+
   console.log("✅ Seed completed successfully!");
   console.log("\n📋 Test credentials (password: Password@123):");
   console.log("  Super Admin:  admin@vidyora.com");

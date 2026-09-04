@@ -81,32 +81,16 @@ export async function getActingSeller(): Promise<ActingSeller | null> {
     }
   }
 
-  const jewelry = await prisma.user.findUnique({
-    where: { email: "jewelry@vidyora.com" },
-    select: { id: true },
+  const fallback = await prisma.sellerProfile.findFirst({
+    orderBy: { products: { _count: "desc" } },
+    select: {
+      id: true,
+      sellerId: true,
+      businessName: true,
+      businessEmail: true,
+      businessPhone: true,
+    },
   });
-
-  const fallback = jewelry
-    ? await prisma.sellerProfile.findUnique({
-        where: { sellerId: jewelry.id },
-        select: {
-          id: true,
-          sellerId: true,
-          businessName: true,
-          businessEmail: true,
-          businessPhone: true,
-        },
-      })
-    : await prisma.sellerProfile.findFirst({
-        orderBy: { products: { _count: "desc" } },
-        select: {
-          id: true,
-          sellerId: true,
-          businessName: true,
-          businessEmail: true,
-          businessPhone: true,
-        },
-      });
 
   if (!fallback) return null;
 

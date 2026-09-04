@@ -116,6 +116,18 @@ enum AddressType {
   BOTH
 }
 
+enum SellerEarningStatus {
+  AVAILABLE
+  INCLUDED
+  REVERSED
+}
+
+enum SellerPayoutStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
 // ─── Auth (NextAuth) ─────────────────────────────────────────────────────────
 
 model Account {
@@ -202,6 +214,10 @@ model SellerProfile {
   bankIfscCode         String?
   bankName             String?
   kycStatus            KycStatus                @default(NOT_SUBMITTED)
+  kycGstDocumentUrl    String?
+  kycPanDocumentUrl    String?
+  kycRejectionReason   String?                  @db.Text
+  kycSubmittedAt       DateTime?
   verificationStatus   SellerVerificationStatus @default(PENDING)
   commissionPercentage Decimal                  @default(10) @db.Decimal(5, 2)
   rejectionReason      String?
@@ -210,6 +226,8 @@ model SellerProfile {
 
   seller   User      @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   products Product[]
+  earnings SellerEarning[]
+  payouts  SellerPayout[]
 
   @@index([verificationStatus])
   @@index([kycStatus])
@@ -236,6 +254,7 @@ model Category {
   children   Category[]          @relation("CategoryHierarchy")
   products   Product[]
   attributes CategoryAttribute[]
+  commissionPercentage Decimal? @db.Decimal(5, 2)
 
   @@index([slug])
   @@index([parentId])
@@ -496,6 +515,7 @@ model OrderItem {
   variant        ProductVariant  @relation(fields: [variantId], references: [id])
   returnRequests ReturnRequest[]
   reviews        Review[]
+  earning        SellerEarning?
 
   @@index([orderId])
   @@index([sellerId])
@@ -658,6 +678,52 @@ model CouponUsage {
   @@index([couponId])
 }
 
+// ─── Seller earnings & payouts ───────────────────────────────────────────────
+
+model SellerEarning {
+  id               String              @id @default(cuid())
+  sellerId         String
+  orderId          String
+  orderItemId      String              @unique
+  orderNumber      String
+  productName      String
+  grossAmount      Decimal             @db.Decimal(12, 2)
+  commissionRate   Decimal             @db.Decimal(5, 2)
+  commissionAmount Decimal             @db.Decimal(12, 2)
+  netAmount        Decimal             @db.Decimal(12, 2)
+  status           SellerEarningStatus @default(AVAILABLE)
+  payoutId         String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+
+  seller   SellerProfile @relation(fields: [sellerId], references: [sellerId], onDelete: Cascade)
+  orderItem OrderItem    @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  payout   SellerPayout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+
+  @@index([sellerId, status])
+  @@index([orderId])
+  @@index([payoutId])
+}
+
+model SellerPayout {
+  id         String             @id @default(cuid())
+  sellerId   String
+  gross      Decimal            @db.Decimal(12, 2)
+  commission Decimal            @db.Decimal(12, 2)
+  amount     Decimal            @db.Decimal(12, 2)
+  status     SellerPayoutStatus @default(PAID)
+  note       String?
+  paidAt     DateTime?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  seller   SellerProfile  @relation(fields: [sellerId], references: [sellerId], onDelete: Cascade)
+  earnings SellerEarning[]
+
+  @@index([sellerId])
+  @@index([status])
+}
+
 // ─── Webhook idempotency ─────────────────────────────────────────────────────
 
 model ProcessedWebhook {
@@ -667,4 +733,39 @@ model ProcessedWebhook {
   processedAt DateTime @default(now())
 
   @@unique([provider, eventId])
+}
+
+model StoreLocation {
+  id         String   @id @default(cuid())
+  name       String
+  city       String
+  state      String
+  address    String
+  postalCode String?
+  phone      String
+  email      String?
+  hours      String
+  mapUrl     String?
+  isActive   Boolean  @default(true)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([name, city])
+  @@index([city])
+  @@index([isActive])
+}
+
+model HelpArticle {
+  id        String   @id @default(cuid())
+  category  String
+  question  String   @unique
+  answer    String   @db.Text
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([isActive])
 }

@@ -1,10 +1,11 @@
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { getOrderStatusLabel, getOrderStatusColor } from "@/lib/orders/order-utils";
+import { getOrderStatusLabel, getOrderStatusColor, paymentProviderFrom } from "@/lib/orders/order-utils";
 import type { OrderWithDetails } from "@/types/order";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 
 type OrderDetailHeaderProps = {
   order: OrderWithDetails;
@@ -30,9 +31,15 @@ export function OrderDetailHeader({ order }: OrderDetailHeaderProps) {
           </p>
         </div>
 
-        <Badge className={`bg-${statusColor}-100 text-${statusColor}-700 text-base px-4 py-2`}>
-          {getOrderStatusLabel(order.orderStatus)}
-        </Badge>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge className={`bg-${statusColor}-100 text-${statusColor}-700 text-base px-4 py-2`}>
+            {getOrderStatusLabel(order.orderStatus)}
+          </Badge>
+          <PaymentStatusBadge
+            status={order.paymentStatus}
+            provider={paymentProviderFrom(order.payments)}
+          />
+        </div>
       </div>
     </div>
   );

@@ -157,6 +157,12 @@ export default async function AdminProductsPage() {
                         >
                           Review Product →
                         </Link>
+                        <Link
+                          href="/admin/inventory"
+                          className="text-sm text-muted-foreground hover:text-primary"
+                        >
+                          Override stock
+                        </Link>
                         <ProductActions
                           productId={product.id}
                           currentStatus={product.approvalStatus}

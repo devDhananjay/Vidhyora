@@ -74,3 +74,72 @@ export function getOrderStatusColor(status: string): string {
 
   return colors[status] || "gray";
 }
+
+export function getPaymentProviderLabel(provider?: string | null): string {
+  if (provider === "COD") return "Cash on Delivery";
+  if (provider === "RAZORPAY") return "Razorpay";
+  if (provider === "STRIPE") return "Stripe";
+  return "Online";
+}
+
+export function getPaymentStatusLabel(
+  status: string,
+  provider?: string | null,
+): string {
+  if (
+    provider === "COD" &&
+    (status === "PENDING" || status === "PROCESSING")
+  ) {
+    return "PENDING (COD)";
+  }
+  if (provider === "COD" && status === "PAID") {
+    return "PAID (COD)";
+  }
+  return status;
+}
+
+export function paymentProviderFrom(
+  payments?: Array<{ provider: string }> | null,
+): string | null {
+  return payments?.[0]?.provider ?? null;
+}
+
+export type SellerFulfillmentStep = {
+  nextStatus: "CONFIRMED" | "PACKED" | "SHIPPED" | "OUT_FOR_DELIVERY" | "DELIVERED";
+  label: string;
+  description: string;
+};
+
+export function getNextFulfillmentStep(
+  currentStatus: string,
+): SellerFulfillmentStep | null {
+  const steps: Record<string, SellerFulfillmentStep> = {
+    ORDERED: {
+      nextStatus: "CONFIRMED",
+      label: "Approve order",
+      description: "Confirm this order so packing can start",
+    },
+    CONFIRMED: {
+      nextStatus: "PACKED",
+      label: "Mark packed",
+      description: "Items are packed and ready to ship",
+    },
+    PACKED: {
+      nextStatus: "SHIPPED",
+      label: "Mark shipped",
+      description: "Hand the parcel over to the courier",
+    },
+    SHIPPED: {
+      nextStatus: "OUT_FOR_DELIVERY",
+      label: "Out for delivery",
+      description: "Courier is delivering today",
+    },
+    OUT_FOR_DELIVERY: {
+      nextStatus: "DELIVERED",
+      label: "Mark delivered",
+      description: "Customer has received the order",
+    },
+  };
+
+  return steps[currentStatus] ?? null;
+}

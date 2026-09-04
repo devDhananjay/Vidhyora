@@ -1,12 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
 import { formatCurrency } from "@/lib/utils";
-import { getOrderStatusLabel, getOrderStatusColor } from "@/lib/orders/order-utils";
+import { getOrderStatusLabel, getOrderStatusColor, paymentProviderFrom } from "@/lib/orders/order-utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 import type { OrderWithDetails } from "@/types/order";
 import { format } from "date-fns";
+import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 
 type OrderCardProps = {
   order: OrderWithDetails;
@@ -28,6 +29,10 @@ export function OrderCard({ order }: OrderCardProps) {
             <Badge className={`bg-${statusColor}-100 text-${statusColor}-700`}>
               {getOrderStatusLabel(order.orderStatus)}
             </Badge>
+            <PaymentStatusBadge
+              status={order.paymentStatus}
+              provider={paymentProviderFrom(order.payments)}
+            />
           </div>
 
           <div className="mb-4 text-sm text-muted-foreground">

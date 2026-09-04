@@ -35,7 +35,7 @@ export type MegaMenuItem = {
 };
 
 const IMG = {
-  ring: "https://images.unsplash.com/photo-1605100804763-247f83b2bdcd?w=400&q=80",
+  ring: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=400&q=80",
   earrings: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=80",
   necklace: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=80",
   pendant: "https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=400&q=80",
@@ -44,9 +44,9 @@ const IMG = {
   pearl: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=80",
   hoop: "https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=80",
   bridal: "https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=80",
-  gift: "https://images.unsplash.com/photo-1611652022419-a73ae642c8fc?w=400&q=80",
+  gift: "https://images.unsplash.com/photo-1589674781759-c21c37956a44?w=400&q=80",
   ruby: "https://images.unsplash.com/photo-1603561596112-0a132b757442?w=400&q=80",
-  cocktail: "https://images.unsplash.com/photo-1603561591411-709570eaee86?w=400&q=80",
+  cocktail: "https://images.unsplash.com/photo-1603561596112-0a132b757442?w=400&q=80",
   model: "https://images.unsplash.com/photo-1515626553181-0f218cb03f14?w=800&q=80",
 };
 

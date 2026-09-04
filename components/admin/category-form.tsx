@@ -48,10 +48,12 @@ export function CategoryForm({ category, categories }: CategoryFormProps) {
           parentId: category.parentId || null,
           isActive: category.isActive,
           sortOrder: category.sortOrder,
+          commissionPercentage: category.commissionPercentage ?? null,
         }
       : {
           isActive: true,
           sortOrder: 0,
+          commissionPercentage: null,
         },
   });
 
@@ -191,6 +193,24 @@ export function CategoryForm({ category, categories }: CategoryFormProps) {
             />
             <p className="mt-1 text-xs text-muted-foreground">
               Lower numbers appear first
+            </p>
+          </div>
+
+          <div>
+            <Label htmlFor="commissionPercentage">Commission % (optional)</Label>
+            <Input
+              id="commissionPercentage"
+              type="number"
+              min={0}
+              max={100}
+              step="0.1"
+              {...register("commissionPercentage")}
+              className="mt-2"
+              placeholder="Use seller admin rate"
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              Overrides the seller admin rate for products in this category. Leave
+              empty to use the seller rate.
             </p>
           </div>
 

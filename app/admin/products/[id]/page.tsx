@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProductActions } from "@/components/admin/product-actions";
 import { formatCurrency } from "@/lib/utils";
+import { AdminStockEditor } from "@/components/admin/admin-stock-editor";
 
 export const metadata: Metadata = {
   title: "Product Review | Super Admin",
@@ -186,18 +187,22 @@ export default async function AdminProductDetailPage({
               {product.variants.map((variant) => (
                 <div
                   key={variant.id}
-                  className="flex items-center justify-between rounded-lg border p-3"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3"
                 >
                   <div>
                     <div className="font-medium">{variant.sku}</div>
                     <div className="text-sm text-muted-foreground">
-                      Stock: {variant.stock} units
+                      {variant.reservedStock} reserved
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="flex flex-col items-end gap-2">
                     <div className="font-semibold">
                       {formatCurrency(Number(variant.price))}
                     </div>
+                    <AdminStockEditor
+                      variantId={variant.id}
+                      stock={variant.stock}
+                    />
                   </div>
                 </div>
               ))}

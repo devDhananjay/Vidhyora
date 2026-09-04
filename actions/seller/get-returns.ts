@@ -29,6 +29,9 @@ export async function getSellerReturns() {
               select: {
                 name: true,
                 thumbnail: true,
+                seller: {
+                  select: { businessName: true },
+                },
               },
             },
             order: {

@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { Check, Circle } from "lucide-react";
 import { format } from "date-fns";
+import { getOrderStatusLabel } from "@/lib/orders/order-utils";
 
 type OrderTimelineProps = {
   orderId: string;
@@ -65,7 +66,7 @@ export async function OrderTimeline({ orderId, currentStatus }: OrderTimelinePro
                 <div
                   className={`font-medium ${isCurrent ? "text-primary" : isCompleted ? "text-foreground" : "text-muted-foreground"}`}
                 >
-                  {status.replace(/_/g, " ")}
+                  {getOrderStatusLabel(status)}
                 </div>
                 {statusHistory && (
                   <div className="mt-1 text-sm text-muted-foreground">

@@ -9,13 +9,19 @@ import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { SessionUser } from "@/types/user";
 import { UserMenu } from "@/components/auth/user-menu";
+import type { MegaMenuItem } from "@/lib/nav/mega-menu-data";
 
 type StorefrontHeaderProps = {
   user: SessionUser | null;
   cartSlot: React.ReactNode;
+  megaMenu: MegaMenuItem[];
 };
 
-export function StorefrontHeader({ user, cartSlot }: StorefrontHeaderProps) {
+export function StorefrontHeader({
+  user,
+  cartSlot,
+  megaMenu,
+}: StorefrontHeaderProps) {
   const [compact, setCompact] = useState(false);
 
   useEffect(() => {
@@ -151,12 +157,12 @@ export function StorefrontHeader({ user, cartSlot }: StorefrontHeaderProps) {
         )}
         aria-hidden={compact}
       >
-        <MegaNav disabled={compact} desktopOnly />
+        <MegaNav items={megaMenu} disabled={compact} desktopOnly />
       </div>
 
       {/* Mobile categories — always visible */}
       <div className="md:hidden">
-        <MegaNav mobileOnly />
+        <MegaNav items={megaMenu} mobileOnly />
       </div>
     </header>
   );

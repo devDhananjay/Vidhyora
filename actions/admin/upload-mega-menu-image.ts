@@ -2,7 +2,7 @@
 
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
-import { getActingSeller } from "@/lib/seller-context";
+import { requireAdmin } from "@/lib/auth-helpers";
 import type { ActionResult } from "@/lib/utils";
 
 const MAX_BYTES = 5 * 1024 * 1024;
@@ -12,14 +12,16 @@ const ALLOWED = new Map([
   ["image/webp", "webp"],
 ]);
 
-export async function uploadProductImage(
+/**
+ * Admin mega-menu image upload.
+ * Stores under public/uploads/mega-menu (same pattern as product images).
+ * Swap to S3 later via lib/storage when credentials are configured.
+ */
+export async function uploadMegaMenuImage(
   formData: FormData,
 ): Promise<ActionResult<{ url: string }>> {
   try {
-    const acting = await getActingSeller();
-    if (!acting) {
-      return { success: false, error: "Seller profile not found" };
-    }
+    await requireAdmin();
 
     const file = formData.get("file");
     if (!(file instanceof File) || file.size === 0) {
@@ -33,13 +35,7 @@ export async function uploadProductImage(
       return { success: false, error: "Upload a JPG, PNG, or WEBP image" };
     }
 
-    const dir = path.join(
-      process.cwd(),
-      "public",
-      "uploads",
-      "products",
-      acting.sellerUserId,
-    );
+    const dir = path.join(process.cwd(), "public", "uploads", "mega-menu");
     await mkdir(dir, { recursive: true });
 
     const safeBase = file.name
@@ -57,12 +53,10 @@ export async function uploadProductImage(
 
     return {
       success: true,
-      data: {
-        url: `/uploads/products/${acting.sellerUserId}/${filename}`,
-      },
+      data: { url: `/uploads/mega-menu/${filename}` },
     };
   } catch (error) {
-    console.error("Upload product image error:", error);
+    console.error("Upload mega menu image error:", error);
     return { success: false, error: "Failed to upload image" };
   }
 }

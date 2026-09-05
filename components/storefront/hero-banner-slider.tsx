@@ -1,107 +1,76 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { shopHref } from "@/lib/nav/mega-menu-data";
+import { DEFAULT_HOMEPAGE_CONFIG } from "@/lib/content/homepage-defaults";
+import type { HomepageHeroSlide } from "@/lib/validations/homepage";
+import { MediaFill } from "@/components/storefront/media-fill";
 import { cn } from "@/lib/utils";
 
-type HeroSlide = {
-  id: string;
-  image: string;
-  alt: string;
-  panelColor: string;
-  panelClassName: string;
-  contentAlign: "right" | "right-soft";
-  eyebrow?: string;
-  title: ReactNode;
-  subtitle: string;
-  cta: string;
-  ctaHref: string;
-  ctaClassName: string;
-};
-
-const SLIDES: HeroSlide[] = [
-  {
-    id: "under-30k",
-    image: "/images/banners/under-30k.jpg?v=3",
-    alt: "Everyday diamond jewellery under 30k",
-    panelColor: "#628f8b",
-    panelClassName: "left-[50%]",
-    contentAlign: "right",
-    eyebrow: "PRESENTS",
-    title: (
+function renderSlideTitle(slide: HomepageHeroSlide) {
+  if (slide.titleMode === "script") {
+    return (
       <span className="font-script text-[clamp(2.6rem,6vw,4.75rem)] leading-none text-white">
-        Under 30k
+        {slide.titleLines.join(" ")}
       </span>
-    ),
-    subtitle: "The Everyday Diamond Edit",
-    cta: "SHOP NOW",
-    ctaHref: shopHref({ maxPrice: "30000", collection: "Under 30K" }),
-    ctaClassName: "bg-white text-[#2b1a16] hover:bg-neutral-100",
-  },
-  {
-    id: "joy-of-dressing",
-    image: "/images/banners/joy-of-dressing.jpg?v=3",
-    alt: "Latest jewellery designs under 50k",
-    panelColor: "#5c7a6a",
-    panelClassName: "left-[48%]",
-    contentAlign: "right",
-    eyebrow: "PRESENTS",
-    title: (
+    );
+  }
+
+  if (slide.titleMode === "stacked") {
+    const [first, ...rest] = slide.titleLines;
+    return (
       <span className="text-white">
         <span className="block font-serif text-[clamp(1.6rem,3.4vw,2.6rem)] tracking-[0.04em]">
-          The joy of
+          {first}
         </span>
-        <span className="mt-1 block font-script text-[clamp(2.8rem,6.5vw,5rem)] leading-[0.9]">
-          dressing
-        </span>
+        {rest.map((line) => (
+          <span
+            key={line}
+            className="mt-1 block font-script text-[clamp(2.8rem,6.5vw,5rem)] leading-[0.9]"
+          >
+            {line}
+          </span>
+        ))}
       </span>
-    ),
-    subtitle: "Explore latest designs under 50k",
-    cta: "SHOP NOW",
-    ctaHref: shopHref({ maxPrice: "50000", collection: "Under 50K" }),
-    ctaClassName: "bg-[#e9d9cc] text-[#8b2e2e] hover:bg-[#f0e4da]",
-  },
-  {
-    id: "festival-of-diamonds",
-    image: "/images/banners/festival-of-diamonds.jpg?v=3",
-    alt: "Festival of Diamonds campaign",
-    panelColor: "transparent",
-    panelClassName: "left-[46%]",
-    contentAlign: "right-soft",
-    title: (
-      <span className="font-serif text-[clamp(1.85rem,4vw,3.4rem)] leading-tight tracking-[0.02em] text-white">
-        Festival Of Diamonds
-        <span className="ml-1 inline-block text-[0.55em] align-super text-white/90">
-          ✦
-        </span>
-      </span>
-    ),
-    subtitle: "Designs crafted for natural diamonds to sparkle the brightest",
-    cta: "EXPLORE NOW",
-    ctaHref: shopHref({
-      type: "diamond",
-      collection: "Festival of Diamonds",
-    }),
-    ctaClassName: "bg-white text-[#2b1a16] hover:bg-neutral-100",
-  },
-];
+    );
+  }
 
-export function HeroBannerSlider() {
+  return (
+    <span className="font-serif text-[clamp(1.85rem,4vw,3.4rem)] leading-tight tracking-[0.02em] text-white">
+      {slide.titleLines.join(" ")}
+      <span className="ml-1 inline-block text-[0.55em] align-super text-white/90">
+        ✦
+      </span>
+    </span>
+  );
+}
+
+type HeroBannerSliderProps = {
+  slides?: HomepageHeroSlide[];
+};
+
+export function HeroBannerSlider({
+  slides = DEFAULT_HOMEPAGE_CONFIG.hero.slides,
+}: HeroBannerSliderProps) {
   const [active, setActive] = useState(0);
+  const slideCount = slides.length;
 
   useEffect(() => {
+    if (slideCount === 0) return;
     const id = window.setInterval(() => {
-      setActive((current) => (current + 1) % SLIDES.length);
+      setActive((current) => (current + 1) % slideCount);
     }, 4000);
     return () => window.clearInterval(id);
-  }, [active]);
+  }, [active, slideCount]);
 
   function go(delta: number) {
-    setActive((current) => (current + delta + SLIDES.length) % SLIDES.length);
+    if (slideCount === 0) return;
+    setActive((current) => (current + delta + slideCount) % slideCount);
   }
+
+  if (slideCount === 0) return null;
 
   return (
     <section className="relative w-full overflow-hidden bg-[#5c7a6a]">
@@ -110,20 +79,20 @@ export function HeroBannerSlider() {
           className="flex h-full transition-transform duration-700 ease-in-out"
           style={{ transform: `translateX(-${active * 100}%)` }}
         >
-          {SLIDES.map((slide, index) => (
+          {slides.map((slide, index) => (
             <div
               key={slide.id}
               className="relative h-full w-full shrink-0"
               aria-hidden={index !== active}
             >
-              <Image
+              <MediaFill
                 src={slide.image}
                 alt={slide.alt}
-                fill
                 priority={index === 0}
                 quality={95}
                 className="object-cover object-left"
                 sizes="100vw"
+                play={index === active}
               />
 
               {slide.contentAlign === "right" ? (
@@ -161,7 +130,7 @@ export function HeroBannerSlider() {
                       {slide.eyebrow}
                     </p>
                   ) : null}
-                  <div className="mt-2 sm:mt-4">{slide.title}</div>
+                  <div className="mt-2 sm:mt-4">{renderSlideTitle(slide)}</div>
                   <p
                     className={cn(
                       "mt-1.5 max-w-xs text-[11px] text-white/90 sm:mt-3 sm:text-sm md:text-[15px]",
@@ -180,7 +149,8 @@ export function HeroBannerSlider() {
                     {slide.cta}
                   </Link>
                 </div>
-              </div>            </div>
+              </div>
+            </div>
           ))}
         </div>
 
@@ -202,7 +172,7 @@ export function HeroBannerSlider() {
         </button>
 
         <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-2.5 sm:bottom-5">
-          {SLIDES.map((slide, index) => (
+          {slides.map((slide, index) => (
             <button
               key={slide.id}
               type="button"

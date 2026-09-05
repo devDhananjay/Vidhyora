@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 type WorldBannerVideoProps = {
   src: string;
   className?: string;
+  /** When false, video pauses (e.g. inactive hero slide). Default true — always autoplay. */
+  active?: boolean;
 };
 
 /**
@@ -15,13 +17,17 @@ type WorldBannerVideoProps = {
  * - do not pause when off-screen (Safari often refuses to resume)
  * - show tap-to-play if Low Power Mode blocks autoplay
  */
-export function WorldBannerVideo({ src, className }: WorldBannerVideoProps) {
+export function WorldBannerVideo({
+  src,
+  className,
+  active = true,
+}: WorldBannerVideoProps) {
   const ref = useRef<HTMLVideoElement>(null);
   const [needsTap, setNeedsTap] = useState(false);
 
   const tryPlay = useCallback(async () => {
     const el = ref.current;
-    if (!el) return false;
+    if (!el || !active) return false;
 
     el.defaultMuted = true;
     el.muted = true;
@@ -36,7 +42,7 @@ export function WorldBannerVideo({ src, className }: WorldBannerVideoProps) {
       setNeedsTap(true);
       return false;
     }
-  }, []);
+  }, [active]);
 
   useEffect(() => {
     const el = ref.current;
@@ -53,6 +59,12 @@ export function WorldBannerVideo({ src, className }: WorldBannerVideoProps) {
     el.setAttribute("playsinline", "");
     el.setAttribute("webkit-playsinline", "true");
     el.setAttribute("x-webkit-airplay", "deny");
+
+    if (!active) {
+      el.pause();
+      setNeedsTap(false);
+      return;
+    }
 
     // Assign src after mute, then load
     if (el.getAttribute("src") !== src) {
@@ -95,7 +107,7 @@ export function WorldBannerVideo({ src, className }: WorldBannerVideoProps) {
       el.removeEventListener("canplaythrough", kick);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [src, tryPlay]);
+  }, [src, tryPlay, active]);
 
   return (
     <>

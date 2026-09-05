@@ -771,3 +771,21 @@ model HelpArticle {
   @@index([category])
   @@index([isActive])
 }
+
+/// JSON CMS for storefront mega menu (tabs, panels, banners, promos).
+/// Single-row config keyed by id "default".
+model MegaMenuConfig {
+  id        String   @id @default("default")
+  data      Json
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}
+
+/// JSON CMS for storefront homepage marketing sections.
+/// Single-row config keyed by id "default".
+model HomepageConfig {
+  id        String   @id @default("default")
+  data      Json
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}

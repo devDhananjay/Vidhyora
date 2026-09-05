@@ -1,151 +1,52 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { shopHref } from "@/lib/nav/mega-menu-data";
+import { DEFAULT_HOMEPAGE_CONFIG } from "@/lib/content/homepage-defaults";
+import type { HomepageTradition } from "@/lib/validations/homepage";
+import { MediaFill } from "@/components/storefront/media-fill";
 import { cn } from "@/lib/utils";
 
-type Tradition = {
-  id: string;
-  title: string;
-  subtitle: string;
-  image: string;
-  href: string;
-  moments: Array<{ label: string; image: string }>;
+type ExploreTraditionsProps = {
+  title?: string;
+  items?: HomepageTradition[];
 };
-
-const TRADITIONS: Tradition[] = [
-  {
-    id: "metro",
-    title: "METRO BRIDE",
-    subtitle: "A doorway to her world.",
-    image:
-      "https://images.unsplash.com/photo-1519741497674-611481863552?w=1200&q=80",
-    href: shopHref({ occasion: "wedding", collection: "Metro Bride" }),
-    moments: [
-      {
-        label: "Reception",
-        image:
-          "https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=400&q=80",
-      },
-      {
-        label: "Haldi",
-        image:
-          "https://images.unsplash.com/photo-1545235617-9465d2a55698?w=400&q=80",
-      },
-      {
-        label: "Mehendi",
-        image:
-          "https://images.unsplash.com/photo-1606216794074-735e91aa2c92?w=400&q=80",
-      },
-    ],
-  },
-  {
-    id: "gujarati",
-    title: "GUJARATI",
-    subtitle: "A doorway to her world.",
-    image:
-      "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?w=1200&q=80",
-    href: shopHref({ occasion: "wedding", collection: "Gujarati Bride" }),
-    moments: [
-      {
-        label: "Garba",
-        image:
-          "https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=400&q=80",
-      },
-      {
-        label: "Pithi",
-        image:
-          "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&q=80",
-      },
-      {
-        label: "Mandap",
-        image:
-          "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&q=80",
-      },
-    ],
-  },
-  {
-    id: "rajasthani",
-    title: "RAJASTHANI",
-    subtitle: "A doorway to her world.",
-    image:
-      "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?w=1200&q=80",
-    href: shopHref({ occasion: "wedding", collection: "Rajasthani Bride" }),
-    moments: [
-      {
-        label: "Sehra",
-        image:
-          "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=400&q=80",
-      },
-      {
-        label: "Poshak",
-        image:
-          "https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=400&q=80",
-      },
-      {
-        label: "Kundan",
-        image:
-          "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=400&q=80",
-      },
-    ],
-  },
-  {
-    id: "marathi",
-    title: "MARATHI",
-    subtitle: "A doorway to her world.",
-    image:
-      "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=1200&q=80",
-    href: shopHref({ occasion: "wedding", collection: "Marathi Bride" }),
-    moments: [
-      {
-        label: "Nauvari",
-        image:
-          "https://images.unsplash.com/photo-1603561596112-0a132b757442?w=400&q=80",
-      },
-      {
-        label: "Mundavalya",
-        image:
-          "https://images.unsplash.com/photo-1573408301185-9146fe634ad0?w=400&q=80",
-      },
-      {
-        label: "Sankalp",
-        image:
-          "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=400&q=80",
-      },
-    ],
-  },
-];
 
 function PinHead() {
   return (
     <span
-      className="absolute left-1/2 top-0 z-10 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#c45c5c] shadow-[0_2px_4px_rgba(0,0,0,0.25)] ring-2 ring-[#f0d7d7]"
+      className="absolute top-0 left-1/2 z-10 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#c45c5c] shadow-[0_2px_4px_rgba(0,0,0,0.25)] ring-2 ring-[#f0d7d7]"
       aria-hidden
     />
   );
 }
 
-export function ExploreTraditions() {
+export function ExploreTraditions({
+  title = DEFAULT_HOMEPAGE_CONFIG.exploreTraditions.title,
+  items = DEFAULT_HOMEPAGE_CONFIG.exploreTraditions.items,
+}: ExploreTraditionsProps) {
+  const traditions =
+    items.length > 0 ? items : DEFAULT_HOMEPAGE_CONFIG.exploreTraditions.items;
   const [active, setActive] = useState(0);
   const [hoveredMoment, setHoveredMoment] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => {
-      setActive((current) => (current + 1) % TRADITIONS.length);
+      setActive((current) => (current + 1) % traditions.length);
     }, 7000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [traditions.length]);
 
-  const current = TRADITIONS[active];
-  const sideCards = TRADITIONS.filter((_, index) => index !== active);
+  const current = traditions[active];
+  if (!current) return null;
+
+  const sideCards = traditions.filter((_, index) => index !== active);
 
   function go(delta: number) {
     setActive(
       (currentIndex) =>
-        (currentIndex + delta + TRADITIONS.length) % TRADITIONS.length,
+        (currentIndex + delta + traditions.length) % traditions.length,
     );
   }
 
@@ -167,20 +68,20 @@ export function ExploreTraditions() {
 
       <div className="relative mx-auto max-w-6xl px-4">
         <h2 className="text-center font-serif text-3xl tracking-[0.14em] text-[#8b2e2e] uppercase md:text-4xl">
-          Explore the Traditions
+          {title}
         </h2>
 
         <div className="mt-10 grid gap-4 lg:grid-cols-[1.55fr_1fr] lg:gap-5">
           <div className="relative min-h-[420px] overflow-hidden rounded-[22px] border border-[#e8d9c8] bg-[#fffaf4] shadow-[0_20px_50px_rgba(60,35,25,0.1)] md:min-h-[520px]">
             <div className="absolute inset-0">
-              <Image
+              <MediaFill
                 key={current.id}
                 src={current.image}
                 alt={current.title}
-                fill
                 className="object-cover object-[center_20%] transition duration-700"
                 sizes="(max-width: 1024px) 100vw, 60vw"
                 priority
+                play
               />
               <div className="absolute inset-0 bg-gradient-to-r from-[#fffaf4] via-[#fffaf4]/88 to-transparent md:via-[#fffaf4]/75" />
             </div>
@@ -216,12 +117,12 @@ export function ExploreTraditions() {
                     <div className="relative bg-white p-1.5 pb-7 shadow-[0_10px_24px_rgba(40,25,15,0.18)]">
                       <PinHead />
                       <div className="relative aspect-[4/5] overflow-hidden bg-[#efe6dc]">
-                        <Image
+                        <MediaFill
                           src={moment.image}
                           alt={moment.label}
-                          fill
                           className="object-cover"
                           sizes="120px"
+                          play
                         />
                       </div>
                       <p className="absolute inset-x-1 bottom-1.5 text-center text-[10px] tracking-[0.08em] text-[#8b2e2e] uppercase">
@@ -241,7 +142,7 @@ export function ExploreTraditions() {
 
           <div className="flex min-h-[420px] gap-2 md:min-h-[520px] md:gap-3">
             {sideCards.map((tradition, index) => {
-              const realIndex = TRADITIONS.findIndex(
+              const realIndex = traditions.findIndex(
                 (item) => item.id === tradition.id,
               );
               return (
@@ -258,12 +159,12 @@ export function ExploreTraditions() {
                   }}
                 >
                   <div className="absolute inset-0">
-                    <Image
+                    <MediaFill
                       src={tradition.image}
                       alt={tradition.title}
-                      fill
                       className="object-cover object-center transition duration-700 group-hover:scale-105"
                       sizes="200px"
+                      play
                     />
                     <div className="absolute inset-0 bg-gradient-to-b from-[#fffaf4]/95 via-[#fffaf4]/55 to-transparent" />
                   </div>
@@ -291,7 +192,7 @@ export function ExploreTraditions() {
             <ChevronLeft className="size-4" strokeWidth={1.8} />
           </button>
           <div className="flex items-center gap-2">
-            {TRADITIONS.map((item, index) => (
+            {traditions.map((item, index) => (
               <button
                 key={item.id}
                 type="button"

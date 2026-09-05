@@ -1,62 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { shopHref } from "@/lib/nav/mega-menu-data";
+import { DEFAULT_HOMEPAGE_CONFIG } from "@/lib/content/homepage-defaults";
+import type { HomepageLook } from "@/lib/validations/homepage";
+import { MediaFill } from "@/components/storefront/media-fill";
 
-type Look = {
-  id: string;
-  title: string;
-  image: string;
-  href: string;
+type ChooseYourLookProps = {
+  title?: string;
+  looks?: HomepageLook[];
 };
-
-const LOOKS: Look[] = [
-  {
-    id: "evening",
-    title: "Evening Look",
-    image:
-      "https://images.unsplash.com/photo-1515626553181-0f218cb03f14?w=900&q=80",
-    href: shopHref({ occasion: "party", collection: "Evening Look" }),
-  },
-  {
-    id: "casual",
-    title: "Casual Look",
-    image:
-      "https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=900&q=80",
-    href: shopHref({ occasion: "daily", collection: "Casual Look" }),
-  },
-  {
-    id: "office",
-    title: "Office Look",
-    image:
-      "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=900&q=80",
-    href: shopHref({ occasion: "office", collection: "Office Look" }),
-  },
-  {
-    id: "modern",
-    title: "Modern Look",
-    image:
-      "https://images.unsplash.com/photo-1603561596112-0a132b757442?w=900&q=80",
-    href: shopHref({ type: "diamond", collection: "Modern Look" }),
-  },
-  {
-    id: "classic",
-    title: "Classic Look",
-    image:
-      "https://images.unsplash.com/photo-1602173574767-37ac01994b2a?w=900&q=80",
-    href: shopHref({ type: "gold", collection: "Classic Look" }),
-  },
-  {
-    id: "party",
-    title: "Party Look",
-    image:
-      "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=900&q=80",
-    href: shopHref({ occasion: "party", collection: "Party Look" }),
-  },
-];
 
 function wrapIndex(index: number, length: number) {
   return ((index % length) + length) % length;
@@ -69,24 +23,29 @@ function offsetFromCenter(index: number, active: number, length: number) {
   return delta;
 }
 
-export function ChooseYourLook() {
-  const [active, setActive] = useState(3);
+export function ChooseYourLook({
+  title = DEFAULT_HOMEPAGE_CONFIG.chooseYourLook.title,
+  looks = DEFAULT_HOMEPAGE_CONFIG.chooseYourLook.looks,
+}: ChooseYourLookProps) {
+  const [active, setActive] = useState(Math.min(3, Math.max(0, looks.length - 1)));
 
   function go(delta: number) {
-    setActive((current) => wrapIndex(current + delta, LOOKS.length));
+    setActive((current) => wrapIndex(current + delta, looks.length));
   }
+
+  if (looks.length === 0) return null;
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-10 md:py-14">
       <div className="overflow-hidden rounded-[28px] bg-[#f2ebe3] px-3 py-10 md:px-8 md:py-14">
         <h2 className="text-center font-serif text-3xl text-[#5c1f1f] md:text-5xl">
-          Choose Your Look
+          {title}
         </h2>
 
         <div className="relative mt-8 md:mt-12">
           <div className="relative mx-auto flex h-[340px] items-end justify-center md:h-[420px]">
-            {LOOKS.map((look, index) => {
-              const offset = offsetFromCenter(index, active, LOOKS.length);
+            {looks.map((look, index) => {
+              const offset = offsetFromCenter(index, active, looks.length);
               const abs = Math.abs(offset);
               if (abs > 2) return null;
 
@@ -121,10 +80,9 @@ export function ChooseYourLook() {
                         : "h-[220px] w-[150px] md:h-[280px] md:w-[190px]",
                     ].join(" ")}
                   >
-                    <Image
+                    <MediaFill
                       src={look.image}
                       alt={look.title}
-                      fill
                       className="object-cover"
                       sizes="(max-width: 768px) 190px, 240px"
                     />

@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/storefront/site-footer";
 import { StorefrontHeader } from "@/components/storefront/storefront-header";
 import { auth } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants";
+import { getMegaMenuItems } from "@/lib/nav/get-mega-menu";
 
 export default async function StorefrontLayout({
   children,
@@ -12,6 +13,7 @@ export default async function StorefrontLayout({
   children: React.ReactNode;
 }) {
   const session = await auth();
+  const megaMenu = await getMegaMenuItems();
   const user = session?.user
     ? {
         id: session.user.id,
@@ -59,7 +61,11 @@ export default async function StorefrontLayout({
         </div>
       </div>
 
-      <StorefrontHeader user={user} cartSlot={<CartIndicator />} />
+      <StorefrontHeader
+        user={user}
+        cartSlot={<CartIndicator />}
+        megaMenu={megaMenu}
+      />
 
       <main className="flex-1">{children}</main>
 

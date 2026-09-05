@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, ChevronRight } from "lucide-react";
-import { MEGA_MENU, type MegaLink, type MegaMenuItem } from "@/lib/nav/mega-menu-data";
+import { type MegaLink, type MegaMenuItem } from "@/lib/nav/mega-menu-data";
 import { cn } from "@/lib/utils";
 import {
   IconBangles,
@@ -59,14 +59,17 @@ function resolvePanel(item: MegaMenuItem, sidebar: string) {
 type MegaPanelKind = "links" | "photo-cards" | "metals";
 
 export function MegaNav({
+  items,
   disabled = false,
   mobileOnly = false,
   desktopOnly = false,
 }: {
+  items: MegaMenuItem[];
   disabled?: boolean;
   mobileOnly?: boolean;
   desktopOnly?: boolean;
 }) {
+  const menu = items.length > 0 ? items : [];
   const [openId, setOpenId] = useState<string | null>(null);
   const [sidebar, setSidebar] = useState("Category");
   const [panelTop, setPanelTop] = useState(0);
@@ -78,11 +81,11 @@ export function MegaNav({
 
   const active =
     !disabled && openId
-      ? (MEGA_MENU.find((item) => item.id === openId) ?? null)
+      ? (menu.find((item) => item.id === openId) ?? null)
       : null;
 
   const mobileActive = mobileOpenId
-    ? (MEGA_MENU.find((item) => item.id === mobileOpenId) ?? null)
+    ? (menu.find((item) => item.id === mobileOpenId) ?? null)
     : null;
 
   function measurePanelTop() {
@@ -97,7 +100,7 @@ export function MegaNav({
       window.clearTimeout(closeTimer.current);
       closeTimer.current = null;
     }
-    const item = MEGA_MENU.find((entry) => entry.id === id);
+    const item = menu.find((entry) => entry.id === id);
     setSidebar(item?.sidebar[0] ?? "Category");
     measurePanelTop();
     setOpenId(id);
@@ -136,8 +139,9 @@ export function MegaNav({
   const mobileStrip = (
     <div className="border-t border-neutral-100">
       <div className="flex gap-1 overflow-x-auto px-3 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {MEGA_MENU.map((item) => {
-          const Icon = NAV_ICONS[item.id as keyof typeof NAV_ICONS];
+        {menu.map((item) => {
+          const Icon =
+            NAV_ICONS[item.id as keyof typeof NAV_ICONS] ?? IconNecklace;
           const selected = mobileOpenId === item.id;
           return (
             <button
@@ -242,8 +246,9 @@ export function MegaNav({
       onMouseLeave={scheduleClose}
     >
       <div className="mx-auto flex max-w-7xl items-center justify-center gap-7 px-4 py-1">
-        {MEGA_MENU.map((item) => {
-          const Icon = NAV_ICONS[item.id as keyof typeof NAV_ICONS];
+        {menu.map((item) => {
+          const Icon =
+            NAV_ICONS[item.id as keyof typeof NAV_ICONS] ?? IconNecklace;
           const isActive = openId === item.id;
           return (
             <Link

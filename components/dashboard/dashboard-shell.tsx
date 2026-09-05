@@ -22,6 +22,8 @@ import {
   CircleHelp,
   Menu,
   X,
+  PanelTop,
+  Home,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "@/components/brand/brand-logo";
@@ -33,6 +35,8 @@ const ADMIN_NAV = [
   { label: "Products", href: "/admin/products", icon: Package },
   { label: "Inventory", href: "/admin/inventory", icon: TrendingUp },
   { label: "Categories", href: "/admin/categories", icon: FolderTree },
+  { label: "Mega Menu", href: "/admin/mega-menu", icon: PanelTop },
+  { label: "Homepage", href: "/admin/homepage", icon: Home },
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { label: "Returns", href: "/admin/returns", icon: RotateCcw },
   { label: "Reviews", href: "/admin/reviews", icon: Star },

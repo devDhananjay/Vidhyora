@@ -23,6 +23,7 @@ import { ChooseYourLook } from "@/components/storefront/choose-your-look";
 import { WeddingMoodboard } from "@/components/storefront/wedding-moodboard";
 import { ExploreTraditions } from "@/components/storefront/explore-traditions";
 import { HeroBannerSlider } from "@/components/storefront/hero-banner-slider";
+import { WorldBannerVideo } from "@/components/storefront/world-banner-video";
 
 const CATEGORIES = [
   {
@@ -169,8 +170,8 @@ export default async function HomePage() {
               sizes="(max-width: 768px) 100vw, 50vw"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-            <div className="absolute bottom-8 left-8 text-white">
-              <p className="font-serif text-4xl md:text-5xl">Under 50k</p>
+            <div className="absolute bottom-6 left-4 text-white sm:bottom-8 sm:left-8">
+              <p className="font-serif text-3xl sm:text-4xl md:text-5xl">Under 50k</p>
               <p className="mt-2 text-sm text-white/80">Everyday diamond edit</p>
             </div>
           </Link>
@@ -303,21 +304,23 @@ export default async function HomePage() {
             </div>
           </Link>
           <div className="grid gap-4">
-            <Link
-              href={shopHref({ type: "diamond", collection: "Diamond" })}
-              className="group relative min-h-[240px] overflow-hidden rounded-2xl"
-            >
-              <Image
-                src="https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=1000&q=80"
-                alt="Diamond jewellery"
-                fill
-                className="object-cover transition duration-700 group-hover:scale-105"
-                sizes="(max-width: 768px) 100vw, 50vw"
+            <div className="group relative min-h-[240px] overflow-hidden rounded-2xl bg-[#faf6f0]">
+              <WorldBannerVideo
+                src="/videos/vidyora-world-diamond.mp4?v=4"
+                className="absolute inset-0 h-full w-full object-cover"
               />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent p-6">
-                <p className="font-serif text-2xl text-white">Diamond</p>
-              </div>
-            </Link>
+              <Link
+                href={shopHref({ type: "diamond", collection: "Diamond" })}
+                className="absolute inset-0 z-10"
+                aria-label="Shop Diamond jewellery"
+              >
+                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/35 via-black/10 to-transparent p-6">
+                  <span className="font-serif text-2xl text-white drop-shadow-sm">
+                    Diamond
+                  </span>
+                </span>
+              </Link>
+            </div>
             <Link
               href={shopHref({ type: "gold", collection: "Gold" })}
               className="group relative min-h-[240px] overflow-hidden rounded-2xl"
@@ -379,7 +382,7 @@ export default async function HomePage() {
               Crafted by experts, cherished by you.
             </p>
           </div>
-          <div className="grid grid-cols-3 gap-6 text-center">
+          <div className="grid grid-cols-1 gap-8 text-center sm:grid-cols-3 sm:gap-6">
             <div>
               <Hammer className="mx-auto size-10 text-[#b08d57]" strokeWidth={1.25} />
               <p className="mt-3 text-xs tracking-wide text-neutral-700">

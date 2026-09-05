@@ -25,7 +25,7 @@ export default async function SellerSettingsPage() {
   if (!profile) {
     return (
       <div className="space-y-6">
-        <h1 className="font-serif text-4xl text-neutral-900">Settings</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Settings</h1>
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             No seller account is available to review yet.
@@ -38,7 +38,7 @@ export default async function SellerSettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">Settings</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Settings</h1>
         <p className="mt-2 text-muted-foreground">
           Store, payout and notification preferences for {profile.businessName}.
         </p>

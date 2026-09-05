@@ -28,7 +28,7 @@ export default async function StoreLocatorPage({
     <div className="bg-[#faf8f6]">
       <div className="mx-auto max-w-7xl px-4 py-12 md:px-6">
         <p className="text-xs tracking-[0.2em] text-[#8b2e2e] uppercase">Visit us</p>
-        <h1 className="mt-2 font-serif text-4xl text-neutral-900 md:text-5xl">
+        <h1 className="mt-2 font-serif text-3xl text-neutral-900 sm:text-4xl md:text-5xl">
           Store Locator
         </h1>
         <p className="mt-3 max-w-2xl text-neutral-600">

@@ -20,11 +20,11 @@ export function OrderCard({ order }: OrderCardProps) {
   return (
     <Link
       href={`/orders/${order.id}`}
-      className="block rounded-lg border p-6 transition-colors hover:border-primary"
+      className="block rounded-lg border p-4 transition-colors hover:border-primary sm:p-6"
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <div className="mb-2 flex items-center gap-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
             <span className="font-semibold">Order #{order.orderNumber}</span>
             <Badge className={`bg-${statusColor}-100 text-${statusColor}-700`}>
               {getOrderStatusLabel(order.orderStatus)}
@@ -39,9 +39,9 @@ export function OrderCard({ order }: OrderCardProps) {
             Placed on {format(new Date(order.createdAt), "MMM dd, yyyy")}
           </div>
 
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-3 sm:gap-4">
             {firstItem && (
-              <div className="relative size-20 shrink-0 overflow-hidden rounded">
+              <div className="relative size-16 shrink-0 overflow-hidden rounded sm:size-20">
                 {firstItem.product.thumbnail ? (
                   <Image
                     src={firstItem.product.thumbnail}
@@ -57,8 +57,8 @@ export function OrderCard({ order }: OrderCardProps) {
               </div>
             )}
 
-            <div className="flex-1">
-              <div className="font-medium">{firstItem?.productName}</div>
+            <div className="min-w-0 flex-1">
+              <div className="line-clamp-2 font-medium">{firstItem?.productName}</div>
               {order.items.length > 1 && (
                 <div className="mt-1 text-sm text-muted-foreground">
                   +{order.items.length - 1} more item(s)
@@ -71,7 +71,7 @@ export function OrderCard({ order }: OrderCardProps) {
           </div>
         </div>
 
-        <ChevronRight className="size-5 text-muted-foreground" />
+        <ChevronRight className="mt-1 size-5 shrink-0 text-muted-foreground" />
       </div>
     </Link>
   );

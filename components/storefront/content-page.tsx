@@ -15,7 +15,7 @@ export function ContentPage({
         <p className="text-xs tracking-[0.2em] text-[#8b2e2e] uppercase">
           {eyebrow}
         </p>
-        <h1 className="mt-2 font-serif text-4xl text-neutral-900 md:text-5xl">
+        <h1 className="mt-2 font-serif text-3xl text-neutral-900 sm:text-4xl md:text-5xl">
           {title}
         </h1>
         <div className="mt-8 space-y-5 text-[15px] leading-7 text-neutral-700">

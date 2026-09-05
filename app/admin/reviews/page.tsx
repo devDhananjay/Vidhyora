@@ -14,7 +14,7 @@ export default async function AdminReviewsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">Review Moderation</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Review Moderation</h1>
         <p className="mt-2 text-muted-foreground">
           Super Admin only: {reviews.length}{" "}
           {reviews.length === 1 ? "review" : "reviews"} pending approve or reject

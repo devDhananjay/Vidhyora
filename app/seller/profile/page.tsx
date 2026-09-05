@@ -64,7 +64,7 @@ export default async function SellerProfilePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">Seller Profile</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Seller Profile</h1>
         <p className="mt-2 text-muted-foreground">
           View and manage your seller account information
         </p>

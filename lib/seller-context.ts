@@ -76,9 +76,29 @@ export async function getActingSeller(): Promise<ActingSeller | null> {
         sellerUserId: preferred.sellerId,
         profile: preferred,
         businessName: preferred.businessName,
-        isAdminView: true,
+        isAdminView: preferred.sellerId !== session.user.id,
       };
     }
+  }
+
+  const ownProfile = await prisma.sellerProfile.findUnique({
+    where: { sellerId: session.user.id },
+    select: {
+      id: true,
+      sellerId: true,
+      businessName: true,
+      businessEmail: true,
+      businessPhone: true,
+    },
+  });
+  if (ownProfile) {
+    return {
+      session,
+      sellerUserId: ownProfile.sellerId,
+      profile: ownProfile,
+      businessName: ownProfile.businessName,
+      isAdminView: false,
+    };
   }
 
   const fallback = await prisma.sellerProfile.findFirst({

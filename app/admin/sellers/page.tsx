@@ -34,7 +34,7 @@ export default async function AdminSellersPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">Seller Admins</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Seller Admins</h1>
         <p className="mt-2 text-muted-foreground">
           {sellers.length} seller admins • {pendingCount} pending approval.
           Approve, reject, or deactivate accounts from here.

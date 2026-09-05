@@ -92,20 +92,24 @@ export function ProductActions({
     });
   };
 
+  // Draft + pending both await Super Admin review (draft save left some listings as DRAFT)
+  const needsReview =
+    currentStatus === "PENDING_APPROVAL" || currentStatus === "DRAFT";
+
   return (
     <div className="flex shrink-0 flex-wrap gap-2">
-      {currentStatus === "PENDING_APPROVAL" && (
+      {needsReview && (
         <Button
           onClick={handleApprove}
           disabled={isPending}
           className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
         >
           <CheckCircle className="size-4" />
-          Approve
+          Approve & Publish
         </Button>
       )}
 
-      {(currentStatus === "PENDING_APPROVAL" || currentStatus === "APPROVED") && (
+      {(needsReview || currentStatus === "APPROVED") && (
         <Button
           type="button"
           onClick={() => {

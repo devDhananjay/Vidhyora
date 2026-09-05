@@ -25,7 +25,7 @@ export default async function EditCategoryPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">Edit Category</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Edit Category</h1>
         <p className="mt-2 text-muted-foreground">
           Update category information
         </p>

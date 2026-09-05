@@ -5,13 +5,13 @@ import Image from "next/image";
 import { X, Upload, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { uploadFile, type UploadedFile } from "@/lib/storage";
+import { uploadProductImage } from "@/actions/seller/upload-product-image";
 
 type ImageUploadProps = {
-  value?: string[]; // Array of image URLs
+  value?: string[];
   onChange: (urls: string[]) => void;
   maxFiles?: number;
-  maxSize?: number; // in MB
+  maxSize?: number;
   disabled?: boolean;
   className?: string;
 };
@@ -37,26 +37,28 @@ export function ImageUpload({
 
     try {
       const fileArray = Array.from(files);
-      
-      // Check if adding these files would exceed maxFiles
+
       if (value.length + fileArray.length > maxFiles) {
         setError(`Maximum ${maxFiles} images allowed`);
         setIsUploading(false);
         return;
       }
 
-      // Upload files
-      const uploadPromises = fileArray.map((file) =>
-        uploadFile(file, {
-          maxSize: maxSize * 1024 * 1024,
-          folder: "products",
-        }),
-      );
+      const uploadedUrls: string[] = [];
+      for (const file of fileArray) {
+        if (file.size > maxSize * 1024 * 1024) {
+          throw new Error(`Each image must be under ${maxSize}MB`);
+        }
+        const formData = new FormData();
+        formData.append("file", file);
+        const result = await uploadProductImage(formData);
+        if (!result.success) {
+          throw new Error(result.error || "Failed to upload image");
+        }
+        uploadedUrls.push(result.data.url);
+      }
 
-      const uploadedFiles: UploadedFile[] = await Promise.all(uploadPromises);
-      const newUrls = uploadedFiles.map((f) => f.url);
-      
-      onChange([...value, ...newUrls]);
+      onChange([...value, ...uploadedUrls]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to upload images");
     } finally {
@@ -71,9 +73,7 @@ export function ImageUpload({
   const handleDragOver = (e: DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!disabled) {
-      setIsDragging(true);
-    }
+    if (!disabled) setIsDragging(true);
   };
 
   const handleDragLeave = (e: DragEvent) => {
@@ -86,29 +86,20 @@ export function ImageUpload({
     e.preventDefault();
     e.stopPropagation();
     setIsDragging(false);
-    
-    if (!disabled) {
-      handleFiles(e.dataTransfer.files);
-    }
+    if (!disabled) handleFiles(e.dataTransfer.files);
   };
 
   const handleRemove = (index: number) => {
-    const newUrls = value.filter((_, i) => i !== index);
-    onChange(newUrls);
-  };
-
-  const handleClick = () => {
-    fileInputRef.current?.click();
+    onChange(value.filter((_, i) => i !== index));
   };
 
   const canUploadMore = value.length < maxFiles;
 
   return (
     <div className={cn("space-y-4", className)}>
-      {/* Upload Area */}
       {canUploadMore && (
         <div
-          onClick={handleClick}
+          onClick={() => fileInputRef.current?.click()}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
@@ -131,15 +122,12 @@ export function ImageUpload({
           />
 
           <Upload className="mb-4 size-10 text-muted-foreground" />
-          
           <p className="mb-2 text-sm font-medium">
             {isDragging ? "Drop images here" : "Click to upload or drag and drop"}
           </p>
-          
           <p className="text-xs text-muted-foreground">
             PNG, JPG, WEBP up to {maxSize}MB ({maxFiles - value.length} remaining)
           </p>
-
           {isUploading && (
             <div className="mt-4">
               <div className="h-1 w-48 overflow-hidden rounded-full bg-muted">
@@ -151,14 +139,12 @@ export function ImageUpload({
         </div>
       )}
 
-      {/* Error Message */}
       {error && (
         <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
           {error}
         </div>
       )}
 
-      {/* Image Preview Grid */}
       {value.length > 0 && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {value.map((url, index) => (
@@ -170,9 +156,9 @@ export function ImageUpload({
                 src={url}
                 alt={`Upload ${index + 1}`}
                 fill
+                unoptimized={url.startsWith("data:")}
                 className="object-cover"
               />
-              
               {!disabled && (
                 <Button
                   type="button"
@@ -184,7 +170,6 @@ export function ImageUpload({
                   <X className="size-4" />
                 </Button>
               )}
-
               {index === 0 && (
                 <div className="absolute bottom-2 left-2 rounded bg-primary px-2 py-1 text-xs font-medium text-primary-foreground">
                   Thumbnail
@@ -195,7 +180,6 @@ export function ImageUpload({
         </div>
       )}
 
-      {/* Empty State */}
       {value.length === 0 && !canUploadMore && (
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-muted-foreground">
           <ImageIcon className="mb-4 size-10" />

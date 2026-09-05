@@ -45,7 +45,7 @@ export function InventoryTable({ inventory }: InventoryTableProps) {
       {inventory.map((product) => (
         <div key={product.id} className="rounded-lg border">
           {/* Product Header */}
-          <div className="flex items-center gap-4 border-b p-4">
+          <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:gap-4">
             {product.thumbnail ? (
               <div className="relative size-16 shrink-0 overflow-hidden rounded">
                 <Image
@@ -61,16 +61,16 @@ export function InventoryTable({ inventory }: InventoryTableProps) {
               </div>
             )}
 
-            <div className="flex-1">
-              <div className="flex items-start justify-between">
-                <div>
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
                   <h3 className="font-semibold">{product.name}</h3>
                   <p className="text-sm text-muted-foreground">
                     {product.category.name} • {product.brand}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   {product.isLowStock && (
                     <Badge variant="outline" className="border-yellow-600 text-yellow-600">
                       <AlertTriangle className="mr-1 size-3" />
@@ -91,7 +91,7 @@ export function InventoryTable({ inventory }: InventoryTableProps) {
                 </div>
               </div>
 
-              <div className="mt-2 flex gap-4 text-sm">
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
                 <div>
                   <span className="text-muted-foreground">Total Stock:</span>{" "}
                   <span className="font-medium">{product.totalStock}</span>
@@ -125,9 +125,9 @@ export function InventoryTable({ inventory }: InventoryTableProps) {
               return (
                 <div
                   key={variant.id}
-                  className="flex items-center justify-between p-4"
+                  className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
-                  <div className="flex-1">
+                  <div className="min-w-0 flex-1">
                     <div className="font-medium">
                       {variant.attributes?.name || variant.sku}
                     </div>
@@ -136,7 +136,7 @@ export function InventoryTable({ inventory }: InventoryTableProps) {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-3 sm:gap-4">
                     {isEditing ? (
                       <>
                         <div className="flex items-center gap-2">

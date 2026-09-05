@@ -23,14 +23,14 @@ export default async function AdminCategoriesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-serif text-4xl text-neutral-900">Category Management</h1>
-          <p className="mt-2 text-muted-foreground">
+          <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Category Management</h1>
+          <p className="mt-2 text-sm text-muted-foreground sm:text-base">
             {categories.length} {categories.length === 1 ? "category" : "categories"}
           </p>
         </div>
-        <Link href="/admin/categories/new">
+        <Link href="/admin/categories/new" className="self-start">
           <Button className="gap-2">
             <Plus className="size-4" />
             Add Category
@@ -75,13 +75,13 @@ function CategoryCard({
   const hasChildren = children.length > 0;
 
   return (
-    <div className={level > 0 ? "ml-8" : ""}>
+    <div className={level > 0 ? "ml-3 border-l border-neutral-200 pl-3 sm:ml-6 sm:pl-4 md:ml-8" : ""}>
       <Card>
-        <CardContent className="p-6">
-          <div className="flex items-start gap-4">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
             {/* Category Image */}
             {category.image ? (
-              <div className="relative size-20 shrink-0 overflow-hidden rounded">
+              <div className="relative size-16 shrink-0 overflow-hidden rounded sm:size-20">
                 <Image
                   src={category.image}
                   alt={category.name}
@@ -90,23 +90,23 @@ function CategoryCard({
                 />
               </div>
             ) : (
-              <div className="flex size-20 shrink-0 items-center justify-center rounded bg-muted text-2xl">
+              <div className="flex size-16 shrink-0 items-center justify-center rounded bg-muted text-2xl sm:size-20">
                 📁
               </div>
             )}
 
             {/* Category Info */}
-            <div className="flex-1">
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-lg font-semibold">{category.name}</h3>
                     <Badge variant={category.isActive ? "default" : "secondary"}>
                       {category.isActive ? "Active" : "Inactive"}
                     </Badge>
                   </div>
                   
-                  <div className="mt-1 flex items-center gap-3 text-sm text-muted-foreground">
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                     <span>/{category.slug}</span>
                     <span>•</span>
                     <span>{category._count.products} products</span>

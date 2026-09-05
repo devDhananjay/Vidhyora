@@ -36,7 +36,7 @@ export default async function AdminSellerDetailPage({
         </Link>
         <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="font-serif text-4xl text-neutral-900">{seller.businessName}</h1>
+            <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">{seller.businessName}</h1>
             <p className="mt-2 text-muted-foreground">{seller.seller.name}</p>
           </div>
           <SellerActions

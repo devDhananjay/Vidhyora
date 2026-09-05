@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Bodoni_Moda, Caveat, Montserrat } from "next/font/google";
 import "./globals.css";
 import { APP_NAME, APP_DESCRIPTION, APP_TAGLINE, BRAND_LOGO_SRC } from "@/lib/constants";
+import { getSiteUrl } from "@/lib/site-url";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -24,9 +25,7 @@ export const metadata: Metadata = {
     template: `%s | ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  ),
+  metadataBase: new URL(getSiteUrl()),
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },

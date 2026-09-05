@@ -27,16 +27,17 @@ export function AddressSelection({
   };
 
   return (
-    <div className="rounded-lg border p-6">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="rounded-lg border p-4 sm:p-6">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
-          <MapPin className="size-5 text-primary" />
+          <MapPin className="size-5 shrink-0 text-primary" />
           <h2 className="text-lg font-semibold">Delivery Address</h2>
         </div>
         {!showForm && addresses.length > 0 && (
           <Button
             variant="outline"
             size="sm"
+            className="self-start"
             onClick={() => setShowForm(true)}
           >
             <Plus className="mr-2 size-4" />

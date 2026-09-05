@@ -39,15 +39,20 @@ export default async function AdminProductDetailPage({
         </Link>
         <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h1 className="font-serif text-4xl text-neutral-900">{product.name}</h1>
+            <h1 className="font-serif text-2xl text-neutral-900 sm:text-3xl md:text-4xl">{product.name}</h1>
             <p className="mt-2 text-muted-foreground">
               {product.category.name} • {product.brand}
             </p>
           </div>
-          <ProductActions
-            productId={product.id}
-            currentStatus={product.approvalStatus}
-          />
+          <div className="rounded-xl border border-[#8b2e2e]/20 bg-[#faf7f5] p-3">
+            <p className="mb-2 text-xs font-medium text-[#8b2e2e]">
+              Super Admin actions
+            </p>
+            <ProductActions
+              productId={product.id}
+              currentStatus={product.approvalStatus}
+            />
+          </div>
         </div>
       </div>
 
@@ -62,12 +67,15 @@ export default async function AdminProductDetailPage({
               className={
                 product.approvalStatus === "APPROVED"
                   ? "bg-green-600"
-                  : product.approvalStatus === "PENDING_APPROVAL"
+                  : product.approvalStatus === "PENDING_APPROVAL" ||
+                      product.approvalStatus === "DRAFT"
                     ? "bg-yellow-600"
                     : "bg-red-600"
               }
             >
-              {product.approvalStatus}
+              {product.approvalStatus === "DRAFT"
+                ? "DRAFT (awaiting review)"
+                : product.approvalStatus}
             </Badge>
             {product.rejectionReason ? (
               <p className="mt-2 text-sm text-red-700">

@@ -28,9 +28,9 @@ export function LowStockAlert({ products }: LowStockAlertProps) {
 
   return (
     <Card className="border-orange-200 bg-orange-50/50">
-      <CardHeader className="flex flex-row items-center justify-between">
+      <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
-          <AlertTriangle className="size-5 text-orange-600" />
+          <AlertTriangle className="size-5 shrink-0 text-orange-600" />
           <CardTitle className="text-orange-900">Low Stock Alert</CardTitle>
         </div>
         <Link
@@ -47,41 +47,43 @@ export function LowStockAlert({ products }: LowStockAlertProps) {
             return (
               <div
                 key={product.id}
-                className="flex items-center gap-4 rounded-lg border bg-background p-3"
+                className="flex flex-col gap-3 rounded-lg border bg-background p-3 sm:flex-row sm:items-center sm:gap-4"
               >
-                <div className="relative size-12 shrink-0 overflow-hidden rounded">
-                  {product.thumbnail ? (
-                    <Image
-                      src={product.thumbnail}
-                      alt={product.name}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="flex size-full items-center justify-center bg-muted text-2xl">
-                      📦
-                    </div>
-                  )}
-                </div>
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <div className="relative size-12 shrink-0 overflow-hidden rounded">
+                    {product.thumbnail ? (
+                      <Image
+                        src={product.thumbnail}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="flex size-full items-center justify-center bg-muted text-2xl">
+                        📦
+                      </div>
+                    )}
+                  </div>
 
-                <div className="flex-1">
-                  <Link
-                    href={`/seller/products/${product.id}`}
-                    className="font-medium hover:text-primary"
-                  >
-                    {product.name}
-                  </Link>
-                  <div className="mt-1 text-sm text-muted-foreground">
-                    SKU: {lowestVariant.sku}
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/seller/products/${product.id}`}
+                      className="line-clamp-2 font-medium hover:text-primary"
+                    >
+                      {product.name}
+                    </Link>
+                    <div className="mt-1 text-sm text-muted-foreground">
+                      SKU: {lowestVariant.sku}
+                    </div>
                   </div>
                 </div>
 
-                <div className="text-right">
+                <div className="flex items-center justify-between gap-2 sm:flex-col sm:items-end">
                   <Badge variant="destructive" className="font-semibold">
                     {lowestVariant.stock} left
                   </Badge>
                   <Link href={`/seller/products/${product.id}/edit`}>
-                    <Button variant="outline" size="sm" className="mt-2">
+                    <Button variant="outline" size="sm">
                       Update Stock
                     </Button>
                   </Link>

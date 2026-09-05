@@ -26,8 +26,8 @@ export default async function EditProductPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">Edit Product</h1>
-        <p className="mt-2 text-muted-foreground">
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Edit Product</h1>
+        <p className="mt-2 text-sm text-muted-foreground sm:text-base">
           Update your product information
         </p>
       </div>

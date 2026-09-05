@@ -11,19 +11,19 @@ export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
   const currentImages = watch("images") || [];
 
   const handleImagesChange = (urls: string[]) => {
-    // Set thumbnail to first image
     if (urls.length > 0) {
-      setValue("thumbnail", urls[0]);
+      setValue("thumbnail", urls[0], { shouldValidate: true, shouldDirty: true });
+    } else {
+      setValue("thumbnail", "", { shouldValidate: true, shouldDirty: true });
     }
-    
-    // Set images array with proper structure
+
     const images = urls.map((url, index) => ({
       url,
       altText: watch("name") || "Product image",
       sortOrder: index,
     }));
-    
-    setValue("images", images);
+
+    setValue("images", images, { shouldValidate: true, shouldDirty: true });
   };
 
   const imageUrls = currentImages.map((img: any) => img.url);

@@ -303,7 +303,10 @@ export const MEGA_MENU: MegaMenuItem[] = [
       cta: "Shop now",
       href: shopHref({ item: "earrings", collection: "Earrings" }),
     },
-    panels: COMMON_PANELS,
+    panels: {
+      ...COMMON_PANELS,
+      "Metal & Stones": METAL_PANEL,
+    },
   },
   {
     id: "daily",
@@ -398,12 +401,33 @@ export const MEGA_MENU: MegaMenuItem[] = [
       thumbs: [IMG.bridal],
     },
     promo: {
-      image: "/images/bridal-rivaah.jpg",
+      image: IMG.bridal,
       title: "Wedding jewellery, crafted for forever",
       cta: "Explore Now",
       href: shopHref({ occasion: "wedding", collection: "Wedding Jewellery" }),
     },
     panels: {
+      Community: {
+        kind: "links",
+        items: [
+          link("North Indian Bridal", IMG.bridal, {
+            occasion: "wedding",
+            collection: "North Indian Bridal",
+          }),
+          link("South Indian Bridal", IMG.pearl, {
+            occasion: "wedding",
+            collection: "South Indian Bridal",
+          }),
+          link("Bengali Bridal", IMG.bangles, {
+            occasion: "wedding",
+            collection: "Bengali Bridal",
+          }),
+          link("Marathi Bridal", IMG.necklace, {
+            occasion: "wedding",
+            collection: "Marathi Bridal",
+          }),
+        ],
+      },
       Metal: METAL_PANEL,
     },
   },
@@ -431,8 +455,23 @@ export const MEGA_MENU: MegaMenuItem[] = [
       href: shopHref({ occasion: "festive", collection: "Gifting" }),
     },
     panels: {
+      "Gift Card": {
+        kind: "links",
+        items: [
+          link("E-Gift Card", IMG.gift, { collection: "E-Gift Card" }),
+          link("Physical Gift Card", IMG.gift, { collection: "Physical Gift Card" }),
+        ],
+      },
       Price: PRICE_PANEL,
       Occasion: OCCASION_PANEL,
+      "Corporate Gifting": {
+        kind: "links",
+        items: [
+          link("Bulk Orders", IMG.gift, { collection: "Corporate Bulk Orders" }),
+          link("Employee Rewards", IMG.ring, { collection: "Employee Rewards" }),
+          link("Client Gifting", IMG.pendant, { collection: "Client Gifting" }),
+        ],
+      },
     },
   },
   {

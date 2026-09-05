@@ -17,7 +17,7 @@ export default async function AdminPayoutsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">Payouts</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Payouts</h1>
         <p className="mt-2 text-muted-foreground">
           Paid orders split into seller share and platform commission. Settle
           when you have transferred the net amount to the seller admin.

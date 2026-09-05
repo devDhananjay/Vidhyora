@@ -71,7 +71,7 @@ export function CartItemCard({ item }: CartItemCardProps) {
   const attributes = item.variant.attributes as Record<string, string> | null;
 
   return (
-    <div className="flex gap-4 rounded-lg border p-4">
+    <div className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row">
       {/* Product Image */}
       <Link
         href={`/products/${item.product.slug}`}
@@ -92,7 +92,7 @@ export function CartItemCard({ item }: CartItemCardProps) {
       </Link>
 
       {/* Product Info */}
-      <div className="flex flex-1 flex-col gap-2">
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div>
           <Link
             href={`/products/${item.product.slug}`}
@@ -134,7 +134,7 @@ export function CartItemCard({ item }: CartItemCardProps) {
         )}
 
         {/* Actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           {/* Quantity Selector */}
           <div className="flex items-center gap-2">
             <Button
@@ -158,7 +158,7 @@ export function CartItemCard({ item }: CartItemCardProps) {
             </Button>
           </div>
 
-          <div className="text-sm text-muted-foreground">|</div>
+          <div className="hidden text-sm text-muted-foreground sm:block">|</div>
 
           {/* Remove Button */}
           <Button
@@ -185,7 +185,8 @@ export function CartItemCard({ item }: CartItemCardProps) {
       </div>
 
       {/* Total */}
-      <div className="shrink-0 text-right">
+      <div className="flex items-center justify-between border-t pt-3 sm:shrink-0 sm:border-0 sm:pt-0 sm:text-right">
+        <span className="text-sm text-muted-foreground sm:hidden">Total</span>
         <div className="text-lg font-semibold">{formatCurrency(total)}</div>
       </div>
     </div>

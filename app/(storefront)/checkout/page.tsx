@@ -43,7 +43,7 @@ export default async function CheckoutPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-6 font-serif text-4xl text-neutral-900">Checkout</h1>
+      <h1 className="mb-6 font-serif text-3xl text-neutral-900 sm:text-4xl">Checkout</h1>
 
       <CheckoutSteps currentStep={1} />
 

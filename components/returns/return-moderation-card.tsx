@@ -102,8 +102,8 @@ export function ReturnModerationCard({
 
   return (
     <Card>
-      <CardContent className="p-6">
-        <div className="flex gap-4">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row">
           <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-muted">
             {item.orderItem.product.thumbnail ? (
               <Image

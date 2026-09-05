@@ -42,7 +42,7 @@ export function StorefrontHeader({ user, cartSlot }: StorefrontHeaderProps) {
         compact && "shadow-[0_4px_18px_rgba(43,26,22,0.08)]",
       )}
     >
-      <div className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-1 md:py-1.5">
+      <div className="mx-auto flex max-w-7xl items-center gap-3 px-3 py-1 sm:gap-6 sm:px-4 md:py-1.5">
         <Link href={ROUTES.home} className="shrink-0" aria-label="VIDYORA home">
           <BrandLogo
             size="md"
@@ -50,8 +50,8 @@ export function StorefrontHeader({ user, cartSlot }: StorefrontHeaderProps) {
             className={cn(
               "transition-all duration-300 ease-out",
               compact
-                ? "!h-12 !w-12 md:!h-14 md:!w-14"
-                : "!h-[72px] !w-[72px] md:!h-20 md:!w-20",
+                ? "!h-11 !w-11 md:!h-14 md:!w-14"
+                : "!h-14 !w-14 sm:!h-[72px] sm:!w-[72px] md:!h-20 md:!w-20",
             )}
           />
         </Link>
@@ -78,16 +78,34 @@ export function StorefrontHeader({ user, cartSlot }: StorefrontHeaderProps) {
           </form>
         </div>
 
+        {/* Mobile search */}
+        <form action={ROUTES.products} className="relative min-w-0 flex-1 md:hidden">
+          <input
+            type="search"
+            name="q"
+            placeholder="Search jewellery"
+            className="h-9 w-full rounded-full border border-neutral-200 bg-white px-3 pr-9 text-sm text-neutral-700 outline-none placeholder:text-neutral-400 focus:border-neutral-400"
+            aria-label="Search jewellery"
+          />
+          <button
+            type="submit"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500"
+            aria-label="Search"
+          >
+            <Search className="size-4" />
+          </button>
+        </form>
+
         <nav className="ml-auto flex items-center gap-1 text-[#8b2e2e]">
           <Link
             href={ROUTES.partner}
             className={cn(
-              "relative z-20 mr-1 inline-flex items-center gap-1.5 rounded-full border border-[#8b2e2e]/20 bg-[#8b2e2e]/5 font-medium text-[#8b2e2e] transition hover:bg-[#8b2e2e] hover:text-white",
+              "relative z-20 mr-1 hidden items-center gap-1.5 rounded-full border border-[#8b2e2e]/20 bg-[#8b2e2e]/5 font-medium text-[#8b2e2e] transition hover:bg-[#8b2e2e] hover:text-white sm:inline-flex",
               compact ? "px-2.5 py-1 text-[11px]" : "px-3 py-1.5 text-[12px]",
             )}
           >
             <Handshake className="size-3.5" strokeWidth={1.75} />
-            <span className="hidden sm:inline">Partner with Us</span>
+            <span className="hidden md:inline">Partner with Us</span>
           </Link>
           <Link
             href={ROUTES.storeLocator}
@@ -123,16 +141,22 @@ export function StorefrontHeader({ user, cartSlot }: StorefrontHeaderProps) {
         </nav>
       </div>
 
+      {/* Desktop mega nav — collapses on scroll (panel portals outside to avoid sticky clip) */}
       <div
         className={cn(
-          "transition-opacity duration-300 ease-out",
+          "hidden transition-[max-height,opacity] duration-300 ease-out md:block",
           compact
-            ? "pointer-events-none hidden opacity-0"
-            : "opacity-100",
+            ? "pointer-events-none max-h-0 opacity-0"
+            : "max-h-40 opacity-100",
         )}
         aria-hidden={compact}
       >
-        <MegaNav disabled={compact} />
+        <MegaNav disabled={compact} desktopOnly />
+      </div>
+
+      {/* Mobile categories — always visible */}
+      <div className="md:hidden">
+        <MegaNav mobileOnly />
       </div>
     </header>
   );

@@ -26,7 +26,7 @@ export default async function SellerAnalyticsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">Sales Analytics</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Sales Analytics</h1>
         <p className="mt-2 text-muted-foreground">
           Revenue, orders and product performance for your jewellery store.
         </p>

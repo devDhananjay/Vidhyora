@@ -22,14 +22,14 @@ export default async function AdminCouponsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-serif text-4xl text-neutral-900">Coupon Management</h1>
-          <p className="mt-2 text-muted-foreground">
+          <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Coupon Management</h1>
+          <p className="mt-2 text-sm text-muted-foreground sm:text-base">
             {coupons.length} coupons • {activeCoupons.length} active
           </p>
         </div>
-        <Link href="/admin/coupons/new">
+        <Link href="/admin/coupons/new" className="self-start">
           <Button className="gap-2">
             <Plus className="size-4" />
             Create Coupon
@@ -52,11 +52,11 @@ export default async function AdminCouponsPage() {
 
             return (
               <Card key={coupon.id}>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3">
-                        <h3 className="font-mono text-2xl font-bold">{coupon.code}</h3>
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <h3 className="font-mono text-xl font-bold sm:text-2xl">{coupon.code}</h3>
                         <Badge variant={isActive ? "default" : "secondary"}>
                           {isExpired ? "Expired" : coupon.isActive ? "Active" : "Inactive"}
                         </Badge>

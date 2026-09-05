@@ -23,14 +23,14 @@ export default async function SellerInventoryPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">Inventory Management</h1>
-        <p className="mt-2 text-muted-foreground">
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Inventory Management</h1>
+        <p className="mt-2 text-sm text-muted-foreground sm:text-base">
           Track and manage your product stock levels
         </p>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>

@@ -25,7 +25,7 @@ export default async function MyReviewsPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="font-serif text-4xl text-neutral-900">My Reviews</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">My Reviews</h1>
         <p className="mt-2 text-muted-foreground">
           {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
         </p>

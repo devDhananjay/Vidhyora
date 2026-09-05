@@ -26,7 +26,7 @@ export default async function AdminPaymentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">Payments</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Payments</h1>
         <p className="mt-2 text-muted-foreground">
           {payments.length} records • {formatCurrency(capturedTotal)} captured
         </p>

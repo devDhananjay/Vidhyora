@@ -32,7 +32,7 @@ export default async function AdminUserDetailPage({
         <Link href="/admin/users" className="text-sm text-primary hover:underline">
           ← Back to Users
         </Link>
-        <h1 className="mt-2 font-serif text-4xl text-neutral-900">{user.name}</h1>
+        <h1 className="mt-2 font-serif text-3xl text-neutral-900 sm:text-4xl">{user.name}</h1>
         <p className="mt-2 text-muted-foreground">{user.email}</p>
         <div className="mt-4">
           <UserStatusActions
@@ -44,7 +44,7 @@ export default async function AdminUserDetailPage({
       </div>
 
       {/* User Info */}
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm">Role</CardTitle>

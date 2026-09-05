@@ -15,8 +15,8 @@ export default async function AdminStoresPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">Store Locator</h1>
-        <p className="mt-2 text-muted-foreground">
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Store Locator</h1>
+        <p className="mt-2 text-sm text-muted-foreground sm:text-base">
           Stores listed here appear on the public Store Locator page.
         </p>
       </div>
@@ -40,8 +40,8 @@ export default async function AdminStoresPage() {
         <div className="grid gap-4">
           {stores.map((store) => (
             <Card key={store.id}>
-              <CardContent className="flex items-start justify-between gap-4 p-6">
-                <div>
+              <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <h3 className="text-lg font-semibold">{store.name}</h3>
                     <Badge variant={store.isActive ? "default" : "secondary"}>

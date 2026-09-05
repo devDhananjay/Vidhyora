@@ -294,8 +294,13 @@ type DraftProductInput = {
   tax?: number;
 };
 
-function isHttpUrl(value?: string) {
-  return Boolean(value && /^https?:\/\//i.test(value));
+function isPersistableImageUrl(value?: string) {
+  if (!value) return false;
+  return (
+    /^https?:\/\//i.test(value) ||
+    value.startsWith("/uploads/") ||
+    value.startsWith("data:image/")
+  );
 }
 
 export async function saveProductDraft(
@@ -331,8 +336,9 @@ export async function saveProductDraft(
       data.description?.trim() ||
       data.shortDescription?.trim() ||
       "Draft product. Complete all steps before submitting for approval.";
-    const images = (data.images ?? []).filter((image) => isHttpUrl(image.url));
-    const variants = (data.variants ?? []).map((variant, index) => ({
+    const images = (data.images ?? []).filter((image) =>
+      isPersistableImageUrl(image.url),
+    );    const variants = (data.variants ?? []).map((variant, index) => ({
       sku:
         variant.sku?.trim() ||
         `DRAFT-${Date.now().toString(36).toUpperCase()}-${index + 1}`,
@@ -374,8 +380,9 @@ export async function saveProductDraft(
       categoryId: data.categoryId,
       shortDescription: data.shortDescription?.trim() || description.slice(0, 200),
       description,
-      thumbnail: isHttpUrl(data.thumbnail) ? data.thumbnail : images[0]?.url,
-      basePrice: Number(data.basePrice) || variantPayload[0].price || 0,
+      thumbnail: isPersistableImageUrl(data.thumbnail)
+        ? data.thumbnail
+        : images[0]?.url,      basePrice: Number(data.basePrice) || variantPayload[0].price || 0,
       compareAtPrice: data.compareAtPrice || undefined,
       tax: Number(data.tax) || 0,
       status: "DRAFT" as const,

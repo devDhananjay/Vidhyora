@@ -48,7 +48,7 @@ export default async function ReturnRequestPage({
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mx-auto max-w-2xl">
-        <h1 className="font-serif text-4xl text-neutral-900">Request Return/Replacement</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Request Return/Replacement</h1>
         <p className="mt-2 text-muted-foreground">
           Fill out the form below to request a return or replacement for your order
         </p>

@@ -105,7 +105,7 @@ export function HeroBannerSlider() {
 
   return (
     <section className="relative w-full overflow-hidden bg-[#5c7a6a]">
-      <div className="relative aspect-[21/9] w-full max-md:min-h-[220px] md:min-h-[340px] lg:min-h-[400px]">
+      <div className="relative aspect-[4/5] w-full min-h-[280px] sm:aspect-[16/9] sm:min-h-[300px] md:aspect-[21/9] md:min-h-[340px] lg:min-h-[400px]">
         <div
           className="flex h-full transition-transform duration-700 ease-in-out"
           style={{ transform: `translateX(-${active * 100}%)` }}
@@ -128,40 +128,43 @@ export function HeroBannerSlider() {
 
               {slide.contentAlign === "right" ? (
                 <div
-                  className={cn("absolute inset-y-0 right-0", slide.panelClassName)}
+                  className={cn(
+                    "absolute inset-y-0 right-0 hidden sm:block",
+                    slide.panelClassName,
+                  )}
                   style={{ backgroundColor: slide.panelColor }}
                 />
               ) : (
                 <div
                   className={cn(
-                    "absolute inset-y-0 right-0 bg-gradient-to-l from-black/50 via-black/30 to-transparent",
+                    "absolute inset-y-0 right-0 hidden bg-gradient-to-l from-black/50 via-black/30 to-transparent sm:block",
                     slide.panelClassName,
                   )}
                 />
               )}
 
-              <div className="absolute inset-y-0 right-0 flex w-[50%] items-center justify-center px-4 sm:px-8 md:w-[48%] md:px-10 lg:px-14">
+              <div className="absolute inset-x-0 bottom-0 flex w-full items-end justify-center bg-gradient-to-t from-black/55 via-black/25 to-transparent px-4 pb-10 pt-16 sm:inset-y-0 sm:right-0 sm:left-auto sm:w-[50%] sm:items-center sm:bg-none sm:px-8 sm:pb-0 sm:pt-0 md:w-[48%] md:px-10 lg:px-14">
                 <div className="flex max-w-md flex-col items-center text-center">
                   <Image
                     src="/brand/vidyora-monogram-clear.png"
                     alt="VIDYORA"
                     width={120}
                     height={120}
-                    className="h-16 w-16 object-contain drop-shadow-md sm:h-20 sm:w-20 md:h-24 md:w-24"
+                    className="h-12 w-12 object-contain drop-shadow-md sm:h-20 sm:w-20 md:h-24 md:w-24"
                     unoptimized
                   />
-                  <p className="mt-1.5 font-serif text-base tracking-[0.28em] text-white sm:text-lg md:text-xl">
+                  <p className="mt-1 font-serif text-sm tracking-[0.28em] text-white sm:mt-1.5 sm:text-lg md:text-xl">
                     VIDYORA
                   </p>
                   {slide.eyebrow ? (
-                    <p className="mt-2 text-[9px] tracking-[0.35em] text-white/85 uppercase sm:text-[10px]">
+                    <p className="mt-1.5 text-[8px] tracking-[0.35em] text-white/85 uppercase sm:mt-2 sm:text-[10px]">
                       {slide.eyebrow}
                     </p>
                   ) : null}
-                  <div className="mt-3 sm:mt-4">{slide.title}</div>
+                  <div className="mt-2 sm:mt-4">{slide.title}</div>
                   <p
                     className={cn(
-                      "mt-2 max-w-xs text-[11px] text-white/90 sm:mt-3 sm:text-sm md:text-[15px]",
+                      "mt-1.5 max-w-xs text-[11px] text-white/90 sm:mt-3 sm:text-sm md:text-[15px]",
                       slide.id === "joy-of-dressing" && "italic",
                     )}
                   >
@@ -170,15 +173,14 @@ export function HeroBannerSlider() {
                   <Link
                     href={slide.ctaHref}
                     className={cn(
-                      "mt-4 px-5 py-2 text-[10px] tracking-[0.22em] uppercase transition sm:mt-6 sm:px-7 sm:py-2.5 sm:text-xs",
+                      "mt-3 px-5 py-2 text-[10px] tracking-[0.22em] uppercase transition sm:mt-6 sm:px-7 sm:py-2.5 sm:text-xs",
                       slide.ctaClassName,
                     )}
                   >
                     {slide.cta}
                   </Link>
                 </div>
-              </div>
-            </div>
+              </div>            </div>
           ))}
         </div>
 

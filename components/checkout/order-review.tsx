@@ -10,9 +10,9 @@ type OrderReviewProps = {
 
 export function OrderReview({ items }: OrderReviewProps) {
   return (
-    <div className="rounded-lg border p-6">
+    <div className="rounded-lg border p-4 sm:p-6">
       <div className="mb-4 flex items-center gap-2">
-        <Package className="size-5 text-primary" />
+        <Package className="size-5 shrink-0 text-primary" />
         <h2 className="text-lg font-semibold">Review Items</h2>
       </div>
 
@@ -24,7 +24,10 @@ export function OrderReview({ items }: OrderReviewProps) {
           > | null;
 
           return (
-            <div key={item.id} className="flex gap-4 border-b pb-4 last:border-0">
+            <div
+              key={item.id}
+              className="flex flex-col gap-3 border-b pb-4 last:border-0 sm:flex-row sm:gap-4"
+            >
               <Link
                 href={`/products/${item.product.slug}`}
                 className="relative size-20 shrink-0 overflow-hidden rounded"
@@ -43,7 +46,7 @@ export function OrderReview({ items }: OrderReviewProps) {
                 )}
               </Link>
 
-              <div className="flex flex-1 flex-col gap-1">
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <Link
                   href={`/products/${item.product.slug}`}
                   className="font-medium hover:text-primary"
@@ -73,7 +76,10 @@ export function OrderReview({ items }: OrderReviewProps) {
                 </div>
               </div>
 
-              <div className="text-right font-semibold">
+              <div className="flex items-center justify-between font-semibold sm:block sm:text-right">
+                <span className="text-sm font-normal text-muted-foreground sm:hidden">
+                  Line total
+                </span>
                 {formatCurrency(Number(item.variant.price) * item.quantity)}
               </div>
             </div>

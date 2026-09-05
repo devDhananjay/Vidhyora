@@ -18,7 +18,7 @@ export default function BlogPage() {
         <p className="text-xs tracking-[0.2em] text-[#8b2e2e] uppercase">
           Journal
         </p>
-        <h1 className="mt-3 font-serif text-4xl text-neutral-900 md:text-5xl">
+        <h1 className="mt-3 font-serif text-3xl text-neutral-900 sm:text-4xl md:text-5xl">
           Blog
         </h1>
         <p className="mt-4 max-w-2xl text-neutral-600">

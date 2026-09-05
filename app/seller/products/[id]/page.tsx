@@ -29,14 +29,16 @@ export default async function ProductDetailPage({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="font-serif text-4xl text-neutral-900">{product.name}</h1>
-          <p className="mt-2 text-muted-foreground">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="font-serif text-2xl text-neutral-900 sm:text-3xl md:text-4xl">
+            {product.name}
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground sm:text-base">
             {product.category.name} • {product.brand}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Link href={`/seller/products/${product.id}/edit`}>
             <Button>Edit Product</Button>
           </Link>
@@ -47,7 +49,7 @@ export default async function ProductDetailPage({
       </div>
 
       {/* Status Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle className="text-sm">Approval Status</CardTitle>

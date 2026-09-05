@@ -42,7 +42,11 @@ export async function getAdminStats(): Promise<AdminStats> {
     // Product stats
     const [totalProducts, pendingProducts, approvedProducts] = await Promise.all([
       prisma.product.count(),
-      prisma.product.count({ where: { approvalStatus: "PENDING_APPROVAL" } }),
+      prisma.product.count({
+        where: {
+          approvalStatus: { in: ["PENDING_APPROVAL", "DRAFT"] },
+        },
+      }),
       prisma.product.count({ where: { approvalStatus: "APPROVED" } }),
     ]);
 
@@ -174,7 +178,7 @@ export async function getRecentActivity(limit: number = 10) {
       prisma.product.findMany({
         take: 4,
         orderBy: { createdAt: "desc" },
-        where: { approvalStatus: "PENDING_APPROVAL" },
+        where: { approvalStatus: { in: ["PENDING_APPROVAL", "DRAFT"] } },
         select: {
           id: true,
           name: true,

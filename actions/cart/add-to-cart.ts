@@ -1,8 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { ZodError } from "zod";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth-helpers";
+import { AuthError, requireAuth } from "@/lib/auth-helpers";
 import { addToCartSchema } from "@/lib/validations/cart";
 import type { ActionResult } from "@/lib/utils";
 
@@ -121,6 +122,21 @@ export async function addToCart(
       data: { cartItemId },
     };
   } catch (error) {
+    if (
+      error instanceof AuthError ||
+      (error instanceof Error && error.name === "AuthError")
+    ) {
+      return {
+        success: false,
+        error: "Please sign in to add items to cart",
+      };
+    }
+    if (error instanceof ZodError) {
+      return {
+        success: false,
+        error: error.issues[0]?.message || "Invalid cart data",
+      };
+    }
     console.error("Add to cart error:", error);
     return {
       success: false,

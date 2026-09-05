@@ -56,10 +56,10 @@ export default async function SellerOrderDetailPage({
         >
           ← Back to Orders
         </Link>
-        <h1 className="mt-2 font-serif text-4xl text-neutral-900">
+        <h1 className="mt-2 font-serif text-2xl text-neutral-900 sm:text-3xl md:text-4xl">
           Order #{orderItem.order.orderNumber}
         </h1>
-        <div className="mt-2 flex items-center gap-2">
+        <div className="mt-2 flex flex-wrap items-center gap-2">
           <Badge variant="outline">
             {getOrderStatusLabel(orderItem.order.orderStatus)}
           </Badge>
@@ -71,14 +71,14 @@ export default async function SellerOrderDetailPage({
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="space-y-6 lg:col-span-2">
           {/* Product Details */}
           <Card>
             <CardHeader>
               <CardTitle>Product Details</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex gap-4">
+              <div className="flex flex-col gap-4 sm:flex-row">
                 <div className="relative size-24 shrink-0 overflow-hidden rounded">
                   {orderItem.product.thumbnail ? (
                     <Image
@@ -94,7 +94,7 @@ export default async function SellerOrderDetailPage({
                   )}
                 </div>
 
-                <div className="flex-1">
+                <div className="min-w-0 flex-1">
                   <Link
                     href={`/products/${orderItem.product.slug}`}
                     className="text-lg font-semibold hover:text-primary"
@@ -112,10 +112,10 @@ export default async function SellerOrderDetailPage({
                     </div>
                   )}
 
-                  <div className="mt-3 grid grid-cols-3 gap-4 text-sm">
+                  <div className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 sm:gap-4">
                     <div>
                       <div className="text-muted-foreground">SKU</div>
-                      <div className="font-medium">{orderItem.variant.sku}</div>
+                      <div className="break-all font-medium">{orderItem.variant.sku}</div>
                     </div>
                     <div>
                       <div className="text-muted-foreground">Quantity</div>

@@ -276,7 +276,7 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
               ["sort"],
             )
           }
-          className="h-11 rounded-full border border-neutral-200 bg-white px-4 text-sm text-neutral-800 outline-none"
+          className="h-11 w-full rounded-full border border-neutral-200 bg-white px-4 text-sm text-neutral-800 outline-none lg:w-auto lg:shrink-0"
         >
           <option value="default">Sort By: Best Matches</option>
           <option value="price-low">Sort By: Price Low to High</option>

@@ -45,7 +45,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         <p className="mt-6 text-xs tracking-[0.2em] text-[#8b2e2e] uppercase">
           {post.category} · {post.date} · {post.readMinutes} min
         </p>
-        <h1 className="mt-3 font-serif text-4xl text-neutral-900 md:text-5xl">
+        <h1 className="mt-3 font-serif text-3xl text-neutral-900 sm:text-4xl md:text-5xl">
           {post.title}
         </h1>
         <p className="mt-4 text-lg leading-7 text-neutral-600">{post.excerpt}</p>

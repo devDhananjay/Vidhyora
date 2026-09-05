@@ -57,7 +57,7 @@ export default async function CartPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6 flex items-center gap-3">
         <ShoppingBag className="size-8" />
-        <h1 className="font-serif text-4xl text-neutral-900">Shopping Cart</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Shopping Cart</h1>
       </div>
 
       {activeItems.length === 0 ? (

@@ -22,8 +22,8 @@ export default async function SellerOrdersPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">Orders</h1>
-        <p className="mt-2 text-muted-foreground">
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Orders</h1>
+        <p className="mt-2 text-sm text-muted-foreground sm:text-base">
           {orderItems.length} {orderItems.length === 1 ? "order" : "orders"}
         </p>
       </div>
@@ -49,8 +49,8 @@ export default async function SellerOrdersPage() {
 
             return (
               <Card key={item.id}>
-                <CardContent className="p-6">
-                  <div className="flex gap-4">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col gap-4 sm:flex-row">
                     {/* Product Image */}
                     <div className="relative size-20 shrink-0 overflow-hidden rounded">
                       {item.product.thumbnail ? (
@@ -68,9 +68,9 @@ export default async function SellerOrdersPage() {
                     </div>
 
                     {/* Order Info */}
-                    <div className="flex flex-1 flex-col gap-2">
-                      <div className="flex items-start justify-between">
-                        <div>
+                    <div className="flex min-w-0 flex-1 flex-col gap-2">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
                           <Link
                             href={`/seller/orders/${item.id}`}
                             className="text-lg font-semibold hover:text-primary"
@@ -93,7 +93,7 @@ export default async function SellerOrdersPage() {
                           )}
                         </div>
 
-                        <div className="flex flex-col items-end gap-2">
+                        <div className="flex flex-row flex-wrap items-center gap-2 sm:flex-col sm:items-end">
                           <Badge variant="outline">
                             {getOrderStatusLabel(item.order.orderStatus)}
                           </Badge>
@@ -104,7 +104,7 @@ export default async function SellerOrdersPage() {
                         </div>
                       </div>
 
-                      <div className="mt-2 grid grid-cols-4 gap-4 text-sm">
+                      <div className="mt-2 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4 sm:gap-4">
                         <div>
                           <div className="text-muted-foreground">Customer</div>
                           <div className="font-medium">

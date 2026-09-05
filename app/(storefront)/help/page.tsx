@@ -36,7 +36,7 @@ export default async function HelpPage({
     <div className="bg-[#faf8f6]">
       <div className="mx-auto max-w-4xl px-4 py-12 md:px-6">
         <p className="text-xs tracking-[0.2em] text-[#8b2e2e] uppercase">Support</p>
-        <h1 className="mt-2 font-serif text-4xl text-neutral-900 md:text-5xl">Help</h1>
+        <h1 className="mt-2 font-serif text-3xl text-neutral-900 sm:text-4xl md:text-5xl">Help</h1>
         <p className="mt-3 text-neutral-600">
           Search live FAQs. Super Admin can add or update answers anytime.
         </p>

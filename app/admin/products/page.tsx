@@ -25,21 +25,24 @@ export default async function AdminProductsPage() {
         return <Badge variant="destructive">Rejected</Badge>;
       case "SUSPENDED":
         return <Badge variant="destructive">Suspended</Badge>;
+      case "DRAFT":
+        return <Badge className="bg-yellow-600">Draft — needs review</Badge>;
       default:
-        return <Badge variant="outline">Draft</Badge>;
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
   const pendingCount = products.filter(
-    (p) => p.approvalStatus === "PENDING_APPROVAL",
+    (p) =>
+      p.approvalStatus === "PENDING_APPROVAL" || p.approvalStatus === "DRAFT",
   ).length;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">Product Review</h1>
-        <p className="mt-2 text-muted-foreground">
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Product Review</h1>
+        <p className="mt-2 text-sm text-muted-foreground sm:text-base">
           {products.length} total products • {pendingCount} pending Super Admin
           approval
         </p>
@@ -65,8 +68,8 @@ export default async function AdminProductsPage() {
 
             return (
               <Card key={product.id}>
-                <CardContent className="p-6">
-                  <div className="flex gap-4">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col gap-4 sm:flex-row">
                     {/* Product Image */}
                     <div className="relative size-24 shrink-0 overflow-hidden rounded">
                       {product.thumbnail ? (
@@ -84,16 +87,16 @@ export default async function AdminProductsPage() {
                     </div>
 
                     {/* Product Info */}
-                    <div className="flex flex-1 flex-col gap-2">
-                      <div className="flex items-start justify-between">
-                        <div>
+                    <div className="flex min-w-0 flex-1 flex-col gap-2">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
                           <Link
                             href={`/admin/products/${product.id}`}
                             className="text-lg font-semibold hover:text-primary"
                           >
                             {product.name}
                           </Link>
-                          <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
                             <span>{product.category.name}</span>
                             <span>•</span>
                             <span>{product.brand}</span>
@@ -102,7 +105,7 @@ export default async function AdminProductsPage() {
                           </div>
                         </div>
 
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap gap-2">
                           {getApprovalBadge(product.approvalStatus)}
                           <Badge
                             variant="outline"
@@ -117,7 +120,7 @@ export default async function AdminProductsPage() {
                         </div>
                       </div>
 
-                      <div className="mt-2 grid grid-cols-4 gap-4 text-sm">
+                      <div className="mt-2 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4 sm:gap-4">
                         <div>
                           <div className="text-muted-foreground">Price</div>
                           <div className="font-semibold">

@@ -106,7 +106,7 @@ export function ReviewFiltersBar({
           handleFilterChange({ sortBy: value as ReviewFilters["sortBy"] })
         }
       >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-full sm:w-[180px]">
           <SelectValue placeholder="Sort by" />
         </SelectTrigger>
         <SelectContent>

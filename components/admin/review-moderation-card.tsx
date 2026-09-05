@@ -65,10 +65,10 @@ export function ReviewModerationCard({ review }: ReviewModerationCardProps) {
 
   return (
     <Card>
-      <CardContent className="p-6">
-        <div className="flex gap-4">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row">
           {/* Product Image */}
-          <div className="relative size-20 shrink-0 overflow-hidden rounded">
+          <div className="relative size-16 shrink-0 overflow-hidden rounded sm:size-20">
             {review.product.thumbnail ? (
               <Image
                 src={review.product.thumbnail}
@@ -84,17 +84,17 @@ export function ReviewModerationCard({ review }: ReviewModerationCardProps) {
           </div>
 
           {/* Review Content */}
-          <div className="flex-1 space-y-3">
+          <div className="min-w-0 flex-1 space-y-3">
             {/* Header */}
-            <div className="flex items-start justify-between">
-              <div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
                 <Link
                   href={`/products/${review.product.slug}`}
                   className="font-semibold hover:text-primary"
                 >
                   {review.product.name}
                 </Link>
-                <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
                   <span>{review.user.name}</span>
                   <span>•</span>
                   <span>{format(new Date(review.createdAt), "MMM dd, yyyy")}</span>

@@ -15,8 +15,8 @@ export default async function AdminHelpPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">Help & FAQs</h1>
-        <p className="mt-2 text-muted-foreground">
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Help & FAQs</h1>
+        <p className="mt-2 text-sm text-muted-foreground sm:text-base">
           Questions listed here appear on the public Help page.
         </p>
       </div>
@@ -40,8 +40,8 @@ export default async function AdminHelpPage() {
         <div className="grid gap-4">
           {articles.map((article) => (
             <Card key={article.id}>
-              <CardContent className="flex items-start justify-between gap-4 p-6">
-                <div>
+              <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between sm:p-6">
+                <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant="outline">{article.category}</Badge>
                     <Badge variant={article.isActive ? "default" : "secondary"}>

@@ -77,9 +77,9 @@ export default async function CategoryPage({
         <span className="text-neutral-800">{category.name}</span>
       </nav>
 
-      <h1 className="mb-6 font-serif text-4xl text-neutral-900">
+      <h1 className="mb-6 font-serif text-3xl text-neutral-900 sm:text-4xl">
         {category.name}{" "}
-        <span className="text-lg font-sans text-neutral-400">
+        <span className="text-base font-sans text-neutral-400 sm:text-lg">
           ({total.toLocaleString("en-IN")} results)
         </span>
       </h1>

@@ -12,8 +12,8 @@ export default async function NewProductPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">Add New Product</h1>
-        <p className="mt-2 text-muted-foreground">
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Add New Product</h1>
+        <p className="mt-2 text-sm text-muted-foreground sm:text-base">
           Create a new product listing for your store
         </p>
       </div>

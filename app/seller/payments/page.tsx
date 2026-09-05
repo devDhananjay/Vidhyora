@@ -28,7 +28,7 @@ export default async function SellerPaymentsPage() {
   if (!data) {
     return (
       <div className="space-y-6">
-        <h1 className="font-serif text-4xl text-neutral-900">Payments</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Payments</h1>
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             No seller account is available to review yet.
@@ -43,7 +43,7 @@ export default async function SellerPaymentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">Payments</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Payments</h1>
         <p className="mt-2 text-muted-foreground">
           Sales after Super Admin commission. Payouts are released when Super
           Admin settles your available balance.

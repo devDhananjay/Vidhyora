@@ -50,7 +50,7 @@ export default async function AdminOrderDetailPage({
         </Link>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="font-serif text-4xl text-neutral-900">
+            <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
               {order.orderNumber}
             </h1>
             <p className="mt-2 text-muted-foreground">

@@ -34,7 +34,7 @@ export default async function SellerDashboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-serif text-4xl text-neutral-900">
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
           {acting?.isAdminView ? "Seller Admin Review" : "Seller Admin"}
         </h1>
         <p className="mt-2 text-sm text-neutral-500">

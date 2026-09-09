@@ -386,13 +386,16 @@ model ProductPolicy {
 
 model Cart {
   id         String   @id @default(cuid())
-  userId     String   @unique
+  userId     String?  @unique
+  guestToken String?  @unique
   couponCode String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user  User?      @relation(fields: [userId], references: [id], onDelete: Cascade)
   items CartItem[]
+
+  @@index([guestToken])
 }
 
 model CartItem {
@@ -772,6 +775,15 @@ model HelpArticle {
   @@index([isActive])
 }
 
+/// JSON CMS for storefront homepage sections (hero, looks, stories, etc.).
+/// Single-row config keyed by id "default".
+model HomepageConfig {
+  id        String   @id @default("default")
+  data      Json
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}
+
 /// JSON CMS for storefront mega menu (tabs, panels, banners, promos).
 /// Single-row config keyed by id "default".
 model MegaMenuConfig {
@@ -781,9 +793,8 @@ model MegaMenuConfig {
   updatedBy String?
 }
 
-/// JSON CMS for storefront homepage marketing sections.
-/// Single-row config keyed by id "default".
-model HomepageConfig {
+/// JSON CMS for storefront contact + social links (Super Admin website settings).
+model SiteSettings {
   id        String   @id @default("default")
   data      Json
   updatedAt DateTime @updatedAt

@@ -30,7 +30,7 @@ export function ProductSort() {
         onValueChange={handleSortChange}
         defaultValue={currentParams.get("sort") || "default"}
       >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="h-11 w-[180px] rounded-full px-4">
           <SelectValue placeholder="Default" />
         </SelectTrigger>
         <SelectContent>

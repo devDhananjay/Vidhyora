@@ -13,10 +13,37 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PasswordInput } from "@/components/auth/password-input";
 import { Loader2 } from "lucide-react";
+import {
+  AuthProviderDivider,
+  GoogleSignInButton,
+} from "@/components/auth/google-sign-in-button";
+import { safeCallbackPath } from "@/lib/auth/callback-url";
 
-export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
+const OAUTH_ERRORS: Record<string, string> = {
+  inactive:
+    "This account is inactive. Contact Super Admin to restore access.",
+  AccessDenied:
+    "This account is inactive or Google sign-in was denied.",
+  Configuration:
+    "Google sign-in failed. Clear site cookies for localhost and try again.",
+  OAuthAccountNotLinked:
+    "This email is already registered. Sign in with your password, then you can use Google.",
+  OAuthCallback: "Google sign-in failed. Please try again.",
+  Callback: "Google sign-in failed. Please try again.",
+  Default: "Google sign-in failed. Please try again.",
+};
+
+export function LoginForm({
+  callbackUrl,
+  oauthError,
+}: {
+  callbackUrl?: string;
+  oauthError?: string;
+}) {
   const router = useRouter();
-  const [error, setError] = useState("");
+  const [error, setError] = useState(
+    oauthError ? OAUTH_ERRORS[oauthError] || OAUTH_ERRORS.Default : "",
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   const {
@@ -39,8 +66,9 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
         return;
       }
 
-      if (callbackUrl) {
-        router.push(callbackUrl);
+      const next = safeCallbackPath(callbackUrl);
+      if (next) {
+        router.push(next);
       } else {
         router.push(dashboardPath(result.data.role));
       }
@@ -53,6 +81,9 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
   };
 
   return (
+    <div>
+      <GoogleSignInButton callbackUrl={callbackUrl} label="Sign in with Google" />
+      <AuthProviderDivider />
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {error && (
         <Alert variant="destructive">
@@ -92,5 +123,6 @@ export function LoginForm({ callbackUrl }: { callbackUrl?: string }) {
         Sign in
       </Button>
     </form>
+    </div>
   );
 }

@@ -2,6 +2,10 @@
 
 import prisma from "@/lib/prisma";
 
+function normalizeCityKey(city: string) {
+  return city.trim().toLowerCase();
+}
+
 export async function getPublicStores(filters?: {
   city?: string;
   q?: string;
@@ -20,6 +24,7 @@ export async function getPublicStores(filters?: {
               { city: { contains: q, mode: "insensitive" } },
               { address: { contains: q, mode: "insensitive" } },
               { state: { contains: q, mode: "insensitive" } },
+              { postalCode: { contains: q, mode: "insensitive" } },
             ],
           }
         : {}),
@@ -28,12 +33,27 @@ export async function getPublicStores(filters?: {
   });
 }
 
+/**
+ * Unique active cities for the store-locator filters.
+ * Dedupes in JS (trim + case-insensitive) so "Mumbai" / "mumbai " both map to one chip.
+ */
 export async function getStoreCities() {
   const rows = await prisma.storeLocation.findMany({
     where: { isActive: true },
     select: { city: true },
-    distinct: ["city"],
-    orderBy: { city: "asc" },
   });
-  return rows.map((row) => row.city);
+
+  const byKey = new Map<string, string>();
+  for (const row of rows) {
+    const trimmed = row.city.trim();
+    if (!trimmed) continue;
+    const key = normalizeCityKey(trimmed);
+    if (!byKey.has(key)) {
+      byKey.set(key, trimmed);
+    }
+  }
+
+  return [...byKey.values()].sort((a, b) =>
+    a.localeCompare(b, "en-IN", { sensitivity: "base" }),
+  );
 }

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
 import prisma from "@/lib/prisma";
-import { AuthError, requireAuth } from "@/lib/auth-helpers";
+import { getOrCreateCartSession } from "@/lib/cart/cart-session";
 import { addToCartSchema } from "@/lib/validations/cart";
 import type { ActionResult } from "@/lib/utils";
 
@@ -11,8 +11,6 @@ export async function addToCart(
   formData: FormData,
 ): Promise<ActionResult<{ cartItemId: string }>> {
   try {
-    const session = await requireAuth();
-
     const rawData = {
       productId: formData.get("productId"),
       variantId: formData.get("variantId"),
@@ -21,7 +19,6 @@ export async function addToCart(
 
     const validatedData = addToCartSchema.parse(rawData);
 
-    // Check if variant exists and has stock
     const variant = await prisma.productVariant.findUnique({
       where: { id: validatedData.variantId },
       include: {
@@ -35,20 +32,14 @@ export async function addToCart(
     });
 
     if (!variant) {
-      return {
-        success: false,
-        error: "Product variant not found",
-      };
+      return { success: false, error: "Product variant not found" };
     }
 
     if (
       variant.product.status !== "ACTIVE" ||
       variant.product.approvalStatus !== "APPROVED"
     ) {
-      return {
-        success: false,
-        error: "Product is not available",
-      };
+      return { success: false, error: "Product is not available" };
     }
 
     const availableStock = variant.stock - variant.reservedStock;
@@ -59,22 +50,12 @@ export async function addToCart(
       };
     }
 
-    // Get or create cart
-    let cart = await prisma.cart.findUnique({
-      where: { userId: session.user.id },
-    });
+    const { cartId } = await getOrCreateCartSession();
 
-    if (!cart) {
-      cart = await prisma.cart.create({
-        data: { userId: session.user.id },
-      });
-    }
-
-    // Check if item already exists in cart
     const existingItem = await prisma.cartItem.findUnique({
       where: {
         cartId_variantId: {
-          cartId: cart.id,
+          cartId,
           variantId: validatedData.variantId,
         },
       },
@@ -83,7 +64,6 @@ export async function addToCart(
     let cartItemId: string;
 
     if (existingItem) {
-      // Update quantity
       const newQuantity = existingItem.quantity + validatedData.quantity;
 
       if (availableStock < newQuantity) {
@@ -102,10 +82,9 @@ export async function addToCart(
       });
       cartItemId = updated.id;
     } else {
-      // Create new cart item
       const created = await prisma.cartItem.create({
         data: {
-          cartId: cart.id,
+          cartId,
           productId: validatedData.productId,
           variantId: validatedData.variantId,
           quantity: validatedData.quantity,
@@ -122,15 +101,6 @@ export async function addToCart(
       data: { cartItemId },
     };
   } catch (error) {
-    if (
-      error instanceof AuthError ||
-      (error instanceof Error && error.name === "AuthError")
-    ) {
-      return {
-        success: false,
-        error: "Please sign in to add items to cart",
-      };
-    }
     if (error instanceof ZodError) {
       return {
         success: false,

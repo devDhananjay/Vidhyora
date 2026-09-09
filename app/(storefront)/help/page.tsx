@@ -5,6 +5,8 @@ import {
   getHelpCategories,
   getPublicHelpArticles,
 } from "@/actions/content/get-help";
+import { getSiteSettings } from "@/lib/content/get-site-settings";
+import { phoneTelHref } from "@/lib/content/site-settings-defaults";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -21,10 +23,12 @@ export default async function HelpPage({
   const params = await searchParams;
   const category = params.category?.trim() || undefined;
   const q = params.q?.trim() || undefined;
-  const [articles, categories] = await Promise.all([
+  const [articles, categories, siteSettings] = await Promise.all([
     getPublicHelpArticles({ category, q }),
     getHelpCategories(),
+    getSiteSettings(),
   ]);
+  const { supportEmail, supportPhone } = siteSettings.contact;
 
   const grouped = articles.reduce<Record<string, typeof articles>>((acc, article) => {
     acc[article.category] ??= [];
@@ -103,16 +107,19 @@ export default async function HelpPage({
             Our jewellery advisors are available on call and email.
           </p>
           <div className="mt-4 flex flex-wrap gap-4 text-sm">
-            <a href="tel:1800-123-4567" className="inline-flex items-center gap-2 hover:text-[#8b2e2e]">
+            <a
+              href={phoneTelHref(supportPhone)}
+              className="inline-flex items-center gap-2 hover:text-[#8b2e2e]"
+            >
               <Phone className="size-4" />
-              1800-123-4567
+              {supportPhone}
             </a>
             <a
-              href="mailto:support@vidyora.com"
+              href={`mailto:${supportEmail}`}
               className="inline-flex items-center gap-2 hover:text-[#8b2e2e]"
             >
               <Mail className="size-4" />
-              support@vidyora.com
+              {supportEmail}
             </a>
             <Link href="/store-locator" className="hover:text-[#8b2e2e]">
               Find a store →

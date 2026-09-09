@@ -1,0 +1,70 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+import { Ban, CheckCircle, Eye } from "lucide-react";
+import Link from "next/link";
+import { setUserActive } from "@/actions/admin/manage-users";
+import { Button } from "@/components/ui/button";
+import { isSuperAdmin } from "@/lib/roles";
+
+export function UserRowActions({
+  userId,
+  isActive,
+  role,
+}: {
+  userId: string;
+  isActive: boolean;
+  role: string;
+}) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
+  function toggle() {
+    if (isSuperAdmin(role)) return;
+    startTransition(async () => {
+      const result = await setUserActive(userId, !isActive);
+      if (!result.success) {
+        alert(result.error);
+        return;
+      }
+      router.refresh();
+    });
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Button asChild variant="outline" size="sm" className="rounded-full">
+        <Link href={`/admin/users/${userId}`}>
+          <Eye className="mr-1.5 size-3.5" />
+          View
+        </Link>
+      </Button>
+      {!isSuperAdmin(role) ? (
+        <Button
+          type="button"
+          size="sm"
+          disabled={isPending}
+          onClick={toggle}
+          className={
+            isActive
+              ? "rounded-full bg-amber-600 text-white hover:bg-amber-700"
+              : "rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
+          }
+        >
+          {isActive ? (
+            <>
+              <Ban className="mr-1.5 size-3.5" />
+              Disable
+            </>
+          ) : (
+            <>
+              <CheckCircle className="mr-1.5 size-3.5" />
+              Enable
+            </>
+          )}
+        </Button>
+      ) : null}
+    </div>
+  );
+}

@@ -12,6 +12,10 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PasswordInput } from "@/components/auth/password-input";
 import { Loader2, CheckCircle2 } from "lucide-react";
+import {
+  AuthProviderDivider,
+  GoogleSignInButton,
+} from "@/components/auth/google-sign-in-button";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -62,6 +66,9 @@ export function RegisterForm() {
   }
 
   return (
+    <div>
+      <GoogleSignInButton label="Continue with Google" />
+      <AuthProviderDivider />
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       {error && (
         <Alert variant="destructive">
@@ -146,5 +153,6 @@ export function RegisterForm() {
         Create Account
       </Button>
     </form>
+    </div>
   );
 }

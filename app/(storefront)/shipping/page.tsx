@@ -2,13 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPage } from "@/components/storefront/content-page";
 import { ROUTES } from "@/lib/constants";
+import { getSiteSettings } from "@/lib/content/get-site-settings";
 
 export const metadata: Metadata = {
   title: "Delivery Information | VIDYORA",
-  description: "Shipping, delivery timelines and international dispatch for VIDYORA jewellery.",
+  description:
+    "Shipping, delivery timelines and international dispatch for VIDYORA jewellery.",
 };
 
-export default function ShippingPage() {
+export default async function ShippingPage() {
+  const settings = await getSiteSettings();
+  const { supportEmail } = settings.contact;
+
   return (
     <ContentPage eyebrow="Orders" title="Delivery Information">
       <p>
@@ -36,8 +41,11 @@ export default function ShippingPage() {
       <p>
         Cross-border dispatch is arranged case by case for select destinations.
         Duties, taxes and jewellery export paperwork are charged extra. Write to{" "}
-        <a href="mailto:support@vidyora.com" className="text-[#8b2e2e] underline">
-          support@vidyora.com
+        <a
+          href={`mailto:${supportEmail}`}
+          className="text-[#8b2e2e] underline"
+        >
+          {supportEmail}
         </a>{" "}
         with your city and product list, or visit a boutique via the{" "}
         <Link href={ROUTES.storeLocator} className="text-[#8b2e2e] underline">

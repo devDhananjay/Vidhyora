@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { BLOG_POSTS } from "@/lib/content/blog-posts";
 import { getSiteUrl } from "@/lib/site-url";
 
 export type SitemapEntry = {
@@ -20,7 +21,7 @@ export async function getSitemapEntries(): Promise<SitemapEntry[]> {
 
   const staticPages: SitemapEntry[] = [
     {
-      url: baseUrl,
+      url: `${baseUrl}/`,
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 1,
@@ -30,12 +31,6 @@ export async function getSitemapEntries(): Promise<SitemapEntry[]> {
       lastModified: new Date(),
       changeFrequency: "daily",
       priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/search`,
-      lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 0.8,
     },
     {
       url: `${baseUrl}/store-locator`,
@@ -49,7 +44,68 @@ export async function getSitemapEntries(): Promise<SitemapEntry[]> {
       changeFrequency: "weekly",
       priority: 0.6,
     },
+    {
+      url: `${baseUrl}/offers`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/help`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/contact`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/shipping`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.4,
+    },
+    {
+      url: `${baseUrl}/returns`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.4,
+    },
+    {
+      url: `${baseUrl}/privacy-policy`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/terms-and-conditions`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+    {
+      url: `${baseUrl}/payment-options`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.4,
+    },
+    {
+      url: `${baseUrl}/partner`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.4,
+    },
   ];
+
+  const blogPages: SitemapEntry[] = BLOG_POSTS.map((post) => ({
+    url: `${baseUrl}/blog/${post.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.5,
+  }));
 
   const products = await prisma.product.findMany({
     where: {
@@ -86,7 +142,12 @@ export async function getSitemapEntries(): Promise<SitemapEntry[]> {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...categoryPages, ...productPages];
+  return [
+    ...staticPages,
+    ...blogPages,
+    ...categoryPages,
+    ...productPages,
+  ];
 }
 
 function escapeXml(value: string) {

@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { getCart } from "@/actions/cart/get-cart";
 import { getPublicOffers } from "@/actions/content/get-offers";
@@ -22,7 +21,7 @@ export default async function CartPage() {
   const cart = await getCart();
 
   if (!cart) {
-    redirect("/login?callbackUrl=/cart");
+    return <EmptyCart />;
   }
 
   const activeItems = cart.items.filter((item) => !item.savedForLater);
@@ -57,7 +56,9 @@ export default async function CartPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6 flex items-center gap-3">
         <ShoppingBag className="size-8" />
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Shopping Cart</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+          Shopping Cart
+        </h1>
       </div>
 
       {activeItems.length === 0 ? (
@@ -69,7 +70,6 @@ export default async function CartPage() {
         </div>
       ) : (
         <div className="grid gap-8 lg:grid-cols-3">
-          {/* Cart Items */}
           <div className="lg:col-span-2">
             <div className="mb-4 text-lg font-medium">
               Cart Items ({activeItems.length})
@@ -81,7 +81,6 @@ export default async function CartPage() {
             </div>
           </div>
 
-          {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
               <CartSummary
@@ -93,7 +92,6 @@ export default async function CartPage() {
         </div>
       )}
 
-      {/* Saved for Later */}
       {savedItems.length > 0 && (
         <div className="mt-12">
           <SavedForLaterSection items={savedItems} />

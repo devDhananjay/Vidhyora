@@ -57,6 +57,17 @@ export async function loginAction(
 
     const session = await auth();
 
+    if (session?.user?.id) {
+      try {
+        const { mergeGuestCartIntoUser } = await import(
+          "@/lib/cart/cart-session"
+        );
+        await mergeGuestCartIntoUser(session.user.id);
+      } catch (mergeError) {
+        console.error("Guest cart merge failed:", mergeError);
+      }
+    }
+
     return actionSuccess({
       success: true,
       role: session?.user.role,

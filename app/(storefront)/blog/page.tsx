@@ -7,6 +7,9 @@ export const metadata: Metadata = {
   title: "Blog | VIDYORA",
   description:
     "Guides on gold, diamonds, gifting and jewellery care from VIDYORA.",
+  alternates: {
+    canonical: "/blog",
+  },
 };
 
 export default function BlogPage() {

@@ -1,9 +1,10 @@
 "use client";
 
 import { useTransition } from "react";
-import { Button } from "@/components/ui/button";
-import { setUserActive } from "@/actions/admin/manage-users";
+import { useRouter } from "next/navigation";
 import { Ban, CheckCircle } from "lucide-react";
+import { setUserActive } from "@/actions/admin/manage-users";
+import { Button } from "@/components/ui/button";
 import { isSuperAdmin } from "@/lib/roles";
 
 export function UserStatusActions({
@@ -15,22 +16,27 @@ export function UserStatusActions({
   isActive: boolean;
   role: string;
 }) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
   if (isSuperAdmin(role)) {
-    return null;
+    return (
+      <p className="text-sm text-muted-foreground">
+        Super Admin accounts stay active from this screen.
+      </p>
+    );
   }
 
-  const toggle = () => {
+  function toggle() {
     startTransition(async () => {
       const result = await setUserActive(userId, !isActive);
-      if (result.success) {
-        window.location.reload();
-      } else {
+      if (!result.success) {
         alert(result.error);
+        return;
       }
+      router.refresh();
     });
-  };
+  }
 
   return (
     <Button
@@ -39,19 +45,19 @@ export function UserStatusActions({
       disabled={isPending}
       className={
         isActive
-          ? "gap-2 bg-amber-600 text-white hover:bg-amber-700"
-          : "gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+          ? "gap-2 rounded-full bg-amber-600 text-white hover:bg-amber-700"
+          : "gap-2 rounded-full bg-emerald-600 text-white hover:bg-emerald-700"
       }
     >
       {isActive ? (
         <>
           <Ban className="size-4" />
-          Deactivate
+          Disable account
         </>
       ) : (
         <>
           <CheckCircle className="size-4" />
-          Activate
+          Enable account
         </>
       )}
     </Button>

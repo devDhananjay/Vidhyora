@@ -52,7 +52,7 @@ export function KycUploadForm({
           required
           className="text-sm"
         />
-        <Button type="submit" variant="outline" disabled={isPending}>
+        <Button type="submit" variant="outline" disabled={isPending} className="rounded-full">
           {isPending ? "Uploading..." : currentUrl ? "Replace" : "Upload"}
         </Button>
       </div>

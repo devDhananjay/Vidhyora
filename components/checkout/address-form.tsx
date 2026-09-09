@@ -3,7 +3,7 @@
 import { useTransition } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { addressSchema, type AddressInput } from "@/lib/validations/address";
+import { addressFormSchema, type AddressFormInput } from "@/lib/validations/address";
 import { createAddress } from "@/actions/address/create-address";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ type AddressFormProps = {
   onSuccess?: () => void;
 };
 
-type AddressFormValues = Partial<AddressInput>;
+type AddressFormValues = Partial<AddressFormInput>;
 
 export function AddressForm({ onSuccess }: AddressFormProps) {
   const [isPending, startTransition] = useTransition();
@@ -23,8 +23,16 @@ export function AddressForm({ onSuccess }: AddressFormProps) {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm<AddressFormValues>({
-    resolver: zodResolver(addressSchema) as any,
+    resolver: zodResolver(addressFormSchema) as never,
+    defaultValues: {
+      country: "IN",
+      type: "SHIPPING",
+      isDefault: false,
+      addressLine2: "",
+      landmark: "",
+    },
   });
 
   const onSubmit: SubmitHandler<AddressFormValues> = async (data) => {
@@ -37,6 +45,8 @@ export function AddressForm({ onSuccess }: AddressFormProps) {
         country: data.country || "IN",
         type: data.type || "SHIPPING",
         isDefault: data.isDefault || false,
+        addressLine2: data.addressLine2 || "",
+        landmark: data.landmark || "",
       };
       
       Object.entries(submitData).forEach(([key, value]) => {
@@ -57,7 +67,7 @@ export function AddressForm({ onSuccess }: AddressFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Label htmlFor="name">Full Name *</Label>
@@ -77,8 +87,15 @@ export function AddressForm({ onSuccess }: AddressFormProps) {
           <Label htmlFor="phone">Phone Number *</Label>
           <Input
             id="phone"
-            {...register("phone")}
-            placeholder="Enter phone number"
+            inputMode="numeric"
+            maxLength={10}
+            placeholder="10-digit mobile"
+            {...register("phone", {
+              onChange: (event) => {
+                const next = event.target.value.replace(/\D/g, "").slice(0, 10);
+                setValue("phone", next, { shouldValidate: true });
+              },
+            })}
           />
           {errors.phone && (
             <p className="mt-1 text-sm text-destructive">

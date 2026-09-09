@@ -24,6 +24,7 @@ import {
   X,
   PanelTop,
   Home,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "@/components/brand/brand-logo";
@@ -37,6 +38,7 @@ const ADMIN_NAV = [
   { label: "Categories", href: "/admin/categories", icon: FolderTree },
   { label: "Mega Menu", href: "/admin/mega-menu", icon: PanelTop },
   { label: "Homepage", href: "/admin/homepage", icon: Home },
+  { label: "Website Settings", href: "/admin/settings", icon: Globe },
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { label: "Returns", href: "/admin/returns", icon: RotateCcw },
   { label: "Reviews", href: "/admin/reviews", icon: Star },
@@ -46,7 +48,6 @@ const ADMIN_NAV = [
   { label: "Stores", href: "/admin/stores", icon: MapPin },
   { label: "Help", href: "/admin/help", icon: CircleHelp },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
-  { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 
 const SELLER_NAV = [
@@ -57,7 +58,7 @@ const SELLER_NAV = [
   { label: "Returns", href: "/seller/returns", icon: RotateCcw },
   { label: "Payments", href: "/seller/payments", icon: Wallet },
   { label: "Analytics", href: "/seller/analytics", icon: BarChart3 },
-  { label: "Profile", href: "/seller/profile", icon: Store },
+  { label: "Profile & KYC", href: "/seller/profile", icon: Store },
   { label: "Settings", href: "/seller/settings", icon: Settings },
 ];
 

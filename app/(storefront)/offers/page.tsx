@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Tag } from "lucide-react";
 import { getPublicOffers } from "@/actions/content/get-offers";
 import { CONTESTS } from "@/lib/content/contests";
+import { getSiteSettings } from "@/lib/content/get-site-settings";
 import { formatCurrency } from "@/lib/utils";
 import { ROUTES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -29,7 +30,11 @@ const STATUS_CLASS = {
 } as const;
 
 export default async function OffersPage() {
-  const offers = await getPublicOffers();
+  const [offers, siteSettings] = await Promise.all([
+    getPublicOffers(),
+    getSiteSettings(),
+  ]);
+  const { supportEmail } = siteSettings.contact;
 
   return (
     <div className="bg-[#faf8f6]">
@@ -53,10 +58,10 @@ export default async function OffersPage() {
             No coupons are running right now. Check this page again during
             festival weeks, or write to{" "}
             <a
-              href="mailto:support@vidyora.com"
+              href={`mailto:${supportEmail}`}
               className="text-[#8b2e2e] underline"
             >
-              support@vidyora.com
+              {supportEmail}
             </a>
             .
           </p>
@@ -107,10 +112,10 @@ export default async function OffersPage() {
         <p className="mt-6 text-sm leading-6 text-neutral-600">
           Mention the code while placing the order, or to{" "}
           <a
-            href="mailto:support@vidyora.com"
+            href={`mailto:${supportEmail}`}
             className="text-[#8b2e2e] underline"
           >
-            support@vidyora.com
+            {supportEmail}
           </a>{" "}
           if you need it applied. Coupons do not combine. They cannot be used on
           already discounted contest prizes. See{" "}

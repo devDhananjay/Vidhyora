@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Bodoni_Moda, Caveat, Montserrat } from "next/font/google";
 import "./globals.css";
+import { FirebaseAnalytics } from "@/components/firebase/firebase-analytics";
 import { APP_NAME, APP_DESCRIPTION, APP_TAGLINE, BRAND_LOGO_SRC } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -26,6 +27,9 @@ export const metadata: Metadata = {
   },
   description: APP_DESCRIPTION,
   metadataBase: new URL(getSiteUrl()),
+  alternates: {
+    canonical: "/",
+  },
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },
@@ -37,6 +41,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
+    url: "/",
     siteName: APP_NAME,
     title: `${APP_NAME} — ${APP_TAGLINE}`,
     description: APP_DESCRIPTION,
@@ -47,6 +52,10 @@ export const metadata: Metadata = {
     title: `${APP_NAME} — ${APP_TAGLINE}`,
     description: APP_DESCRIPTION,
     images: [BRAND_LOGO_SRC],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
@@ -61,6 +70,7 @@ export default function RootLayout({
         className={`${montserrat.variable} ${bodoni.variable} ${caveat.variable} font-sans antialiased`}
       >
         {children}
+        <FirebaseAnalytics />
       </body>
     </html>
   );

@@ -1,49 +1,50 @@
 import NextAuth from "next-auth";
-import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import type { UserRole } from "@prisma/client";
 import prisma from "@/lib/prisma";
-
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string;
-      email: string;
-      name?: string | null;
-      image?: string | null;
-      role: UserRole;
-    };
-  }
-
-  interface User {
-    role: UserRole;
-  }
-}
-
-declare module "@auth/core/jwt" {
-  interface JWT {
-    id: string;
-    role: UserRole;
-  }
-}
+import { authConfig, googleProvider } from "@/lib/auth.config";
 
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
 });
 
-export const authConfig: NextAuthConfig = {
-  trustHost: true,
+async function loadUserForToken(user: {
+  id?: string | null;
+  email?: string | null;
+  role?: UserRole;
+}) {
+  if (user.id) {
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { id: true, role: true, isActive: true },
+    });
+    if (dbUser) return dbUser;
+  }
+
+  if (user.email) {
+    const dbUser = await prisma.user.findUnique({
+      where: { email: user.email.toLowerCase() },
+      select: { id: true, role: true, isActive: true },
+    });
+    if (dbUser) return dbUser;
+  }
+
+  if (user.id && user.role) {
+    return { id: user.id, role: user.role, isActive: true };
+  }
+
+  return null;
+}
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "jwt" },
-  pages: {
-    signIn: "/login",
-    error: "/login",
-  },
   providers: [
+    googleProvider(),
     Credentials({
       name: "credentials",
       credentials: {
@@ -78,21 +79,38 @@ export const authConfig: NextAuthConfig = {
     }),
   ],
   callbacks: {
+    ...authConfig.callbacks,
+    async signIn({ user, account }) {
+      if (!user.email) return false;
+
+      const email = user.email.toLowerCase();
+      const dbUser = await prisma.user.findUnique({
+        where: { email },
+        select: { isActive: true, emailVerified: true },
+      });
+
+      if (dbUser && dbUser.isActive === false) {
+        return "/login?error=inactive";
+      }
+
+      if (account?.provider === "google" && dbUser && !dbUser.emailVerified) {
+        await prisma.user.update({
+          where: { email },
+          data: { emailVerified: new Date() },
+        });
+      }
+
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id!;
-        token.role = user.role;
+        const dbUser = await loadUserForToken(user);
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.role = dbUser.role;
+        }
       }
       return token;
     },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as UserRole;
-      }
-      return session;
-    },
   },
-};
-
-export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+});

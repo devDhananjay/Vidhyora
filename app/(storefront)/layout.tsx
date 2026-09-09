@@ -6,14 +6,20 @@ import { StorefrontHeader } from "@/components/storefront/storefront-header";
 import { auth } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants";
 import { getMegaMenuItems } from "@/lib/nav/get-mega-menu";
+import { getSiteSettings } from "@/lib/content/get-site-settings";
+import { phoneTelHref } from "@/lib/content/site-settings-defaults";
 
 export default async function StorefrontLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth();
-  const megaMenu = await getMegaMenuItems();
+  const [session, megaMenu, siteSettings] = await Promise.all([
+    auth(),
+    getMegaMenuItems(),
+    getSiteSettings(),
+  ]);
+
   const user = session?.user
     ? {
         id: session.user.id,
@@ -24,25 +30,28 @@ export default async function StorefrontLayout({
       }
     : null;
 
+  const { supportEmail, supportPhone } = siteSettings.contact;
+  const tel = phoneTelHref(supportPhone);
+
   return (
     <div className="flex min-h-screen flex-col bg-white">
       <div className="hidden border-b border-neutral-100 bg-[#f7f4f0] md:block">
         <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 text-[12px] text-neutral-600">
           <div className="flex items-center">
             <a
-              href="tel:1800-123-4567"
+              href={tel}
               className="flex items-center gap-1.5 pr-4 hover:text-[#8b2e2e]"
             >
               <Phone className="size-3" strokeWidth={1.6} />
-              <span>1800-123-4567</span>
+              <span>{supportPhone}</span>
             </a>
             <span className="h-3 w-px bg-neutral-300" />
             <a
-              href="mailto:support@vidyora.com"
+              href={`mailto:${supportEmail}`}
               className="flex items-center gap-1.5 px-4 hover:text-[#8b2e2e]"
             >
               <Mail className="size-3" strokeWidth={1.6} />
-              <span>support@vidyora.com</span>
+              <span>{supportEmail}</span>
             </a>
           </div>
           <div className="flex items-center">
@@ -69,7 +78,7 @@ export default async function StorefrontLayout({
 
       <main className="flex-1">{children}</main>
 
-      <SiteFooter />
+      <SiteFooter settings={siteSettings} />
     </div>
   );
 }

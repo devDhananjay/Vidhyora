@@ -62,19 +62,53 @@ export async function uploadKycDocument(
     await writeFile(path.join(dir, filename), Buffer.from(await file.arrayBuffer()));
     const url = `/uploads/kyc/${acting.sellerUserId}/${filename}`;
 
+    const profile = await prisma.sellerProfile.findUnique({
+      where: { sellerId: acting.sellerUserId },
+      select: {
+        gstNumber: true,
+        panNumber: true,
+        kycGstDocumentUrl: true,
+        kycPanDocumentUrl: true,
+        kycStatus: true,
+      },
+    });
+    if (!profile) {
+      return { success: false, error: "Seller profile not found" };
+    }
+
+    const nextGstUrl =
+      kind === "gst" ? url : profile.kycGstDocumentUrl;
+    const nextPanUrl =
+      kind === "pan" ? url : profile.kycPanDocumentUrl;
+    const readyToReview =
+      Boolean(nextGstUrl) &&
+      Boolean(nextPanUrl) &&
+      Boolean(profile.gstNumber) &&
+      Boolean(profile.panNumber);
+
     await prisma.sellerProfile.update({
       where: { sellerId: acting.sellerUserId },
       data: {
         ...(kind === "gst"
           ? { kycGstDocumentUrl: url }
           : { kycPanDocumentUrl: url }),
-        kycStatus: "PENDING",
-        kycRejectionReason: null,
-        kycSubmittedAt: new Date(),
+        ...(profile.kycStatus === "VERIFIED"
+          ? {}
+          : readyToReview
+            ? {
+                kycStatus: "PENDING" as const,
+                kycRejectionReason: null,
+                kycSubmittedAt: new Date(),
+              }
+            : {
+                kycStatus: "NOT_SUBMITTED" as const,
+                kycRejectionReason: null,
+              }),
       },
     });
 
     revalidatePath("/seller/profile");
+    revalidatePath("/seller/kyc");
     revalidatePath("/seller/settings");
     revalidatePath(`/admin/sellers/${acting.sellerUserId}`);
     revalidatePath("/admin/sellers");

@@ -17,17 +17,24 @@ export async function updateAddress(
       name: formData.get("name"),
       phone: formData.get("phone"),
       addressLine1: formData.get("addressLine1"),
-      addressLine2: formData.get("addressLine2") || undefined,
+      addressLine2: String(formData.get("addressLine2") || ""),
       city: formData.get("city"),
       state: formData.get("state"),
       country: formData.get("country") || "IN",
       postalCode: formData.get("postalCode"),
-      landmark: formData.get("landmark") || undefined,
+      landmark: String(formData.get("landmark") || ""),
       type: (formData.get("type") as "SHIPPING" | "BILLING" | "BOTH") || "SHIPPING",
       isDefault: formData.get("isDefault") === "true",
     };
 
-    const validatedData = addressSchema.parse(rawData);
+    const parsed = addressSchema.safeParse(rawData);
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: parsed.error.issues[0]?.message || "Invalid address details",
+      };
+    }
+    const validatedData = parsed.data;
 
     // Verify address belongs to user
     const address = await prisma.address.findUnique({
@@ -58,6 +65,7 @@ export async function updateAddress(
       data: validatedData,
     });
 
+    revalidatePath("/account");
     revalidatePath("/account/addresses");
     revalidatePath("/checkout");
 

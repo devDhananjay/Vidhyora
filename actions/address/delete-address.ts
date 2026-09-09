@@ -27,6 +27,7 @@ export async function deleteAddress(
       where: { id: addressId },
     });
 
+    revalidatePath("/account");
     revalidatePath("/account/addresses");
     revalidatePath("/checkout");
 

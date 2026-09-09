@@ -12,9 +12,9 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ callbackUrl?: string }>;
+  searchParams: Promise<{ callbackUrl?: string; error?: string }>;
 }) {
-  const { callbackUrl } = await searchParams;
+  const { callbackUrl, error } = await searchParams;
 
   return (
     <AuthFrame
@@ -42,7 +42,7 @@ export default async function LoginPage({
         </>
       }
     >
-      <LoginForm callbackUrl={callbackUrl} />
+      <LoginForm callbackUrl={callbackUrl} oauthError={error} />
     </AuthFrame>
   );
 }

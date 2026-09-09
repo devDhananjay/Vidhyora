@@ -1,7 +1,11 @@
-import { auth } from "@/lib/auth";
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { isSellerAdmin, isSuperAdmin } from "@/lib/roles";
+import { authConfig } from "@/lib/auth.config";
+import { dashboardPath, isSellerAdmin, isSuperAdmin } from "@/lib/roles";
+import { safeCallbackPath } from "@/lib/auth/callback-url";
+
+const { auth } = NextAuth(authConfig);
 
 const sellerRoutes = ["/seller"];
 const sellerPublicRoutes = ["/seller/register"];
@@ -48,8 +52,12 @@ export async function middleware(request: NextRequest) {
       }
       return NextResponse.next();
     }
-    const callbackUrl = request.nextUrl.searchParams.get("callbackUrl");
-    return NextResponse.redirect(new URL(callbackUrl ?? "/", request.url));
+    const callbackUrl = safeCallbackPath(
+      request.nextUrl.searchParams.get("callbackUrl"),
+    );
+    return NextResponse.redirect(
+      new URL(callbackUrl ?? dashboardPath(session.user.role), request.url),
+    );
   }
 
   if ((isSellerRoute || isAdminRoute || isProtectedRoute) && !session?.user) {

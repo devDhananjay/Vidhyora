@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MapPin, Phone, Clock } from "lucide-react";
+import { MapPin, Phone, Clock, ChevronDown } from "lucide-react";
 import { getPublicStores, getStoreCities } from "@/actions/content/get-stores";
 import { storeDirectionsUrl } from "@/lib/content/maps";
 import { Button } from "@/components/ui/button";
@@ -41,21 +41,29 @@ export default async function StoreLocatorPage({
             name="q"
             defaultValue={q}
             placeholder="Search store, area or pincode"
-            className="h-11 bg-white md:max-w-sm"
+            className="h-11 bg-white md:min-w-0 md:flex-1"
           />
-          <select
-            name="city"
-            defaultValue={city ?? ""}
-            className="h-11 rounded-md border border-input bg-white px-3 text-sm md:w-48"
-          >
-            <option value="">All cities</option>
-            {cities.map((item) => (
-              <option key={item} value={item}>
-                {item}
-              </option>
-            ))}
-          </select>
-          <Button type="submit" className="h-11">
+          <div className="relative w-full md:w-56">
+            <select
+              name="city"
+              defaultValue={city ?? ""}
+              className="h-11 w-full cursor-pointer appearance-none rounded-full border border-input bg-white py-2 pl-4 pr-10 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label="Filter by city"
+            >
+              <option value="">All cities</option>
+              {cities.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-neutral-500"
+              strokeWidth={1.8}
+              aria-hidden
+            />
+          </div>
+          <Button type="submit" className="h-11 shrink-0">
             Find stores
           </Button>
         </form>
@@ -66,7 +74,9 @@ export default async function StoreLocatorPage({
             {cities.map((item) => (
               <CityChip
                 key={item}
-                href={`/store-locator?city=${encodeURIComponent(item)}`}
+                href={`/store-locator?city=${encodeURIComponent(item)}${
+                  q ? `&q=${encodeURIComponent(q)}` : ""
+                }`}
                 active={city?.toLowerCase() === item.toLowerCase()}
                 label={item}
               />

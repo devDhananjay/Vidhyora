@@ -32,7 +32,7 @@ export function computeCouponDiscount(
 
 export async function validateCouponForUser(
   code: string,
-  userId: string,
+  userId: string | null,
   subtotal: number,
 ): Promise<{ ok: true; data: CouponDiscountResult } | { ok: false; error: string }> {
   const normalized = code.trim().toUpperCase();
@@ -60,14 +60,16 @@ export async function validateCouponForUser(
     return { ok: false, error: "This promo code has reached its usage limit" };
   }
 
-  const userUsageCount = await prisma.couponUsage.count({
-    where: { couponId: coupon.id, userId },
-  });
-  if (userUsageCount >= coupon.perUserLimit) {
-    return {
-      ok: false,
-      error: "You have already used this promo code the maximum number of times",
-    };
+  if (userId) {
+    const userUsageCount = await prisma.couponUsage.count({
+      where: { couponId: coupon.id, userId },
+    });
+    if (userUsageCount >= coupon.perUserLimit) {
+      return {
+        ok: false,
+        error: "You have already used this promo code the maximum number of times",
+      };
+    }
   }
 
   const minOrder = Number(coupon.minimumOrderValue);
@@ -91,7 +93,7 @@ export async function validateCouponForUser(
 
 export async function resolveCartCouponDiscount(
   couponCode: string | null | undefined,
-  userId: string,
+  userId: string | null,
   subtotal: number,
 ): Promise<CouponDiscountResult | null> {
   if (!couponCode) return null;

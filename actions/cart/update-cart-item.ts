@@ -2,7 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth-helpers";
+import {
+  getOrCreateCartSession,
+  ownsCart,
+} from "@/lib/cart/cart-session";
 import { updateCartItemSchema } from "@/lib/validations/cart";
 import type { ActionResult } from "@/lib/utils";
 
@@ -10,7 +13,7 @@ export async function updateCartItemQuantity(
   formData: FormData,
 ): Promise<ActionResult<void>> {
   try {
-    const session = await requireAuth();
+    const owner = await getOrCreateCartSession();
 
     const rawData = {
       cartItemId: formData.get("cartItemId"),
@@ -19,7 +22,6 @@ export async function updateCartItemQuantity(
 
     const validatedData = updateCartItemSchema.parse(rawData);
 
-    // Get cart item with variant stock info
     const cartItem = await prisma.cartItem.findUnique({
       where: { id: validatedData.cartItemId },
       include: {
@@ -28,14 +30,10 @@ export async function updateCartItemQuantity(
       },
     });
 
-    if (!cartItem || cartItem.cart.userId !== session.user.id) {
-      return {
-        success: false,
-        error: "Cart item not found",
-      };
+    if (!cartItem || !ownsCart(cartItem.cart, owner)) {
+      return { success: false, error: "Cart item not found" };
     }
 
-    // Check stock availability
     const availableStock =
       cartItem.variant.stock - cartItem.variant.reservedStock;
     if (availableStock < validatedData.quantity) {
@@ -52,15 +50,9 @@ export async function updateCartItemQuantity(
 
     revalidatePath("/cart");
 
-    return {
-      success: true,
-      data: undefined,
-    };
+    return { success: true, data: undefined };
   } catch (error) {
     console.error("Update cart item error:", error);
-    return {
-      success: false,
-      error: "Failed to update cart item",
-    };
+    return { success: false, error: "Failed to update cart item" };
   }
 }

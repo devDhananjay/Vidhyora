@@ -92,12 +92,6 @@ export function FloatingAddToCartBar({
         return;
       }
 
-      if (result.error.toLowerCase().includes("sign in")) {
-        const next = `${window.location.pathname}${window.location.search}`;
-        window.location.href = `/login?callbackUrl=${encodeURIComponent(next)}`;
-        return;
-      }
-
       alert(result.error || "Failed to add to cart");
     });
   }

@@ -18,17 +18,41 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  images: {
-    remotePatterns: [
+    images: {
+      remotePatterns: [
+        {
+          protocol: "https",
+          hostname: "images.unsplash.com",
+        },
+        {
+          protocol: "https",
+          hostname: "placehold.co",
+        },
+        {
+          protocol: "https",
+          hostname: "lh3.googleusercontent.com",
+        },
+      ],
+    },
+  async redirects() {
+    return [
       {
-        protocol: "https",
-        hostname: "images.unsplash.com",
+        source: "/:path*",
+        has: [{ type: "host", value: "www.vidyora.co.in" }],
+        destination: "https://vidyora.co.in/:path*",
+        permanent: true,
       },
       {
-        protocol: "https",
-        hostname: "placehold.co",
+        source: "/xml",
+        destination: "/sitemap.xml",
+        permanent: true,
       },
-    ],
+      {
+        source: "/privacy",
+        destination: "/privacy-policy",
+        permanent: true,
+      },
+    ];
   },
 };
 

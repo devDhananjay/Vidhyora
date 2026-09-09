@@ -10,6 +10,9 @@ import { buildProductWhere, getListingTitle, type ProductListParams } from "@/li
 export const metadata: Metadata = {
   title: "All Jewellery",
   description: "Browse gold, diamond and fine jewellery on VIDYORA",
+  alternates: {
+    canonical: "/products",
+  },
 };
 
 export default async function ProductsPage({

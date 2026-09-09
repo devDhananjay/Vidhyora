@@ -2,13 +2,18 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPage } from "@/components/storefront/content-page";
 import { ROUTES } from "@/lib/constants";
+import { getSiteSettings } from "@/lib/content/get-site-settings";
+import { phoneTelHref } from "@/lib/content/site-settings-defaults";
 
 export const metadata: Metadata = {
   title: "Returns | VIDYORA",
   description: "Return and replacement policy for VIDYORA jewellery.",
 };
 
-export default function ReturnsPolicyPage() {
+export default async function ReturnsPolicyPage() {
+  const settings = await getSiteSettings();
+  const { supportPhone } = settings.contact;
+
   return (
     <ContentPage eyebrow="Orders" title="Returns & Replacements">
       <p>
@@ -37,7 +42,11 @@ export default function ReturnsPolicyPage() {
         <Link href={ROUTES.help} className="text-[#8b2e2e] underline">
           Help & FAQs
         </Link>{" "}
-        or call 1800-123-4567.
+        or call{" "}
+        <a href={phoneTelHref(supportPhone)} className="text-[#8b2e2e] underline">
+          {supportPhone}
+        </a>
+        .
       </p>
     </ContentPage>
   );

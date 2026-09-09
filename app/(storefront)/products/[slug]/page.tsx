@@ -81,9 +81,13 @@ export async function generateMetadata({
   return {
     title: `${product.name} | VIDYORA`,
     description: product.shortDescription || product.description.slice(0, 160),
+    alternates: {
+      canonical: `/products/${slug}`,
+    },
     openGraph: {
       title: product.name,
       description: product.shortDescription || product.description.slice(0, 160),
+      url: `/products/${slug}`,
       images: product.thumbnail ? [product.thumbnail] : [],
     },
     twitter: {

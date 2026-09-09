@@ -14,11 +14,6 @@ type AddToCartButtonProps = {
   className?: string;
 };
 
-function redirectToLogin() {
-  const next = `${window.location.pathname}${window.location.search}`;
-  window.location.href = `/login?callbackUrl=${encodeURIComponent(next)}`;
-}
-
 export function AddToCartButton({
   productId,
   variantId,
@@ -47,11 +42,6 @@ export function AddToCartButton({
         setAdded(true);
         setTimeout(() => setAdded(false), 2000);
         router.refresh();
-        return;
-      }
-
-      if (result.error.toLowerCase().includes("sign in")) {
-        redirectToLogin();
         return;
       }
 

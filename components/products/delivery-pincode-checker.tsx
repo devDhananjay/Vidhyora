@@ -1,103 +1,30 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useTransition } from "react";
 import { CheckCircle2, MapPin, Shield, Truck } from "lucide-react";
+import { checkDeliveryEstimate } from "@/actions/maps/google-places";
 import { cn } from "@/lib/utils";
-
-const STORAGE_KEY = "vidyora-delivery-pincode";
-
-/** Metro / tier-1 first-3 digit prefixes → faster SLA */
-const FAST_PREFIXES = new Set([
-  "110", // Delhi
-  "122", // Gurgaon
-  "201", // Noida
-  "400", // Mumbai
-  "411", // Pune
-  "380", // Ahmedabad
-  "560", // Bengaluru
-  "600", // Chennai
-  "500", // Hyderabad
-  "700", // Kolkata
-  "302", // Jaipur
-  "226", // Lucknow
-  "452", // Indore
-  "641", // Coimbatore
-  "682", // Kochi
-]);
 
 type DeliveryEstimate = {
   pincode: string;
-  minDays: number;
-  maxDays: number;
+  city: string;
+  state: string;
+  distanceText: string | null;
+  durationText: string | null;
   etaLabel: string;
   dateRange: string;
   isFast: boolean;
   codAvailable: boolean;
 };
 
-function addBusinessDays(from: Date, days: number) {
-  const date = new Date(from);
-  let added = 0;
-  while (added < days) {
-    date.setDate(date.getDate() + 1);
-    const day = date.getDay();
-    if (day !== 0 && day !== 6) added += 1;
-  }
-  return date;
-}
-
-function formatDay(date: Date) {
-  return date.toLocaleDateString("en-IN", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-  });
-}
-
-function estimateForPincode(pincode: string): DeliveryEstimate {
-  const prefix = pincode.slice(0, 3);
-  const isFast = FAST_PREFIXES.has(prefix);
-  const minDays = isFast ? 3 : 5;
-  const maxDays = isFast ? 5 : 8;
-  const now = new Date();
-  const start = addBusinessDays(now, minDays);
-  const end = addBusinessDays(now, maxDays);
-
-  return {
-    pincode,
-    minDays,
-    maxDays,
-    isFast,
-    codAvailable: true,
-    etaLabel: isFast
-      ? `${minDays}–${maxDays} working days`
-      : `${minDays}–${maxDays} working days`,
-    dateRange:
-      formatDay(start) === formatDay(end)
-        ? formatDay(start)
-        : `${formatDay(start)} – ${formatDay(end)}`,
-  };
-}
-
 export function DeliveryPincodeChecker() {
   const [pincode, setPincode] = useState("");
   const [error, setError] = useState("");
   const [estimate, setEstimate] = useState<DeliveryEstimate | null>(null);
+  const [isPending, startTransition] = useTransition();
 
-  useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved && /^\d{6}$/.test(saved)) {
-        setPincode(saved);
-        setEstimate(estimateForPincode(saved));
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  function check(next?: string) {
-    const value = (next ?? pincode).trim();
+  function check() {
+    const value = pincode.trim();
     if (!/^\d{6}$/.test(value)) {
       setError("Enter a valid 6-digit pincode");
       setEstimate(null);
@@ -105,13 +32,15 @@ export function DeliveryPincodeChecker() {
     }
 
     setError("");
-    const result = estimateForPincode(value);
-    setEstimate(result);
-    try {
-      window.localStorage.setItem(STORAGE_KEY, value);
-    } catch {
-      // ignore
-    }
+    startTransition(async () => {
+      const result = await checkDeliveryEstimate(value);
+      if (!result.success) {
+        setError(result.error);
+        setEstimate(null);
+        return;
+      }
+      setEstimate(result.data);
+    });
   }
 
   return (
@@ -146,9 +75,11 @@ export function DeliveryPincodeChecker() {
                   const next = event.target.value.replace(/\D/g, "").slice(0, 6);
                   setPincode(next);
                   if (error) setError("");
+                  if (estimate) setEstimate(null);
                 }}
                 placeholder="Enter pincode"
                 aria-label="Delivery pincode"
+                autoComplete="postal-code"
                 className={cn(
                   "h-10 w-full rounded-full border bg-white pl-9 pr-3 text-sm outline-none transition focus:border-[#8b2e2e]",
                   error ? "border-red-300" : "border-neutral-200",
@@ -157,9 +88,10 @@ export function DeliveryPincodeChecker() {
             </div>
             <button
               type="submit"
-              className="h-10 shrink-0 rounded-full bg-[#8b2e2e] px-5 text-sm font-medium text-white transition hover:bg-[#7a2727]"
+              disabled={isPending}
+              className="h-10 shrink-0 rounded-full bg-[#8b2e2e] px-5 text-sm font-medium text-white transition hover:bg-[#7a2727] disabled:opacity-60"
             >
-              Check
+              {isPending ? "Checking…" : "Check"}
             </button>
           </form>
 
@@ -178,8 +110,22 @@ export function DeliveryPincodeChecker() {
                   </p>
                   <p className="mt-0.5 text-neutral-600">
                     Usually arrives in {estimate.etaLabel} for {estimate.pincode}
-                    {estimate.isFast ? " (express corridor)" : ""}.
+                    {estimate.city ? ` (${estimate.city}` : ""}
+                    {estimate.state ? `, ${estimate.state}` : ""}
+                    {estimate.city || estimate.state ? ")" : ""}
+                    {estimate.isFast ? " · express corridor" : ""}.
                   </p>
+                  {estimate.distanceText || estimate.durationText ? (
+                    <p className="mt-1 text-xs text-neutral-500">
+                      Route estimate
+                      {estimate.distanceText
+                        ? `: ${estimate.distanceText}`
+                        : ""}
+                      {estimate.durationText
+                        ? ` · ${estimate.durationText} drive`
+                        : ""}
+                    </p>
+                  ) : null}
                 </div>
               </div>
               <p className="pl-6 text-sm text-neutral-600">

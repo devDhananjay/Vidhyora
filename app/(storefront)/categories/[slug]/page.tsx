@@ -41,6 +41,13 @@ export async function generateMetadata({
     description:
       category.description ||
       `Shop the best ${category.name.toLowerCase()} jewellery on VIDYORA`,
+    alternates: {
+      canonical: `/categories/${slug}`,
+    },
+    openGraph: {
+      title: `${category.name} | VIDYORA`,
+      url: `/categories/${slug}`,
+    },
   };
 }
 

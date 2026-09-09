@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth-helpers";
+import { getOrCreateCartSession } from "@/lib/cart/cart-session";
 import { validateCouponForUser } from "@/lib/coupons/coupon-utils";
 import type { ActionResult } from "@/lib/utils";
 
@@ -18,11 +18,11 @@ export async function applyCoupon(
   formData: FormData,
 ): Promise<ActionResult<{ code: string; discount: number }>> {
   try {
-    const session = await requireAuth();
+    const owner = await getOrCreateCartSession();
     const code = String(formData.get("code") ?? "");
 
     const cart = await prisma.cart.findUnique({
-      where: { userId: session.user.id },
+      where: { id: owner.cartId },
       include: {
         items: {
           where: { savedForLater: false },
@@ -38,7 +38,7 @@ export async function applyCoupon(
     const subtotal = cartSubtotal(cart.items);
     const validated = await validateCouponForUser(
       code,
-      session.user.id,
+      owner.userId,
       subtotal,
     );
 
@@ -69,10 +69,10 @@ export async function applyCoupon(
 
 export async function removeCoupon(): Promise<ActionResult<void>> {
   try {
-    const session = await requireAuth();
+    const owner = await getOrCreateCartSession();
 
-    await prisma.cart.updateMany({
-      where: { userId: session.user.id },
+    await prisma.cart.update({
+      where: { id: owner.cartId },
       data: { couponCode: null },
     });
 

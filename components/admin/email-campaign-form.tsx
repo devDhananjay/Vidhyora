@@ -90,6 +90,8 @@ export function EmailCampaignForm({
         ctaUrl: preset.ctaUrl,
         couponCode: "",
         footnote: preset.footnote,
+        heroImage: preset.heroImage,
+        heroAlt: preset.heroAlt,
       });
       return;
     }
@@ -348,6 +350,8 @@ export function EmailCampaignForm({
                     eyebrow: copy.eyebrow,
                     footnote: copy.footnote,
                     customEmails,
+                    heroImage: copy.heroImage,
+                    heroAlt: copy.heroAlt,
                   });
                   if (!result.success) {
                     setError(result.error);

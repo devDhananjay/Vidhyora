@@ -2,11 +2,7 @@
  * Email sending — SMTP via EMAIL_SERVER, otherwise log in development.
  */
 
-import fs from "node:fs";
-import path from "node:path";
 import nodemailer from "nodemailer";
-
-export const EMAIL_LOGO_CID = "vidyora-logo";
 
 export type EmailRecipient = {
   email: string;
@@ -53,21 +49,6 @@ function fromAddress(options?: SendEmailOptions["from"]) {
       : options.email;
   }
   return process.env.EMAIL_FROM?.trim() || "VIDYORA <support@vidyora.co.in>";
-}
-
-function resolveLogoPath() {
-  const files = ["vidyora-logo-clear.png", "vidyora-logo.png"];
-  const dirs = [
-    path.join(process.cwd(), "public", "brand"),
-    path.join(process.cwd(), "brand"),
-  ];
-  for (const dir of dirs) {
-    for (const file of files) {
-      const candidate = path.join(dir, file);
-      if (fs.existsSync(candidate)) return candidate;
-    }
-  }
-  return null;
 }
 
 type EmailProviderMessage = {
@@ -124,31 +105,6 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
   }
 
   const transporter = nodemailer.createTransport(process.env.EMAIL_SERVER);
-  const attachments: Array<{
-    filename: string;
-    path?: string;
-    content?: Buffer | string;
-    cid?: string;
-    contentType?: string;
-    contentDisposition?: "inline" | "attachment";
-  }> = (options.attachments ?? []).map((item) => ({
-    filename: item.filename,
-    content: item.content,
-    contentType: item.contentType,
-  }));
-
-  if (options.html.includes(`cid:${EMAIL_LOGO_CID}`)) {
-    const logoPath = resolveLogoPath();
-    if (logoPath) {
-      attachments.push({
-        filename: "vidyora-logo.png",
-        path: logoPath,
-        cid: EMAIL_LOGO_CID,
-        contentType: "image/png",
-        contentDisposition: "inline",
-      });
-    }
-  }
 
   await transporter.sendMail({
     from: fromAddress(options.from),
@@ -156,7 +112,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
     subject: options.subject,
     html: options.html,
     text: options.text,
-    attachments,
+    attachments: options.attachments,
   });
 }
 

@@ -29,6 +29,8 @@ export const sendEmailCampaignSchema = z.object({
   eyebrow: z.string().trim().max(80).optional().or(z.literal("")),
   footnote: z.string().trim().max(240).optional().or(z.literal("")),
   customEmails: z.string().trim().max(4000).optional().or(z.literal("")),
+  heroImage: z.string().trim().max(500).optional().or(z.literal("")),
+  heroAlt: z.string().trim().max(160).optional().or(z.literal("")),
 });
 
 export type SendEmailCampaignInput = z.infer<typeof sendEmailCampaignSchema>;

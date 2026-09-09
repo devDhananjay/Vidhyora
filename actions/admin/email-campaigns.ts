@@ -235,6 +235,8 @@ export async function sendEmailCampaign(
         footnote: parsed.data.footnote || undefined,
         leftBehind:
           parsed.data.type === "DROPOUT" ? recipient.leftBehind : undefined,
+        heroImage: parsed.data.heroImage || undefined,
+        heroAlt: parsed.data.heroAlt || undefined,
       });
       await sendEmail({
         to: { email: recipient.email, name: recipient.name },

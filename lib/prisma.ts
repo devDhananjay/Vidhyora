@@ -6,7 +6,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 /** Bump after prisma generate so the Next.js singleton is replaced. */
-const PRISMA_SCHEMA_VERSION = 8;
+const PRISMA_SCHEMA_VERSION = 9;
 
 function createClient() {
   return new PrismaClient({

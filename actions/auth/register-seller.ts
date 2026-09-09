@@ -73,6 +73,12 @@ export async function registerSellerAction(
       validated.businessName,
       token,
     );
+    try {
+      const { sendWelcomeEmail } = await import("@/lib/email/send-welcome");
+      await sendWelcomeEmail(user.email, validated.businessName);
+    } catch (welcomeError) {
+      console.error("Welcome email failed:", welcomeError);
+    }
 
     return actionSuccess({
       message:

@@ -117,6 +117,13 @@ enum AddressType {
   BOTH
 }
 
+enum EmailCampaignType {
+  WELCOME
+  DROPOUT
+  OFFER
+  FESTIVAL
+}
+
 enum SellerEarningStatus {
   AVAILABLE
   INCLUDED
@@ -196,6 +203,7 @@ model User {
   reviewHelpful  ReviewHelpful[]
   returnRequests ReturnRequest[]
   orderStatusHistory OrderStatusHistory[]
+  emailCampaigns     EmailCampaign[]
 
   @@index([role])
   @@index([email])
@@ -799,4 +807,25 @@ model SiteSettings {
   data      Json
   updatedAt DateTime @updatedAt
   updatedBy String?
+}
+
+model EmailCampaign {
+  id         String            @id @default(cuid())
+  type       EmailCampaignType
+  audience   String
+  subject    String
+  headline   String
+  body       String            @db.Text
+  ctaLabel   String?
+  ctaUrl     String?
+  couponCode String?
+  sentCount  Int               @default(0)
+  failCount  Int               @default(0)
+  sentById   String
+  createdAt  DateTime          @default(now())
+
+  sentBy User @relation(fields: [sentById], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([sentById])
 }

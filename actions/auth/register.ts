@@ -43,6 +43,12 @@ export async function registerAction(
 
     const token = await generateVerificationToken(user.email);
     await sendVerificationEmail(user.email, user.name || "User", token);
+    try {
+      const { sendWelcomeEmail } = await import("@/lib/email/send-welcome");
+      await sendWelcomeEmail(user.email, user.name);
+    } catch (welcomeError) {
+      console.error("Welcome email failed:", welcomeError);
+    }
 
     return actionSuccess({
       message:

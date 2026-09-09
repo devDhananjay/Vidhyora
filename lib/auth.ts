@@ -113,4 +113,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return token;
     },
   },
+  events: {
+    async createUser({ user }) {
+      if (!user.email) return;
+      try {
+        const { sendWelcomeEmail } = await import("@/lib/email/send-welcome");
+        await sendWelcomeEmail(user.email, user.name);
+      } catch (welcomeError) {
+        console.error("Welcome email failed:", welcomeError);
+      }
+    },
+  },
 });

@@ -25,6 +25,7 @@ import {
   PanelTop,
   Home,
   Globe,
+  Mail,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "@/components/brand/brand-logo";
@@ -39,6 +40,7 @@ const ADMIN_NAV = [
   { label: "Mega Menu", href: "/admin/mega-menu", icon: PanelTop },
   { label: "Homepage", href: "/admin/homepage", icon: Home },
   { label: "Website Settings", href: "/admin/settings", icon: Globe },
+  { label: "Emails", href: "/admin/emails", icon: Mail },
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { label: "Returns", href: "/admin/returns", icon: RotateCcw },
   { label: "Reviews", href: "/admin/reviews", icon: Star },

@@ -2,12 +2,13 @@
 
 import {
   useState,
+  useEffect,
   useTransition,
   type Dispatch,
   type SetStateAction,
 } from "react";
 import { useRouter } from "next/navigation";
-import { RotateCcw, Save } from "lucide-react";
+import { RotateCcw, Save, ArrowUp, ArrowDown, Eye, EyeOff } from "lucide-react";
 import {
   resetHomepageConfig,
   saveHomepageConfig,
@@ -18,22 +19,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { HomepageConfigData } from "@/lib/validations/homepage";
+import { Switch } from "@/components/ui/switch";
+import type { HomepageConfigData, HomepageSectionId } from "@/lib/validations/homepage";
+import {
+  DEFAULT_HOMEPAGE_SECTION_ORDER,
+  DEFAULT_HOMEPAGE_VISIBILITY,
+  resolveHomepageSectionOrder,
+} from "@/lib/validations/homepage";
 import { cn } from "@/lib/utils";
 
-type SectionId =
-  | "hero"
-  | "collections"
-  | "categories"
-  | "trending"
-  | "world"
-  | "weddingMoodboard"
-  | "exploreTraditions"
-  | "featured"
-  | "chooseYourLook"
-  | "styleStories"
-  | "assurance"
-  | "exchange";
+type SectionId = HomepageSectionId;
 
 const SECTIONS: { id: SectionId; label: string }[] = [
   { id: "hero", label: "Hero Banners (auto-scroll)" },
@@ -50,6 +45,132 @@ const SECTIONS: { id: SectionId; label: string }[] = [
   { id: "exchange", label: "Exchange" },
 ];
 
+function toDatetimeLocalValue(value?: string | null): string {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+type VisibilityScheduleControlsProps = {
+  idPrefix: string;
+  shown: boolean;
+  onShownChange: (shown: boolean) => void;
+  visibleFrom?: string | null;
+  visibleUntil?: string | null;
+  onScheduleChange: (patch: {
+    visibleFrom?: string | null;
+    visibleUntil?: string | null;
+  }) => void;
+  /** e.g. "section" or "slide" — used in helper copy */
+  entityLabel?: string;
+};
+
+/**
+ * Show toggle always. Date range only appears after admin opts in
+ * ("Schedule a date range"). Always-on = toggle on + schedule off.
+ */
+function VisibilityScheduleControls({
+  idPrefix,
+  shown,
+  onShownChange,
+  visibleFrom,
+  visibleUntil,
+  onScheduleChange,
+  entityLabel = "section",
+}: VisibilityScheduleControlsProps) {
+  const hasSavedSchedule = Boolean(visibleFrom || visibleUntil);
+  const [scheduleOpen, setScheduleOpen] = useState(hasSavedSchedule);
+
+  useEffect(() => {
+    setScheduleOpen(Boolean(visibleFrom || visibleUntil));
+  }, [idPrefix, visibleFrom, visibleUntil]);
+
+  function setScheduleEnabled(enabled: boolean) {
+    setScheduleOpen(enabled);
+    if (!enabled) {
+      onScheduleChange({ visibleFrom: null, visibleUntil: null });
+    }
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between rounded-lg border px-3 py-2">
+        <div>
+          <p className="text-sm font-medium">Show on storefront</p>
+          <p className="text-xs text-muted-foreground">
+            Off = hidden. On = always visible unless you add a date range below.
+          </p>
+        </div>
+        <Switch
+          checked={shown}
+          onCheckedChange={onShownChange}
+          aria-label={`Show ${entityLabel} on storefront`}
+        />
+      </div>
+
+      {shown ? (
+        <>
+          <div className="flex items-center justify-between rounded-lg border px-3 py-2">
+            <div>
+              <p className="text-sm font-medium">Schedule a date range?</p>
+              <p className="text-xs text-muted-foreground">
+                Keep off for always-on. Turn on only if you want this{" "}
+                {entityLabel} for a limited time.
+              </p>
+            </div>
+            <Switch
+              checked={scheduleOpen}
+              onCheckedChange={setScheduleEnabled}
+              aria-label={`Schedule date range for ${entityLabel}`}
+            />
+          </div>
+
+          {scheduleOpen ? (
+            <div className="grid gap-3 rounded-lg border bg-muted/20 p-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor={`${idPrefix}-from`}>Show from</Label>
+                <Input
+                  id={`${idPrefix}-from`}
+                  type="datetime-local"
+                  value={toDatetimeLocalValue(visibleFrom)}
+                  onChange={(e) =>
+                    onScheduleChange({
+                      visibleFrom: e.target.value
+                        ? new Date(e.target.value).toISOString()
+                        : null,
+                    })
+                  }
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor={`${idPrefix}-until`}>Show until</Label>
+                <Input
+                  id={`${idPrefix}-until`}
+                  type="datetime-local"
+                  value={toDatetimeLocalValue(visibleUntil)}
+                  onChange={(e) =>
+                    onScheduleChange({
+                      visibleUntil: e.target.value
+                        ? new Date(e.target.value).toISOString()
+                        : null,
+                    })
+                  }
+                />
+              </div>
+              <p className="text-xs text-muted-foreground sm:col-span-2">
+                Outside this window the {entityLabel} stays hidden even if Show
+                is on.
+              </p>
+            </div>
+          ) : null}
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 type HomepageEditorProps = {
   initialData: HomepageConfigData;
   updatedAt: string | null;
@@ -63,7 +184,15 @@ export function HomepageEditor({
 }: HomepageEditorProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [data, setData] = useState<HomepageConfigData>(initialData);
+  const [data, setData] = useState<HomepageConfigData>({
+    ...initialData,
+    visibility: {
+      ...DEFAULT_HOMEPAGE_VISIBILITY,
+      ...(initialData.visibility ?? {}),
+    },
+    sectionOrder: resolveHomepageSectionOrder(initialData),
+    sectionSchedule: initialData.sectionSchedule ?? {},
+  });
   const [section, setSection] = useState<SectionId>("hero");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +200,55 @@ export function HomepageEditor({
   const [jsonText, setJsonText] = useState(() =>
     JSON.stringify(initialData, null, 2),
   );
+
+  const visibility = {
+    ...DEFAULT_HOMEPAGE_VISIBILITY,
+    ...(data.visibility ?? {}),
+  };
+  const sectionOrder = resolveHomepageSectionOrder(data);
+  const sectionById = Object.fromEntries(
+    SECTIONS.map((item) => [item.id, item]),
+  ) as Record<HomepageSectionId, (typeof SECTIONS)[number]>;
+
+  function setSectionVisible(id: HomepageSectionId, visible: boolean) {
+    setData((prev) => ({
+      ...prev,
+      visibility: {
+        ...DEFAULT_HOMEPAGE_VISIBILITY,
+        ...(prev.visibility ?? {}),
+        [id]: visible,
+      },
+    }));
+  }
+
+  function moveSection(id: HomepageSectionId, direction: -1 | 1) {
+    setData((prev) => {
+      const order = resolveHomepageSectionOrder(prev);
+      const index = order.indexOf(id);
+      const next = index + direction;
+      if (index < 0 || next < 0 || next >= order.length) return prev;
+      const copy = [...order];
+      const [removed] = copy.splice(index, 1);
+      copy.splice(next, 0, removed);
+      return { ...prev, sectionOrder: copy };
+    });
+  }
+
+  function setSectionSchedule(
+    id: HomepageSectionId,
+    patch: { visibleFrom?: string | null; visibleUntil?: string | null },
+  ) {
+    setData((prev) => ({
+      ...prev,
+      sectionSchedule: {
+        ...(prev.sectionSchedule ?? {}),
+        [id]: {
+          ...(prev.sectionSchedule?.[id] ?? {}),
+          ...patch,
+        },
+      },
+    }));
+  }
 
   function save() {
     setMessage(null);
@@ -187,31 +365,121 @@ export function HomepageEditor({
         </p>
       ) : null}
 
-      <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
+      <div className="grid gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Sections</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-1">
-            {SECTIONS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setSection(item.id)}
-                className={cn(
-                  "w-full rounded-lg border px-3 py-2 text-left text-sm transition",
-                  section === item.id
-                    ? "border-[#8b2e2e] bg-[#8b2e2e]/5 font-medium"
-                    : "border-transparent hover:border-border hover:bg-muted/40",
-                )}
-              >
-                {item.label}
-              </button>
-            ))}
+          <CardContent className="space-y-2">
+            {sectionOrder.map((id, index) => {
+              const item = sectionById[id] ?? {
+                id,
+                label: id,
+              };
+              const visible = visibility[id] !== false;
+              const schedule = data.sectionSchedule?.[id];
+              const hasSchedule = Boolean(
+                schedule?.visibleFrom || schedule?.visibleUntil,
+              );
+              const active = section === id;
+              return (
+                <div
+                  key={id}
+                  className={cn(
+                    "rounded-lg border p-2",
+                    active
+                      ? "border-[#8b2e2e] bg-[#8b2e2e]/5"
+                      : "border-border",
+                  )}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setSection(id)}
+                    className="w-full text-left"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium">{item.label}</span>
+                      {!visible ? (
+                        <EyeOff className="size-3.5 shrink-0 text-muted-foreground" />
+                      ) : (
+                        <Eye className="size-3.5 shrink-0 text-emerald-600" />
+                      )}
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {hasSchedule ? "Scheduled window" : `id: ${id}`}
+                    </p>
+                  </button>
+                  <div className="mt-2 flex gap-1">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      disabled={index === 0}
+                      onClick={() => moveSection(id, -1)}
+                      aria-label={`Move ${item.label} up`}
+                    >
+                      <ArrowUp className="size-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      disabled={index === sectionOrder.length - 1}
+                      onClick={() => moveSection(id, 1)}
+                      aria-label={`Move ${item.label} down`}
+                    >
+                      <ArrowDown className="size-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="mt-1 w-full text-xs"
+              onClick={() =>
+                setData((prev) => ({
+                  ...prev,
+                  sectionOrder: [...DEFAULT_HOMEPAGE_SECTION_ORDER],
+                }))
+              }
+            >
+              Reset section order
+            </Button>
           </CardContent>
         </Card>
 
         <div className="min-w-0 space-y-4">
+          {visibility[section] === false ? (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+              This section is hidden on the storefront. Turn on “Show on
+              storefront” below to show it again.
+            </p>
+          ) : null}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">
+                Visibility · {sectionById[section]?.label ?? section}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <VisibilityScheduleControls
+                idPrefix={`section-${section}`}
+                entityLabel="section"
+                shown={visibility[section] !== false}
+                onShownChange={(checked) =>
+                  setSectionVisible(section, checked)
+                }
+                visibleFrom={data.sectionSchedule?.[section]?.visibleFrom}
+                visibleUntil={data.sectionSchedule?.[section]?.visibleUntil}
+                onScheduleChange={(patch) =>
+                  setSectionSchedule(section, patch)
+                }
+              />
+            </CardContent>
+          </Card>
           {section === "hero" ? (
             <HeroForm data={data} setData={setData} />
           ) : null}
@@ -1001,7 +1269,18 @@ function HeroForm({ data, setData }: FormProps) {
       <CardContent className="space-y-6">
         {data.hero.slides.map((slide, index) => (
           <div key={slide.id} className="space-y-3 rounded-lg border p-4">
-            <p className="text-sm font-medium">Slide · {slide.id}</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium">Slide · {slide.id}</p>
+              {slide.isActive === false ? (
+                <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+                  Hidden
+                </span>
+              ) : slide.visibleFrom || slide.visibleUntil ? (
+                <span className="text-[10px] font-medium tracking-wide text-amber-700 uppercase">
+                  Scheduled
+                </span>
+              ) : null}
+            </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field
                 label="Alt"
@@ -1201,6 +1480,38 @@ function HeroForm({ data, setData }: FormProps) {
                       ...prev.hero,
                       slides: prev.hero.slides.map((s, i) =>
                         i === index ? { ...s, image } : s,
+                      ),
+                    },
+                  }))
+                }
+              />
+            </div>
+
+            <div className="border-t pt-4">
+              <VisibilityScheduleControls
+                idPrefix={`hero-${slide.id}`}
+                entityLabel="slide"
+                shown={slide.isActive !== false}
+                onShownChange={(checked) =>
+                  setData((prev) => ({
+                    ...prev,
+                    hero: {
+                      ...prev.hero,
+                      slides: prev.hero.slides.map((s, i) =>
+                        i === index ? { ...s, isActive: checked } : s,
+                      ),
+                    },
+                  }))
+                }
+                visibleFrom={slide.visibleFrom}
+                visibleUntil={slide.visibleUntil}
+                onScheduleChange={(patch) =>
+                  setData((prev) => ({
+                    ...prev,
+                    hero: {
+                      ...prev.hero,
+                      slides: prev.hero.slides.map((s, i) =>
+                        i === index ? { ...s, ...patch } : s,
                       ),
                     },
                   }))

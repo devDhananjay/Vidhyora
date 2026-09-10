@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { getAllCoupons } from "@/actions/admin/manage-coupons";
+import { getCouponPerformance } from "@/actions/admin/manage-coupons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,19 +14,23 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminCouponsPage() {
-  const coupons = await getAllCoupons();
+  const coupons = await getCouponPerformance();
 
   const activeCoupons = coupons.filter((c) => c.isActive);
   const expiredCoupons = coupons.filter((c) => c.expiryDate < new Date());
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Coupon Management</h1>
+          <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+            Coupon Management
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground sm:text-base">
             {coupons.length} coupons • {activeCoupons.length} active
+            {expiredCoupons.length
+              ? ` • ${expiredCoupons.length} expired`
+              : ""}
           </p>
         </div>
         <Link href="/admin/coupons/new" className="self-start">
@@ -37,7 +41,6 @@ export default async function AdminCouponsPage() {
         </Link>
       </div>
 
-      {/* Coupons List */}
       {coupons.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
@@ -56,9 +59,15 @@ export default async function AdminCouponsPage() {
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                        <h3 className="font-mono text-xl font-bold sm:text-2xl">{coupon.code}</h3>
+                        <h3 className="font-mono text-xl font-bold sm:text-2xl">
+                          {coupon.code}
+                        </h3>
                         <Badge variant={isActive ? "default" : "secondary"}>
-                          {isExpired ? "Expired" : coupon.isActive ? "Active" : "Inactive"}
+                          {isExpired
+                            ? "Expired"
+                            : coupon.isActive
+                              ? "Active"
+                              : "Inactive"}
                         </Badge>
                         <Badge variant="outline">
                           {coupon.discountType === "PERCENTAGE"
@@ -67,9 +76,11 @@ export default async function AdminCouponsPage() {
                         </Badge>
                       </div>
 
-                      <div className="mt-3 grid gap-2 text-sm md:grid-cols-2 lg:grid-cols-4">
+                      <div className="mt-3 grid gap-2 text-sm md:grid-cols-2 lg:grid-cols-5">
                         <div>
-                          <span className="text-muted-foreground">Minimum Order:</span>{" "}
+                          <span className="text-muted-foreground">
+                            Minimum Order:
+                          </span>{" "}
                           <span className="font-medium">
                             {Number(coupon.minimumOrderValue)
                               ? formatCurrency(Number(coupon.minimumOrderValue))
@@ -77,7 +88,9 @@ export default async function AdminCouponsPage() {
                           </span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Max Discount:</span>{" "}
+                          <span className="text-muted-foreground">
+                            Max Discount:
+                          </span>{" "}
                           <span className="font-medium">
                             {coupon.maximumDiscount
                               ? formatCurrency(Number(coupon.maximumDiscount))
@@ -88,11 +101,24 @@ export default async function AdminCouponsPage() {
                           <span className="text-muted-foreground">Usage:</span>{" "}
                           <span className="font-medium">
                             {coupon.usageCount}
-                            {coupon.usageLimit ? ` / ${coupon.usageLimit}` : " / unlimited"}
+                            {coupon.usageLimit
+                              ? ` / ${coupon.usageLimit}`
+                              : " / unlimited"}
                           </span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Valid Until:</span>{" "}
+                          <span className="text-muted-foreground">Revenue:</span>{" "}
+                          <span className="font-medium">
+                            {formatCurrency(coupon.revenue)}
+                            {coupon.orderCount
+                              ? ` (${coupon.orderCount} orders)`
+                              : ""}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">
+                            Valid Until:
+                          </span>{" "}
                           <span className="font-medium">
                             {format(coupon.expiryDate, "MMM dd, yyyy")}
                           </span>
@@ -100,7 +126,10 @@ export default async function AdminCouponsPage() {
                       </div>
                     </div>
 
-                    <CouponActions couponId={coupon.id} isActive={coupon.isActive} />
+                    <CouponActions
+                      couponId={coupon.id}
+                      isActive={coupon.isActive}
+                    />
                   </div>
                 </CardContent>
               </Card>

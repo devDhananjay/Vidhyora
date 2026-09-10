@@ -28,9 +28,25 @@ export type ProductFilters = {
   maxPrice?: number;
   minRating?: number;
   inStock?: boolean;
-  sort?: "price-low" | "price-high" | "newest" | "rating" | "popular";
+  sort?:
+    | "price-low"
+    | "price-high"
+    | "newest"
+    | "rating"
+    | "popular"
+    | "relevance"
+    | "name";
   page?: number;
   q?: string;
+  metal?: string | string[];
+  karat?: string | string[];
+  gender?: string | string[];
+  type?: string | string[];
+  occasion?: string | string[];
+  item?: string | string[];
+  stone?: string | string[];
+  collection?: string | string[];
+  size?: string | string[];
 };
 
 export type CategoryAttributeDefinition = {

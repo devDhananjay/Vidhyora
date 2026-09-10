@@ -35,6 +35,7 @@ export function ProductSort() {
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="default">Default</SelectItem>
+          <SelectItem value="relevance">Relevance</SelectItem>
           <SelectItem value="price-low">Price: Low to High</SelectItem>
           <SelectItem value="price-high">Price: High to Low</SelectItem>
           <SelectItem value="newest">Newest First</SelectItem>

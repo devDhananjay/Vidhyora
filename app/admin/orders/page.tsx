@@ -26,7 +26,10 @@ export default async function AdminOrdersPage() {
       <div>
         <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Orders</h1>
         <p className="mt-2 text-muted-foreground">
-          {orders.length} total orders • {pending} in progress
+          {orders.length} total orders • {pending} in progress.{" "}
+          <Link href="/admin/orders/sla" className="text-primary hover:underline">
+            View Order SLA →
+          </Link>
         </p>
       </div>
 

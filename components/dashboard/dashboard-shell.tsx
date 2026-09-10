@@ -28,6 +28,7 @@ import {
   Mail,
   MessageSquare,
   BookOpen,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "@/components/brand/brand-logo";
@@ -46,6 +47,7 @@ const ADMIN_NAV = [
   { label: "Emails", href: "/admin/emails", icon: Mail },
   { label: "Contact", href: "/admin/contact-messages", icon: MessageSquare },
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
+  { label: "Order SLA", href: "/admin/orders/sla", icon: Clock },
   { label: "Returns", href: "/admin/returns", icon: RotateCcw },
   { label: "Reviews", href: "/admin/reviews", icon: Star },
   { label: "Coupons", href: "/admin/coupons", icon: Tag },
@@ -69,8 +71,6 @@ const SELLER_NAV = [
 ];
 
 const SUPER_ADMIN_ONLY_HREFS = new Set([
-  "/admin/mega-menu",
-  "/admin/homepage",
   "/admin/settings",
   "/admin/blog",
   "/admin/emails",
@@ -246,7 +246,11 @@ function NavLink({
   const root = item.href === "/admin" || item.href === "/seller";
   const active = root
     ? pathname === item.href
-    : pathname === item.href || pathname.startsWith(`${item.href}/`);
+    : item.href === "/admin/orders"
+      ? pathname === "/admin/orders" ||
+        (/^\/admin\/orders\/[^/]+$/.test(pathname) &&
+          pathname !== "/admin/orders/sla")
+      : pathname === item.href || pathname.startsWith(`${item.href}/`);
 
   if (compact) {
     return (

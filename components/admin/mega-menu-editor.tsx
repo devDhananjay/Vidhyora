@@ -9,6 +9,7 @@ import {
   EyeOff,
   RotateCcw,
   Save,
+  X,
 } from "lucide-react";
 import {
   resetMegaMenuConfig,
@@ -21,6 +22,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+  Dialog,
+  DialogClose,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { MegaNav } from "@/components/storefront/mega-nav";
+import { toStorefrontMegaItem } from "@/lib/nav/mega-menu-preview";
 import type { MegaMenuConfigData } from "@/lib/validations/mega-menu";
 import { cn } from "@/lib/utils";
 
@@ -42,6 +53,7 @@ export function MegaMenuEditor({
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showJson, setShowJson] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [jsonText, setJsonText] = useState(() =>
     JSON.stringify(initialData, null, 2),
   );
@@ -49,6 +61,14 @@ export function MegaMenuEditor({
   const selected = useMemo(
     () => data.items.find((item) => item.id === selectedId) ?? null,
     [data.items, selectedId],
+  );
+
+  const previewItems = useMemo(
+    () =>
+      data.items
+        .filter((item) => item.isActive !== false)
+        .map(toStorefrontMegaItem),
+    [data.items],
   );
 
   function updateSelected(
@@ -178,6 +198,15 @@ export function MegaMenuEditor({
           <Button
             type="button"
             variant="outline"
+            onClick={() => setPreviewOpen(true)}
+            className="gap-2"
+          >
+            <Eye className="size-4" />
+            Preview
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
             onClick={reset}
             disabled={isPending}
             className="gap-2"
@@ -196,6 +225,36 @@ export function MegaMenuEditor({
           </Button>
         </div>
       </div>
+
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogPortal>
+          <DialogOverlay />
+          <DialogPrimitive.Content className="fixed left-1/2 top-1/2 z-[101] flex max-h-[90vh] w-[min(100%-1.5rem,1100px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl outline-none">
+            <div className="flex items-center justify-between border-b px-4 py-3">
+              <DialogTitle className="font-serif text-xl text-neutral-900">
+                Mega menu preview
+              </DialogTitle>
+              <DialogClose asChild>
+                <button
+                  type="button"
+                  aria-label="Close preview"
+                  className="rounded-full p-1.5 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+                >
+                  <X className="size-4" />
+                </button>
+              </DialogClose>
+            </div>
+            <div className="min-h-0 flex-1 overflow-auto bg-[#faf8f6] p-4">
+              <div className="overflow-visible rounded-xl border border-neutral-200 bg-white">
+                <MegaNav items={previewItems} />
+              </div>
+              <p className="mt-3 text-xs text-muted-foreground">
+                Inactive tabs and links are hidden, matching the storefront.
+              </p>
+            </div>
+          </DialogPrimitive.Content>
+        </DialogPortal>
+      </Dialog>
 
       {message ? (
         <p className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
@@ -451,8 +510,36 @@ export function MegaMenuEditor({
                 {selected.links.map((link, index) => (
                   <div
                     key={`${selected.id}-link-${index}`}
-                    className="space-y-3 rounded-lg border p-3"
+                    className={cn(
+                      "space-y-3 rounded-lg border p-3",
+                      link.isActive === false && "opacity-70",
+                    )}
                   >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-medium">
+                        Link {index + 1}
+                        {link.isActive === false ? (
+                          <span className="ml-2 text-[10px] font-normal tracking-wide text-muted-foreground uppercase">
+                            hidden
+                          </span>
+                        ) : null}
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <Label
+                          htmlFor={`${selected.id}-link-visible-${index}`}
+                          className="text-xs text-muted-foreground"
+                        >
+                          {link.isActive === false ? "Hidden" : "Shown"}
+                        </Label>
+                        <Switch
+                          id={`${selected.id}-link-visible-${index}`}
+                          checked={link.isActive !== false}
+                          onCheckedChange={(checked) =>
+                            updateLink(index, { isActive: checked })
+                          }
+                        />
+                      </div>
+                    </div>
                     <div className="grid gap-2 sm:grid-cols-2">
                       <div className="space-y-1">
                         <Label className="text-xs">Label</Label>

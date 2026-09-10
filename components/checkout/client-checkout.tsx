@@ -12,12 +12,16 @@ type ClientCheckoutProps = {
   addresses: Address[];
   cart: CartWithItems;
   summary: CartSummary;
+  codEnabled?: boolean;
+  giftNotesEnabled?: boolean;
 };
 
 export function ClientCheckout({
   addresses,
   cart,
   summary,
+  codEnabled = true,
+  giftNotesEnabled = true,
 }: ClientCheckoutProps) {
   const [selectedAddressId, setSelectedAddressId] = useState(
     addresses.find((a) => a.isDefault)?.id || addresses[0]?.id,
@@ -46,6 +50,12 @@ export function ClientCheckout({
             summary={summary}
             itemCount={activeItems.length}
             selectedAddressId={selectedAddressId}
+            addresses={addresses.map((address) => ({
+              id: address.id,
+              postalCode: address.postalCode,
+            }))}
+            codEnabled={codEnabled}
+            giftNotesEnabled={giftNotesEnabled}
           />
         </div>
       </div>

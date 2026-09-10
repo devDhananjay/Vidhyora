@@ -4,6 +4,11 @@ import { signIn, auth } from "@/lib/auth";
 import { loginSchema } from "@/lib/validations/auth";
 import { actionError, actionSuccess, type ActionResult } from "@/lib/utils";
 import prisma from "@/lib/prisma";
+import {
+  getRequestIp,
+  rateLimit,
+  rateLimitMessage,
+} from "@/lib/security/rate-limit";
 
 function isNextRedirect(error: unknown): boolean {
   return (
@@ -31,6 +36,12 @@ export async function loginAction(
   data: unknown,
 ): Promise<ActionResult<{ success: boolean; role?: string }>> {
   try {
+    const ip = await getRequestIp();
+    const limited = rateLimit(`login:${ip}`, 10, 60_000);
+    if (!limited.ok) {
+      return actionError(rateLimitMessage(limited.retryAfterSec));
+    }
+
     const validated = loginSchema.parse(data);
     const email = validated.email.toLowerCase();
 
@@ -65,6 +76,14 @@ export async function loginAction(
         await mergeGuestCartIntoUser(session.user.id);
       } catch (mergeError) {
         console.error("Guest cart merge failed:", mergeError);
+      }
+      try {
+        const { mergeGuestWishlistIntoUser } = await import(
+          "@/lib/wishlist/wishlist-session"
+        );
+        await mergeGuestWishlistIntoUser(session.user.id);
+      } catch (mergeError) {
+        console.error("Guest wishlist merge failed:", mergeError);
       }
     }
 

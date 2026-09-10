@@ -25,10 +25,6 @@ export function WishlistButton({
           setInWishlist(false);
           return;
         }
-        if (result.error.toLowerCase().includes("sign in")) {
-          redirectToLogin();
-          return;
-        }
         alert(result.error);
         return;
       }
@@ -36,10 +32,6 @@ export function WishlistButton({
       const result = await addToWishlist(productId);
       if (result.success) {
         setInWishlist(true);
-        return;
-      }
-      if (result.error.toLowerCase().includes("sign in")) {
-        redirectToLogin();
         return;
       }
       alert(result.error);
@@ -65,9 +57,4 @@ export function WishlistButton({
       />
     </button>
   );
-}
-
-function redirectToLogin() {
-  const next = `${window.location.pathname}${window.location.search}`;
-  window.location.href = `/login?callbackUrl=${encodeURIComponent(next)}`;
 }

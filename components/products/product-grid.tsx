@@ -6,6 +6,8 @@ import { getWishlistProductIds } from "@/actions/wishlist/manage-wishlist";
 import {
   buildProductWhere,
   getProductOrderBy,
+  isRelevanceSort,
+  rankBySearchRelevance,
   type ProductListParams,
 } from "@/lib/products/product-query";
 import {
@@ -23,9 +25,10 @@ export async function ProductGrid({
   const pageSize = PAGINATION.DEFAULT_PAGE_SIZE;
   const skip = (page - 1) * pageSize;
   const where = buildProductWhere(params);
-  const orderBy = getProductOrderBy(params.sort);
+  const useRelevance = isRelevanceSort(params.sort, params.q);
+  const orderBy = getProductOrderBy(useRelevance ? "relevance" : params.sort);
 
-  const [products, total, wishlistIds] = await Promise.all([
+  const [rawProducts, total, wishlistIds] = await Promise.all([
     prisma.product.findMany({
       where,
       select: {
@@ -43,12 +46,17 @@ export async function ProductGrid({
         },
       },
       orderBy,
-      skip,
-      take: pageSize,
+      skip: useRelevance ? 0 : skip,
+      take: useRelevance
+        ? Math.min(pageSize * 3, PAGINATION.MAX_PAGE_SIZE)
+        : pageSize,
     }),
     prisma.product.count({ where }),
     getWishlistProductIds(),
   ]);
+  const products = useRelevance
+    ? rankBySearchRelevance(rawProducts, params.q).slice(skip, skip + pageSize)
+    : rawProducts;
   const savedIds = new Set(wishlistIds);
 
   const totalPages = Math.ceil(total / pageSize);

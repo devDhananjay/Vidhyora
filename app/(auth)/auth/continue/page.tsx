@@ -22,6 +22,14 @@ export default async function AuthContinuePage({
     } catch (mergeError) {
       console.error("Guest cart merge failed:", mergeError);
     }
+    try {
+      const { mergeGuestWishlistIntoUser } = await import(
+        "@/lib/wishlist/wishlist-session"
+      );
+      await mergeGuestWishlistIntoUser(session.user.id);
+    } catch (mergeError) {
+      console.error("Guest wishlist merge failed:", mergeError);
+    }
   }
 
   const { callbackUrl } = await searchParams;

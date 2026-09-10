@@ -61,15 +61,75 @@ export function PricingStep({ register, errors, watch, variants }: PricingStepPr
             type="number"
             step="0.01"
             {...register("tax", { valueAsNumber: true })}
-            placeholder="18"
+            placeholder="3"
             className="mt-2"
           />
           <p className="mt-1 text-xs text-muted-foreground">
-            GST or applicable tax percentage
+            Jewellery GST is typically 3%
           </p>
           {errors.tax && (
             <p className="mt-1 text-sm text-destructive">{errors.tax.message}</p>
           )}
+        </div>
+
+        <div>
+          <Label htmlFor="hsn">HSN code</Label>
+          <Input
+            id="hsn"
+            {...register("hsn")}
+            placeholder="711319"
+            className="mt-2"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Shown on tax invoices (default 711319 for jewellery)
+          </p>
+        </div>
+
+        <div>
+          <Label htmlFor="certificateNumber">Certificate number</Label>
+          <Input
+            id="certificateNumber"
+            {...register("certificateNumber")}
+            placeholder="IGI / GIA / BIS hall mark no."
+            className="mt-2"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Shown on product page and order invoice when set
+          </p>
+        </div>
+
+        <div>
+          <Label htmlFor="attributes.makingChargePercent">
+            Making charge (%)
+          </Label>
+          <Input
+            id="attributes.makingChargePercent"
+            type="number"
+            step="0.01"
+            {...register("attributes.makingChargePercent")}
+            placeholder="22"
+            className="mt-2"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Used for price breakup when metal rate is not set
+          </p>
+        </div>
+
+        <div>
+          <Label htmlFor="attributes.metalRatePerGram">
+            Metal rate (₹/g)
+          </Label>
+          <Input
+            id="attributes.metalRatePerGram"
+            type="number"
+            step="0.01"
+            {...register("attributes.metalRatePerGram")}
+            placeholder="6500"
+            className="mt-2"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            With product weight, this drives metal vs making on invoices
+          </p>
         </div>
       </div>
 

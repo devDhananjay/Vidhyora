@@ -102,7 +102,9 @@ export const createProductSchema = z.object({
 
   basePrice: requiredNumber,
   compareAtPrice: optionalNumber,
-  tax: z.coerce.number().min(0).max(100).catch(0).default(0),
+  tax: z.coerce.number().min(0).max(100).catch(3).default(3),
+  hsn: z.string().trim().max(16).optional().default(""),
+  certificateNumber: z.string().trim().max(64).optional().default(""),
   attributes: z.record(z.string()).optional().default({}),
 });
 
@@ -190,9 +192,13 @@ export function normalizeProductFormValues(product: any): CreateProductInput {
       product.compareAtPrice == null
         ? undefined
         : Number(product.compareAtPrice),
-    tax: Number(product.tax) || 0,
-    attributes:
-      product.attributes &&
+    tax: Number(product.tax) || 3,
+    hsn: product.hsn || "",
+    certificateNumber: product.certificateNumber || "",
+    attributes: {
+      makingChargePercent: "",
+      metalRatePerGram: "",
+      ...(product.attributes &&
       typeof product.attributes === "object" &&
       !Array.isArray(product.attributes)
         ? Object.fromEntries(
@@ -200,6 +206,7 @@ export function normalizeProductFormValues(product: any): CreateProductInput {
               ([key, value]) => [key, String(value ?? "")],
             ),
           )
-        : {},
+        : {}),
+    },
   };
 }

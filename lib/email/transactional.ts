@@ -2,12 +2,21 @@ import { formatCurrency } from "@/lib/utils";
 import prisma from "@/lib/prisma";
 import { sendEmail, EMAIL_TEMPLATES, isEmailConfigured } from "@/lib/email";
 import { getEmailAppUrl } from "@/lib/email/app-url";
+import { userAllowsOrderEmails } from "@/actions/account/notification-preferences";
 
 async function safeSend(
   label: string,
   run: () => Promise<void>,
 ): Promise<void> {
   try {
+    if (!isEmailConfigured()) {
+      console.warn(
+        `[email:${label}] skipped — set EMAIL_SERVER and EMAIL_FROM for transactional mail`,
+      );
+      if (process.env.NODE_ENV === "production") {
+        // Still attempt sendEmail so production throws/logs loudly via sendEmail
+      }
+    }
     await run();
   } catch (error) {
     console.error(`[email:${label}]`, error);
@@ -19,7 +28,7 @@ export async function notifyOrderConfirmed(orderId: string) {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
-        user: { select: { name: true, email: true } },
+        user: { select: { id: true, name: true, email: true } },
         items: {
           include: {
             product: {
@@ -41,21 +50,25 @@ export async function notifyOrderConfirmed(orderId: string) {
     });
     if (!order?.user?.email) return;
 
+    const allowBuyer = await userAllowsOrderEmails(order.user.id);
     const total = formatCurrency(Number(order.total));
     const orderLink = `${getEmailAppUrl()}/orders/${order.id}`;
-    const template = EMAIL_TEMPLATES.orderConfirmation({
-      customerName: order.user.name || "Customer",
-      orderNumber: order.orderNumber,
-      orderTotal: total,
-      orderLink,
-    });
 
-    await sendEmail({
-      to: { email: order.user.email, name: order.user.name || undefined },
-      subject: template.subject,
-      html: template.html,
-      text: template.text,
-    });
+    if (allowBuyer) {
+      const template = EMAIL_TEMPLATES.orderConfirmation({
+        customerName: order.user.name || "Customer",
+        orderNumber: order.orderNumber,
+        orderTotal: total,
+        orderLink,
+      });
+
+      await sendEmail({
+        to: { email: order.user.email, name: order.user.name || undefined },
+        subject: template.subject,
+        html: template.html,
+        text: template.text,
+      });
+    }
 
     const sellerEmails = new Map<string, { name: string; email: string }>();
     for (const item of order.items) {
@@ -87,9 +100,10 @@ export async function notifyOrderShipped(
   await safeSend("order-shipped", async () => {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
-      include: { user: { select: { name: true, email: true } } },
+      include: { user: { select: { id: true, name: true, email: true } } },
     });
     if (!order?.user?.email) return;
+    if (!(await userAllowsOrderEmails(order.user.id))) return;
 
     const template = EMAIL_TEMPLATES.orderShipped({
       customerName: order.user.name || "Customer",
@@ -234,6 +248,67 @@ export async function notifyLowStockIfNeeded(
       subject: `Low stock: ${productName}`,
       html: `<p>Hi ${profile.businessName}, <strong>${productName}</strong> is low on stock (available: ${available}). <a href="${getEmailAppUrl()}/seller/inventory">Update inventory</a></p>`,
       text: `Low stock for ${productName}: ${available} available.`,
+    });
+  });
+}
+
+export async function notifyOrderCancelled(
+  orderId: string,
+  reason?: string | null,
+) {
+  await safeSend("order-cancelled", async () => {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { user: { select: { id: true, name: true, email: true } } },
+    });
+    if (!order?.user?.email) return;
+    if (!(await userAllowsOrderEmails(order.user.id))) return;
+    const orderLink = `${getEmailAppUrl()}/orders/${order.id}`;
+    const template = EMAIL_TEMPLATES.orderCancelled({
+      customerName: order.user.name || "Customer",
+      orderNumber: order.orderNumber,
+      reason: reason || undefined,
+      orderLink,
+    });
+    await sendEmail({
+      to: { email: order.user.email, name: order.user.name || undefined },
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
+    });
+  });
+}
+
+export async function notifyReturnStatus(
+  returnRequestId: string,
+  statusLabel: string,
+  note?: string | null,
+) {
+  await safeSend("return-status", async () => {
+    const request = await prisma.returnRequest.findUnique({
+      where: { id: returnRequestId },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        orderItem: {
+          include: { order: { select: { id: true, orderNumber: true } } },
+        },
+      },
+    });
+    if (!request?.user?.email) return;
+    if (!(await userAllowsOrderEmails(request.user.id))) return;
+    const orderLink = `${getEmailAppUrl()}/orders/${request.orderItem.order.id}`;
+    const template = EMAIL_TEMPLATES.returnStatus({
+      customerName: request.user.name || "Customer",
+      orderNumber: request.orderItem.order.orderNumber,
+      statusLabel,
+      note: note || undefined,
+      orderLink,
+    });
+    await sendEmail({
+      to: { email: request.user.email, name: request.user.name || undefined },
+      subject: template.subject,
+      html: template.html,
+      text: template.text,
     });
   });
 }

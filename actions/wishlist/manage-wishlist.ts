@@ -1,31 +1,35 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { auth } from "@/lib/auth";
-import { AuthError, requireAuth } from "@/lib/auth-helpers";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/utils";
+import {
+  getOrCreateWishlistSession,
+  getWishlistSessionId,
+} from "@/lib/wishlist/wishlist-session";
 
 export async function addToWishlist(
   productId: string,
 ): Promise<ActionResult<void>> {
   try {
-    const session = await requireAuth();
-
-    // Get or create wishlist
-    let wishlist = await prisma.wishlist.findUnique({
-      where: { userId: session.user.id },
-    });
-
-    if (!wishlist) {
-      wishlist = await prisma.wishlist.create({
-        data: { userId: session.user.id },
-      });
+    const { getIntegrationsSettings } = await import(
+      "@/lib/content/integrations-settings"
+    );
+    const integrations = await getIntegrationsSettings();
+    const { auth } = await import("@/lib/auth");
+    const session = await auth();
+    if (!integrations.guestWishlistEnabled && !session?.user?.id) {
+      return {
+        success: false,
+        error: "Please sign in to save favourites",
+      };
     }
+
+    const owner = await getOrCreateWishlistSession();
 
     const existing = await prisma.wishlistItem.findFirst({
       where: {
-        wishlistId: wishlist.id,
+        wishlistId: owner.wishlistId,
         productId,
       },
     });
@@ -45,7 +49,7 @@ export async function addToWishlist(
 
     await prisma.wishlistItem.create({
       data: {
-        wishlistId: wishlist.id,
+        wishlistId: owner.wishlistId,
         productId,
         variantId: variant?.id,
       },
@@ -59,12 +63,6 @@ export async function addToWishlist(
       data: undefined,
     };
   } catch (error) {
-    if (error instanceof AuthError || (error instanceof Error && error.name === "AuthError")) {
-      return {
-        success: false,
-        error: "Please sign in to save favourites",
-      };
-    }
     console.error("Add to wishlist error:", error);
     return {
       success: false,
@@ -77,13 +75,8 @@ export async function removeFromWishlist(
   productId: string,
 ): Promise<ActionResult<void>> {
   try {
-    const session = await requireAuth();
-
-    const wishlist = await prisma.wishlist.findUnique({
-      where: { userId: session.user.id },
-    });
-
-    if (!wishlist) {
+    const wishlistId = await getWishlistSessionId();
+    if (!wishlistId) {
       return {
         success: false,
         error: "Wishlist not found",
@@ -92,7 +85,7 @@ export async function removeFromWishlist(
 
     await prisma.wishlistItem.deleteMany({
       where: {
-        wishlistId: wishlist.id,
+        wishlistId,
         productId,
       },
     });
@@ -105,12 +98,6 @@ export async function removeFromWishlist(
       data: undefined,
     };
   } catch (error) {
-    if (error instanceof AuthError || (error instanceof Error && error.name === "AuthError")) {
-      return {
-        success: false,
-        error: "Please sign in to save favourites",
-      };
-    }
     console.error("Remove from wishlist error:", error);
     return {
       success: false,
@@ -120,11 +107,11 @@ export async function removeFromWishlist(
 }
 
 export async function getWishlistProductIds() {
-  const session = await auth();
-  if (!session?.user?.id) return [];
+  const wishlistId = await getWishlistSessionId();
+  if (!wishlistId) return [];
 
   const items = await prisma.wishlistItem.findMany({
-    where: { wishlist: { userId: session.user.id } },
+    where: { wishlistId },
     select: { productId: true },
   });
 
@@ -133,10 +120,11 @@ export async function getWishlistProductIds() {
 
 export async function getWishlist() {
   try {
-    const session = await requireAuth();
+    const wishlistId = await getWishlistSessionId();
+    if (!wishlistId) return [];
 
     const wishlist = await prisma.wishlist.findUnique({
-      where: { userId: session.user.id },
+      where: { id: wishlistId },
       include: {
         items: {
           include: {

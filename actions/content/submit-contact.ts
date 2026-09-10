@@ -7,6 +7,11 @@ import { getSiteSettings } from "@/lib/content/get-site-settings";
 import { sendEmail } from "@/lib/email";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/utils";
+import {
+  getRequestIp,
+  rateLimit,
+  rateLimitMessage,
+} from "@/lib/security/rate-limit";
 
 const contactSchema = z.object({
   name: z.string().trim().min(2, "Name is required").max(100),
@@ -22,6 +27,12 @@ export async function submitContactMessage(
   raw: ContactInput,
 ): Promise<ActionResult<{ id: string }>> {
   try {
+    const ip = await getRequestIp();
+    const limited = rateLimit(`contact:${ip}`, 5, 60_000);
+    if (!limited.ok) {
+      return { success: false, error: rateLimitMessage(limited.retryAfterSec) };
+    }
+
     const parsed = contactSchema.safeParse(raw);
     if (!parsed.success) {
       return {

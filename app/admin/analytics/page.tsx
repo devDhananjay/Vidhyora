@@ -9,6 +9,9 @@ import {
   Store,
 } from "lucide-react";
 import { getAdminAnalytics } from "@/actions/admin/get-analytics";
+import { exportAdminAnalyticsCsv } from "@/actions/admin/export-analytics-csv";
+import { ExportAnalyticsButton } from "@/components/shared/export-analytics-button";
+import { getIntegrationsSettings } from "@/lib/content/integrations-settings";
 import { StatCard } from "@/components/seller/stat-card";
 import { HorizontalBarChart } from "@/components/shared/horizontal-bar-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,16 +25,24 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminAnalyticsPage() {
-  const data = await getAdminAnalytics();
+  const [data, integrations] = await Promise.all([
+    getAdminAnalytics(),
+    getIntegrationsSettings(),
+  ]);
   const { stats } = data;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Analytics</h1>
-        <p className="mt-2 text-muted-foreground">
-          Platform performance across orders, payments, sellers and catalogue.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Analytics</h1>
+          <p className="mt-2 text-muted-foreground">
+            Platform performance across orders, payments, sellers and catalogue.
+          </p>
+        </div>
+        {integrations.analyticsExportEnabled ? (
+          <ExportAnalyticsButton exportAction={exportAdminAnalyticsCsv} />
+        ) : null}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

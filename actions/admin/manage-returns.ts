@@ -10,6 +10,7 @@ import {
   refundRazorpayIfNeeded,
   remainingPaidItemCount,
 } from "@/lib/payouts/refund-return";
+import { notifyReturnStatus } from "@/lib/email/transactional";
 
 const RETURN_INCLUDE = {
   user: {
@@ -101,6 +102,10 @@ export async function approveReturnRequest(
     revalidatePath("/seller/returns");
     revalidatePath("/admin");
 
+    void notifyReturnStatus(id, "Approved").catch((error) =>
+      console.error("Return approve email failed:", error),
+    );
+
     return { success: true, data: undefined };
   } catch (error) {
     console.error("Approve return error:", error);
@@ -147,6 +152,10 @@ export async function rejectReturnRequest(
     revalidatePath("/admin/returns");
     revalidatePath("/seller/returns");
     revalidatePath("/admin");
+
+    void notifyReturnStatus(id, "Rejected", reason).catch((error) =>
+      console.error("Return reject email failed:", error),
+    );
 
     return { success: true, data: undefined };
   } catch (error) {

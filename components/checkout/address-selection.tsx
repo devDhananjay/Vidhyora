@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { Address } from "@prisma/client";
-import { Button } from "@/components/ui/button";
 import { MapPin, Plus } from "lucide-react";
+import { AddressFormSheet } from "@/components/address/address-form-sheet";
 import { AddressCard } from "@/components/checkout/address-card";
-import { AddressForm } from "@/components/checkout/address-form";
+import { Button } from "@/components/ui/button";
 
 type AddressSelectionProps = {
   addresses: Address[];
@@ -16,15 +17,41 @@ export function AddressSelection({
   addresses,
   onAddressSelect,
 }: AddressSelectionProps) {
-  const [showForm, setShowForm] = useState(addresses.length === 0);
-  const [selectedAddressId, setSelectedAddressId] = useState(
+  const router = useRouter();
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [editing, setEditing] = useState<Address | null>(null);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | undefined>(
     addresses.find((a) => a.isDefault)?.id || addresses[0]?.id,
   );
+
+  useEffect(() => {
+    const stillExists = addresses.some((a) => a.id === selectedAddressId);
+    if (!stillExists) {
+      const next =
+        addresses.find((a) => a.isDefault)?.id || addresses[0]?.id || undefined;
+      setSelectedAddressId(next);
+      if (next) onAddressSelect?.(next);
+    }
+  }, [addresses, selectedAddressId, onAddressSelect]);
 
   const handleSelect = (addressId: string) => {
     setSelectedAddressId(addressId);
     onAddressSelect?.(addressId);
   };
+
+  function openAdd() {
+    setEditing(null);
+    setSheetOpen(true);
+  }
+
+  function openEdit(address: Address) {
+    setEditing(address);
+    setSheetOpen(true);
+  }
+
+  function handleSuccess() {
+    router.refresh();
+  }
 
   return (
     <div className="rounded-lg border p-4 sm:p-6">
@@ -33,32 +60,26 @@ export function AddressSelection({
           <MapPin className="size-5 shrink-0 text-primary" />
           <h2 className="text-lg font-semibold">Delivery Address</h2>
         </div>
-        {!showForm && addresses.length > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="self-start"
-            onClick={() => setShowForm(true)}
-          >
-            <Plus className="mr-2 size-4" />
-            Add New Address
-          </Button>
-        )}
+        <Button
+          variant="outline"
+          size="sm"
+          className="self-start"
+          onClick={openAdd}
+        >
+          <Plus className="mr-2 size-4" />
+          Add New Address
+        </Button>
       </div>
 
-      {showForm ? (
-        <div>
-          <AddressForm onSuccess={() => setShowForm(false)} />
-          {addresses.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowForm(false)}
-              className="mt-4"
-            >
-              Cancel
-            </Button>
-          )}
+      {addresses.length === 0 ? (
+        <div className="rounded-lg border border-dashed px-4 py-8 text-center">
+          <p className="text-sm text-muted-foreground">
+            Add a delivery address to continue checkout.
+          </p>
+          <Button type="button" className="mt-4" onClick={openAdd}>
+            <Plus className="mr-2 size-4" />
+            Add Address
+          </Button>
         </div>
       ) : (
         <div className="space-y-3">
@@ -68,10 +89,21 @@ export function AddressSelection({
               address={address}
               isSelected={address.id === selectedAddressId}
               onSelect={() => handleSelect(address.id)}
+              onEdit={() => openEdit(address)}
             />
           ))}
         </div>
       )}
+
+      <AddressFormSheet
+        open={sheetOpen}
+        onOpenChange={(open) => {
+          setSheetOpen(open);
+          if (!open) setEditing(null);
+        }}
+        address={editing}
+        onSuccess={handleSuccess}
+      />
     </div>
   );
 }

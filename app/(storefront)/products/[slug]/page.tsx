@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import prisma from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
+import { getCommerceSettings } from "@/lib/content/commerce-settings";
+import { getSiteSettings } from "@/lib/content/get-site-settings";
 import { Breadcrumbs } from "@/components/products/breadcrumbs";
 import { VariantSelector } from "@/components/products/variant-selector";
 import { SellerInfo } from "@/components/products/seller-info";
@@ -13,6 +15,10 @@ import { DeliveryPincodeChecker } from "@/components/products/delivery-pincode-c
 import { ProductGallery } from "@/components/products/product-gallery";
 import { ProductTrustStrip } from "@/components/products/product-trust-strip";
 import { ProductBuyActions } from "@/components/products/product-buy-actions";
+import {
+  RecentlyViewedRail,
+  RecentlyViewedTracker,
+} from "@/components/products/recently-viewed";
 import { ReviewStatsCard } from "@/components/reviews/review-stats-card";
 import { ReviewsList } from "@/components/reviews/reviews-list";
 import { Sparkles, Star } from "lucide-react";
@@ -118,9 +124,14 @@ export default async function ProductDetailPage({
 
   const defaultVariant = product.variants[0];
   const inStock = defaultVariant ? defaultVariant.stock > 0 : false;
-  const wishlistIds = await getWishlistProductIds();
+  const [wishlistIds, reviews, commerce, siteSettings] = await Promise.all([
+    getWishlistProductIds(),
+    getProductReviews(product.id),
+    getCommerceSettings(),
+    getSiteSettings(),
+  ]);
   const isInWishlist = wishlistIds.includes(product.id);
-  const reviews = await getProductReviews(product.id);
+  const whatsappNumber = siteSettings.contact.whatsappNumber || undefined;
 
   const productStructuredData = generateProductStructuredData(product);
   const breadcrumbStructuredData = generateBreadcrumbStructuredData([
@@ -231,7 +242,10 @@ export default async function ProductDetailPage({
                 </div>
               </div>
 
-              <ProductTrustStrip />
+              <ProductTrustStrip
+                returnWindowDays={commerce.returnWindowDays}
+                freeShippingThreshold={commerce.freeShippingThreshold}
+              />
 
               {product.variants.length > 0 ? (
                 <VariantSelector
@@ -247,6 +261,7 @@ export default async function ProductDetailPage({
                 isInWishlist={isInWishlist}
                 productName={product.name}
                 productText={product.shortDescription || undefined}
+                whatsappNumber={whatsappNumber}
                 price={
                   defaultVariant ? Number(defaultVariant.price) : basePrice
                 }
@@ -262,7 +277,10 @@ export default async function ProductDetailPage({
                 }
               />
 
-              <DeliveryPincodeChecker />
+              <DeliveryPincodeChecker
+                processingDays={product.seller?.processingDays}
+                freeShippingThreshold={commerce.freeShippingThreshold}
+              />
 
               <ProductTrustPanel
                 productId={product.id}
@@ -279,6 +297,7 @@ export default async function ProductDetailPage({
               description={product.description}
               thumbnail={product.thumbnail}
               sku={defaultVariant?.sku}
+              certificateNumber={product.certificateNumber}
               basePrice={basePrice}
               compareAtPrice={compareAtPrice}
               taxPercent={Number(product.tax) || 3}
@@ -307,14 +326,25 @@ export default async function ProductDetailPage({
             </div>
           </div>
 
-          <div className="mt-14 pb-24 md:pb-28">
+          <div className="mt-14 pb-8 md:pb-10">
             <RelatedProducts
               categoryId={product.categoryId}
               currentProductId={product.id}
             />
           </div>
+
+          <RecentlyViewedRail excludeId={product.id} />
+          <div className="pb-24 md:pb-28" />
         </div>
       </div>
+
+      <RecentlyViewedTracker
+        productId={product.id}
+        slug={product.slug}
+        name={product.name}
+        thumbnail={product.thumbnail}
+        price={defaultVariant ? Number(defaultVariant.price) : basePrice}
+      />
     </>
   );
 }

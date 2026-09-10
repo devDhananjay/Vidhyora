@@ -118,8 +118,13 @@ export function ProductForm({ categories, product }: ProductFormProps) {
           warrantyAvailable: false,
         },
         basePrice: 0,
-        tax: 0,
-        attributes: {},
+        tax: 3,
+        hsn: "",
+        certificateNumber: "",
+        attributes: {
+          makingChargePercent: "",
+          metalRatePerGram: "",
+        },
       };
 
   const {
@@ -282,6 +287,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
       basePrice: 4,
       compareAtPrice: 4,
       tax: 4,
+      hsn: 4,
       policy: 5,
     };
 

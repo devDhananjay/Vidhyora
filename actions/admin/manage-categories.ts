@@ -256,3 +256,36 @@ export async function toggleCategoryStatus(id: string): Promise<ActionResult<voi
     };
   }
 }
+
+export async function setCategoriesActive(
+  ids: string[],
+  isActive: boolean,
+): Promise<ActionResult<{ count: number }>> {
+  try {
+    await requireAdmin();
+
+    const uniqueIds = [...new Set(ids.filter(Boolean))];
+    if (uniqueIds.length === 0) {
+      return { success: false, error: "No categories selected" };
+    }
+
+    const result = await prisma.category.updateMany({
+      where: { id: { in: uniqueIds } },
+      data: { isActive },
+    });
+
+    revalidatePath("/admin/categories");
+    revalidatePath("/products");
+
+    return {
+      success: true,
+      data: { count: result.count },
+    };
+  } catch (error) {
+    console.error("Set categories active error:", error);
+    return {
+      success: false,
+      error: "Failed to update categories",
+    };
+  }
+}

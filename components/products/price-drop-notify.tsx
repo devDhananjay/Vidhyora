@@ -149,8 +149,8 @@ export function PriceDropNotify({
                   You&apos;re all set
                 </p>
                 <p className="mt-0.5 text-xs leading-relaxed text-neutral-500 md:text-[13px]">
-                  We&apos;ll notify you on WhatsApp/SMS when the price of this
-                  product drops.
+                  We&apos;ll keep this alert on your device for now. Email / SMS
+                  alerts are coming soon.
                 </p>
               </div>
             </div>
@@ -198,8 +198,8 @@ export function PriceDropNotify({
                       <p className="mt-2 text-sm text-neutral-500">
                         Thanks
                         {name.trim() ? `, ${name.trim().split(" ")[0]}` : ""}!
-                        We&apos;ll alert you when the price of {productName}{" "}
-                        drops.
+                        Your price alert for {productName} is saved on this
+                        device.
                       </p>
                       <button
                         type="button"
@@ -222,8 +222,8 @@ export function PriceDropNotify({
                           Price Drop Alerts
                         </DialogTitle>
                         <DialogDescription className="text-sm text-neutral-500">
-                          Be the first to know when the price of {productName}{" "}
-                          drops.
+                          Save an alert on this device for {productName}. Email /
+                          SMS notifications are coming soon.
                         </DialogDescription>
                       </DialogHeader>
 

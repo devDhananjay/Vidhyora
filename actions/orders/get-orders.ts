@@ -19,6 +19,7 @@ export async function getUserOrders(): Promise<OrderWithDetails[]> {
           },
         },
         payments: true,
+        shipments: true,
       },
       orderBy: { createdAt: "desc" },
     });
@@ -48,6 +49,7 @@ export async function getOrderById(orderId: string): Promise<OrderWithDetails | 
           },
         },
         payments: true,
+        shipments: true,
       },
     });
 

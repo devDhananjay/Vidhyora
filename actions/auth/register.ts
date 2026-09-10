@@ -6,11 +6,22 @@ import { actionError, actionSuccess, type ActionResult } from "@/lib/utils";
 import bcrypt from "bcryptjs";
 import { sendVerificationEmail } from "@/lib/email/send-verification";
 import { generateVerificationToken } from "@/lib/auth/tokens";
+import {
+  getRequestIp,
+  rateLimit,
+  rateLimitMessage,
+} from "@/lib/security/rate-limit";
 
 export async function registerAction(
   data: unknown,
 ): Promise<ActionResult<{ message: string }>> {
   try {
+    const ip = await getRequestIp();
+    const limited = rateLimit(`register:${ip}`, 5, 60_000);
+    if (!limited.ok) {
+      return actionError(rateLimitMessage(limited.retryAfterSec));
+    }
+
     const validated = registerSchema.parse(data);
 
     const existingUser = await prisma.user.findFirst({

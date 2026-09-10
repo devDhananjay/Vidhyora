@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { MEGA_MENU, type MegaMenuItem } from "@/lib/nav/mega-menu-data";
+import { toStorefrontMegaItem } from "@/lib/nav/mega-menu-preview";
 import {
   megaMenuConfigSchema,
   type MegaMenuConfigData,
@@ -41,7 +42,7 @@ export async function getMegaMenuItems(): Promise<MegaMenuItem[]> {
 
     return config.items
       .filter((item) => item.isActive !== false)
-      .map(({ isActive: _ignored, ...item }) => item);
+      .map(toStorefrontMegaItem);
   } catch (error) {
     // Table may not exist yet before migrate
     console.error("getMegaMenuItems error:", error);

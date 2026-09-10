@@ -10,12 +10,14 @@ import {
   Sparkles,
 } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
+import { buildJewelleryBreakup } from "@/lib/orders/jewellery-breakup";
 
 type JewelleryDetailsProps = {
   name: string;
   description: string;
   thumbnail: string | null;
   sku?: string | null;
+  certificateNumber?: string | null;
   basePrice: number;
   compareAtPrice?: number | null;
   taxPercent?: number;
@@ -76,6 +78,7 @@ export function JewelleryDetails({
   description,
   thumbnail,
   sku,
+  certificateNumber,
   basePrice,
   compareAtPrice,
   taxPercent = 3,
@@ -114,35 +117,35 @@ export function JewelleryDetails({
   }, [attributes]);
 
   const breakup = useMemo(() => {
-    const gstRate = taxPercent > 0 ? taxPercent : 3;
-    const inclusive = basePrice;
-    const preTax = inclusive / (1 + gstRate / 100);
-    const gst = inclusive - preTax;
-    const makingShare = 0.22;
-    const making = preTax * makingShare;
-    const metalValue = preTax - making;
-    const weight = attrs.weightGrams > 0 ? attrs.weightGrams : 0;
-    const ratePerGram = weight > 0 ? metalValue / weight : 0;
+    const snap = buildJewelleryBreakup({
+      unitPrice: basePrice,
+      quantity: 1,
+      taxField: taxPercent,
+      attributes,
+    });
     const discount =
       compareAtPrice && compareAtPrice > basePrice
         ? compareAtPrice - basePrice
         : 0;
 
     return {
-      metalLabel: `${attrs.colour !== "—" ? attrs.colour + " " : ""}${attrs.metalLabel}${
-        attrs.karatage !== "—" ? ` ${attrs.karatage}` : ""
-      }`.trim(),
-      ratePerGram,
-      weight,
-      metalValue,
-      making,
-      subtotal: preTax,
-      gst,
-      gstRate,
+      metalLabel:
+        snap.metalLabel !== "Metal"
+          ? snap.metalLabel
+          : `${attrs.colour !== "—" ? attrs.colour + " " : ""}${attrs.metalLabel}${
+              attrs.karatage !== "—" ? ` ${attrs.karatage}` : ""
+            }`.trim(),
+      ratePerGram: snap.ratePerGram,
+      weight: snap.weightGrams || attrs.weightGrams,
+      metalValue: snap.metalValue,
+      making: snap.making,
+      subtotal: snap.taxable,
+      gst: snap.gst,
+      gstRate: snap.gstRate,
       discount,
-      grandTotal: inclusive,
+      grandTotal: snap.lineTotal,
     };
-  }, [attrs, basePrice, compareAtPrice, taxPercent]);
+  }, [attrs, attributes, basePrice, compareAtPrice, taxPercent]);
 
   const generalItems = [
     attrs.stone ? { label: "Stone", value: attrs.stone } : null,
@@ -152,6 +155,9 @@ export function JewelleryDetails({
     attrs.style ? { label: "Style", value: attrs.style } : null,
     attrs.quantity ? { label: "Quantity", value: attrs.quantity } : null,
     sku ? { label: "SKU", value: sku } : null,
+    certificateNumber
+      ? { label: "Certificate", value: certificateNumber }
+      : null,
   ].filter(Boolean) as Array<{ label: string; value: string }>;
 
   const metalItems = [

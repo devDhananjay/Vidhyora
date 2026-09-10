@@ -57,7 +57,7 @@ export async function requireAdmin() {
   return session;
 }
 
-/** SUPER_ADMIN only — site settings, mega menu, homepage, blog CMS. */
+/** SUPER_ADMIN only — site settings, blog, email campaigns. */
 export async function requireSuperAdmin() {
   const session = await requireAuth();
   if (!isSuperAdmin(session.user.role)) {

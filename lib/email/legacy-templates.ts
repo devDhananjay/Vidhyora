@@ -54,4 +54,25 @@ export const EMAIL_TEMPLATES = {
     html: `<p>Hi ${data.name}, <a href="${data.resetLink}">reset your password</a>. Expires in 1 hour.</p>`,
     text: `Reset your password: ${data.resetLink}`,
   }),
+  orderCancelled: (data: {
+    customerName: string;
+    orderNumber: string;
+    reason?: string;
+    orderLink: string;
+  }): EmailTemplate => ({
+    subject: `Order cancelled — ${data.orderNumber}`,
+    html: `<p>Hi ${data.customerName}, your order <strong>${data.orderNumber}</strong> has been cancelled.${data.reason ? ` Reason: ${data.reason}` : ""} <a href="${data.orderLink}">View order</a></p>`,
+    text: `Order ${data.orderNumber} cancelled.${data.reason ? ` Reason: ${data.reason}` : ""}`,
+  }),
+  returnStatus: (data: {
+    customerName: string;
+    orderNumber: string;
+    statusLabel: string;
+    note?: string;
+    orderLink: string;
+  }): EmailTemplate => ({
+    subject: `Return update — ${data.orderNumber}`,
+    html: `<p>Hi ${data.customerName}, your return for order <strong>${data.orderNumber}</strong> is now <strong>${data.statusLabel}</strong>.${data.note ? ` ${data.note}` : ""} <a href="${data.orderLink}">View order</a></p>`,
+    text: `Return for ${data.orderNumber}: ${data.statusLabel}.${data.note ? ` ${data.note}` : ""}`,
+  }),
 };

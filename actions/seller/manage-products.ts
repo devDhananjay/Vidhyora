@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { getActingSeller } from "@/lib/seller-context";
 import { revalidatePath } from "next/cache";
 import { createProductSchema, type CreateProductInput } from "@/lib/validations/product";
+import { getCommerceSettings } from "@/lib/content/commerce-settings";
 import type { ActionResult } from "@/lib/utils";
 
 export async function createProduct(
@@ -20,6 +21,10 @@ export async function createProduct(
 
     // Validate input
     const validated = createProductSchema.parse(data);
+    const commerce = await getCommerceSettings();
+    const needsApproval = commerce.productApprovalRequired;
+    const returnWindowDays =
+      validated.policy.returnWindowDays || commerce.returnWindowDays || 7;
 
     // Check if slug already exists
     const existingProduct = await prisma.product.findUnique({
@@ -47,9 +52,11 @@ export async function createProduct(
         basePrice: validated.basePrice,
         compareAtPrice: validated.compareAtPrice,
         tax: validated.tax,
+        hsn: validated.hsn || null,
+        certificateNumber: validated.certificateNumber || null,
         attributes: validated.attributes ?? {},
-        status: "DRAFT",
-        approvalStatus: "PENDING_APPROVAL",
+        status: needsApproval ? "DRAFT" : "ACTIVE",
+        approvalStatus: needsApproval ? "PENDING_APPROVAL" : "APPROVED",
         
         // Create images
         images: {
@@ -79,7 +86,7 @@ export async function createProduct(
         policy: {
           create: {
             returnAllowed: validated.policy.returnAllowed,
-            returnWindowDays: validated.policy.returnWindowDays || 0,
+            returnWindowDays,
             replacementAllowed: validated.policy.replacementAllowed,
             replacementWindowDays: validated.policy.replacementWindowDays || 0,
             warrantyAvailable: validated.policy.warrantyAvailable,
@@ -121,6 +128,10 @@ export async function updateProduct(
 
     // Validate input
     const validated = createProductSchema.parse(data);
+    const commerce = await getCommerceSettings();
+    const needsApproval = commerce.productApprovalRequired;
+    const returnWindowDays =
+      validated.policy.returnWindowDays || commerce.returnWindowDays || 7;
 
     // Check if product belongs to seller
     const existingProduct = await prisma.product.findUnique({
@@ -176,8 +187,11 @@ export async function updateProduct(
           basePrice: validated.basePrice,
           compareAtPrice: validated.compareAtPrice,
           tax: validated.tax,
+          hsn: validated.hsn || null,
+          certificateNumber: validated.certificateNumber || null,
           attributes: validated.attributes ?? {},
-          approvalStatus: "PENDING_APPROVAL", // Re-submit for approval
+          approvalStatus: needsApproval ? "PENDING_APPROVAL" : "APPROVED",
+          status: needsApproval ? existingProduct.status : "ACTIVE",
           
           images: {
             create: validated.images.map((img) => ({
@@ -204,7 +218,7 @@ export async function updateProduct(
           policy: {
             update: {
               returnAllowed: validated.policy.returnAllowed,
-              returnWindowDays: validated.policy.returnWindowDays || 0,
+              returnWindowDays,
               replacementAllowed: validated.policy.replacementAllowed,
               replacementWindowDays: validated.policy.replacementWindowDays || 0,
               warrantyAvailable: validated.policy.warrantyAvailable,

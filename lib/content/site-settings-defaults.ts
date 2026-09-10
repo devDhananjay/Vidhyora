@@ -1,4 +1,9 @@
 import type { SiteSettingsData } from "@/lib/validations/site-settings";
+import {
+  DEFAULT_BUSINESS_SETTINGS,
+  DEFAULT_COMMERCE_SETTINGS,
+  DEFAULT_INTEGRATIONS_SETTINGS,
+} from "@/lib/validations/site-settings";
 
 export const DEFAULT_SITE_SETTINGS: SiteSettingsData = {
   version: 1,
@@ -13,6 +18,9 @@ export const DEFAULT_SITE_SETTINGS: SiteSettingsData = {
     twitter: "",
     youtube: "",
   },
+  business: { ...DEFAULT_BUSINESS_SETTINGS },
+  commerce: { ...DEFAULT_COMMERCE_SETTINGS },
+  integrations: { ...DEFAULT_INTEGRATIONS_SETTINGS },
 };
 
 /** tel: href from a display phone string. */

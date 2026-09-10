@@ -1,9 +1,7 @@
-import type { CartWithItems, CartSummary } from "@/types/cart";
 import { giftPackagingFeeForItems } from "@/lib/cart/gift-packaging";
-
-const TAX_RATE = 0.18; // 18% GST
-const FREE_SHIPPING_THRESHOLD = 500;
-const SHIPPING_COST = 50;
+import { taxAmountFromGross } from "@/lib/tax/jewellery-gst";
+import { DEFAULT_COMMERCE_SETTINGS } from "@/lib/validations/site-settings";
+import type { CartWithItems, CartSummary } from "@/types/cart";
 
 export function calculateCartSubtotal(cart: CartWithItems): number {
   const items = cart.items.filter((item) => !item.savedForLater);
@@ -16,30 +14,49 @@ export function calculateCartSubtotal(cart: CartWithItems): number {
 
 export function calculateCartSummary(
   cart: CartWithItems,
-  options?: { discount?: number; couponCode?: string | null },
+  options?: {
+    discount?: number;
+    couponCode?: string | null;
+    freeShippingThreshold?: number;
+    shippingFee?: number;
+    gstPercent?: number;
+  },
 ): CartSummary {
   const items = cart.items.filter((item) => !item.savedForLater);
+  const freeShippingThreshold =
+    options?.freeShippingThreshold ??
+    DEFAULT_COMMERCE_SETTINGS.freeShippingThreshold;
+  const shippingFee =
+    options?.shippingFee ?? DEFAULT_COMMERCE_SETTINGS.shippingFee;
+  const gstPercent =
+    options?.gstPercent ?? DEFAULT_COMMERCE_SETTINGS.gstPercent;
 
   const subtotal = calculateCartSubtotal(cart);
   const discount = Math.min(Math.max(0, options?.discount ?? 0), subtotal);
-  const tax = subtotal * TAX_RATE;
-  const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
+  const taxable = Math.max(0, subtotal - discount);
+  const tax = items.reduce((sum, item) => {
+    const lineGross = Number(item.variant.price) * item.quantity;
+    const share = subtotal > 0 ? lineGross / subtotal : 0;
+    const lineTaxable = Math.max(0, lineGross - discount * share);
+    return sum + taxAmountFromGross(lineTaxable, Number(item.product.tax));
+  }, 0);
+  const shipping = subtotal >= freeShippingThreshold ? 0 : shippingFee;
   const giftPackaging = giftPackagingFeeForItems(items);
-  const total = Math.max(
-    0,
-    subtotal + tax + shipping + giftPackaging - discount,
-  );
+  const total = Math.max(0, taxable + tax + shipping + giftPackaging);
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return {
     subtotal,
-    tax,
+    tax: Math.round((tax + Number.EPSILON) * 100) / 100,
     shipping,
     giftPackaging,
     discount,
     couponCode: discount > 0 ? (options?.couponCode ?? null) : null,
-    total,
+    total: Math.round((total + Number.EPSILON) * 100) / 100,
     itemCount,
+    freeShippingThreshold,
+    shippingFee,
+    gstPercent,
   };
 }
 

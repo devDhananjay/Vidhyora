@@ -14,17 +14,19 @@ type SellerFulfillmentActionsProps = {
   orderItemId: string;
   currentStatus: string;
   compact?: boolean;
+  preferredCourier?: string | null;
 };
 
 export function SellerFulfillmentActions({
   orderItemId,
   currentStatus,
   compact = false,
+  preferredCourier = "",
 }: SellerFulfillmentActionsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [trackingNumber, setTrackingNumber] = useState("");
-  const [courier, setCourier] = useState("");
+  const [courier, setCourier] = useState(preferredCourier || "");
   const [error, setError] = useState<string | null>(null);
 
   const step = getNextFulfillmentStep(currentStatus);
@@ -40,6 +42,12 @@ export function SellerFulfillmentActions({
 
   const handleUpdate = () => {
     setError(null);
+    if (step.nextStatus === "SHIPPED") {
+      if (!trackingNumber.trim() || !courier.trim()) {
+        setError("Tracking number and courier are required to mark as shipped");
+        return;
+      }
+    }
     startTransition(async () => {
       const result = await updateSellerOrderFulfillment({
         orderItemId,
@@ -56,6 +64,28 @@ export function SellerFulfillmentActions({
   };
 
   if (compact) {
+    if (step.nextStatus === "SHIPPED") {
+      return (
+        <div className="space-y-2">
+          <Input
+            placeholder="Tracking number *"
+            value={trackingNumber}
+            onChange={(event) => setTrackingNumber(event.target.value)}
+            className="h-8 text-xs"
+          />
+          <Input
+            placeholder="Courier *"
+            value={courier}
+            onChange={(event) => setCourier(event.target.value)}
+            className="h-8 text-xs"
+          />
+          <Button size="sm" onClick={handleUpdate} disabled={isPending}>
+            {isPending ? "Updating..." : step.label}
+          </Button>
+          {error ? <p className="text-xs text-red-600">{error}</p> : null}
+        </div>
+      );
+    }
     return (
       <div className="space-y-2">
         <Button size="sm" onClick={handleUpdate} disabled={isPending}>
@@ -76,12 +106,12 @@ export function SellerFulfillmentActions({
       {step.nextStatus === "SHIPPED" ? (
         <div className="space-y-3">
           <Input
-            placeholder="Tracking number (optional)"
+            placeholder="Tracking number *"
             value={trackingNumber}
             onChange={(event) => setTrackingNumber(event.target.value)}
           />
           <Input
-            placeholder="Courier (optional)"
+            placeholder="Courier *"
             value={courier}
             onChange={(event) => setCourier(event.target.value)}
           />

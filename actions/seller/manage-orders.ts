@@ -34,6 +34,15 @@ export async function updateSellerOrderFulfillment(
 
     const validated = sellerFulfillmentSchema.parse(input);
 
+    if (validated.status === "SHIPPED") {
+      if (!validated.trackingNumber?.trim() || !validated.courier?.trim()) {
+        return {
+          success: false,
+          error: "Tracking number and courier are required when shipping",
+        };
+      }
+    }
+
     const orderItem = await prisma.orderItem.findFirst({
       where: {
         id: validated.orderItemId,

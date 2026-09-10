@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { createReviewSchema } from "@/lib/validations/review";
+import { getCommerceSettings } from "@/lib/content/commerce-settings";
 import type { ActionResult } from "@/lib/utils";
 
 export async function createReview(
@@ -70,6 +71,8 @@ export async function createReview(
       };
     }
 
+    const commerce = await getCommerceSettings();
+
     // Create review
     const review = await prisma.review.create({
       data: {
@@ -80,7 +83,7 @@ export async function createReview(
         title: validatedData.title,
         comment: validatedData.comment,
         images: validatedData.images || [],
-        status: "PENDING", // Reviews need moderation
+        status: commerce.reviewModeration ? "PENDING" : "APPROVED",
       },
     });
 

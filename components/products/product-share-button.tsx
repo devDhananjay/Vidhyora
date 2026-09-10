@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Copy, Link2, Share2, X } from "lucide-react";
+import { Check, Copy, Link2, MessageCircle, Share2, X } from "lucide-react";
 import {
   Dialog,
   DialogClose,
@@ -12,13 +12,19 @@ import {
 } from "@/components/ui/dialog";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { cn } from "@/lib/utils";
+import { whatsappHref } from "@/lib/content/site-settings-defaults";
 
 type ProductShareButtonProps = {
   title: string;
   text?: string;
+  whatsappNumber?: string;
 };
 
-export function ProductShareButton({ title, text }: ProductShareButtonProps) {
+export function ProductShareButton({
+  title,
+  text,
+  whatsappNumber,
+}: ProductShareButtonProps) {
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState("");
   const [copied, setCopied] = useState(false);
@@ -63,6 +69,15 @@ export function ProductShareButton({ title, text }: ProductShareButtonProps) {
       if (error instanceof DOMException && error.name === "AbortError") return;
     }
   }
+
+  const link = url || (typeof window !== "undefined" ? window.location.href : "");
+  const shareMessage = `Check out ${title} on VIDYORA${link ? `\n${link}` : ""}`;
+  const customerWhatsAppHref = `https://wa.me/?text=${encodeURIComponent(shareMessage)}`;
+  const askWhatsAppHref = whatsappNumber
+    ? `${whatsappHref(whatsappNumber)}?text=${encodeURIComponent(
+        `Hi, I'm interested in "${title}"${link ? ` — ${link}` : ""}`,
+      )}`
+    : null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -137,6 +152,28 @@ export function ProductShareButton({ title, text }: ProductShareButtonProps) {
                 </>
               )}
             </button>
+
+            <a
+              href={customerWhatsAppHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[#25D366]/40 bg-[#25D366]/10 text-sm font-medium text-[#128C7E] transition hover:bg-[#25D366]/20"
+            >
+              <MessageCircle className="size-4" strokeWidth={1.7} />
+              Share on WhatsApp
+            </a>
+
+            {askWhatsAppHref ? (
+              <a
+                href={askWhatsAppHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex h-10 w-full items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white text-sm font-medium text-neutral-700 transition hover:border-[#8b2e2e]/35 hover:text-[#8b2e2e]"
+              >
+                <MessageCircle className="size-4" strokeWidth={1.7} />
+                Ask on WhatsApp
+              </a>
+            ) : null}
 
             {canNativeShare ? (
               <button

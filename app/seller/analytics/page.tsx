@@ -8,6 +8,9 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { getSellerAnalytics } from "@/actions/seller/get-analytics";
+import { exportSellerAnalyticsCsv } from "@/actions/seller/export-analytics-csv";
+import { ExportAnalyticsButton } from "@/components/shared/export-analytics-button";
+import { getIntegrationsSettings } from "@/lib/content/integrations-settings";
 import { StatCard } from "@/components/seller/stat-card";
 import { HorizontalBarChart } from "@/components/shared/horizontal-bar-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,16 +24,24 @@ export const metadata: Metadata = {
 };
 
 export default async function SellerAnalyticsPage() {
-  const data = await getSellerAnalytics();
+  const [data, integrations] = await Promise.all([
+    getSellerAnalytics(),
+    getIntegrationsSettings(),
+  ]);
   const { stats } = data;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Sales Analytics</h1>
-        <p className="mt-2 text-muted-foreground">
-          Revenue, orders and product performance for your jewellery store.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Sales Analytics</h1>
+          <p className="mt-2 text-muted-foreground">
+            Revenue, orders and product performance for your jewellery store.
+          </p>
+        </div>
+        {integrations.analyticsExportEnabled ? (
+          <ExportAnalyticsButton exportAction={exportSellerAnalyticsCsv} />
+        ) : null}
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

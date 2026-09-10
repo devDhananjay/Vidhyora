@@ -22,7 +22,7 @@ const authRoutes = [
   "/reset-password",
   "/verify-email",
 ];
-const protectedRoutes = ["/account", "/orders", "/wishlist", "/checkout"];
+const protectedRoutes = ["/account", "/orders", "/checkout"];
 
 function matchesPrefix(pathname: string, route: string) {
   return pathname === route || pathname.startsWith(`${route}/`);
@@ -91,7 +91,6 @@ export const config = {
     "/admin/:path*",
     "/account/:path*",
     "/orders/:path*",
-    "/wishlist/:path*",
     "/checkout/:path*",
     "/login",
     "/register",

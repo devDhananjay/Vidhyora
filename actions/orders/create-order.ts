@@ -10,6 +10,16 @@ import { fulfillRazorpayCheckout } from "@/lib/payments/fulfill-razorpay";
 import { cartTotals, createShopOrder, stockError } from "@/lib/orders/place-order";
 import { resolveCartCouponDiscount } from "@/lib/coupons/coupon-utils";
 import { notifyOrderConfirmed } from "@/lib/email/transactional";
+import {
+  codUnavailableMessage,
+  isCodAvailableForPincode,
+} from "@/lib/shipping/cod";
+import { getCommerceSettings } from "@/lib/content/commerce-settings";
+import {
+  getRequestIp,
+  rateLimit,
+  rateLimitMessage,
+} from "@/lib/security/rate-limit";
 import type { ActionResult } from "@/lib/utils";
 
 type CreateOrderResult = {
@@ -35,15 +45,33 @@ async function loadCheckoutCart(userId: string) {
   });
 }
 
+function isIndiaAddress(country: string | null | undefined) {
+  const value = String(country ?? "")
+    .trim()
+    .toUpperCase();
+  return value === "IN" || value === "INDIA" || value === "";
+}
+
 export async function createOrder(
   formData: FormData,
 ): Promise<ActionResult<CreateOrderResult>> {
   try {
     const session = await requireAuth();
+    const ip = await getRequestIp();
+    const limited = rateLimit(`checkout:${session.user.id}:${ip}`, 20, 60_000);
+    if (!limited.ok) {
+      return { success: false, error: rateLimitMessage(limited.retryAfterSec) };
+    }
+
     const validatedData = createOrderSchema.parse({
       addressId: formData.get("addressId"),
       paymentMethod: formData.get("paymentMethod") || "RAZORPAY",
+      hidePriceOnInvoice: formData.get("hidePriceOnInvoice"),
+      giftMessage: formData.get("giftMessage") || undefined,
+      occasionNote: formData.get("occasionNote") || undefined,
     });
+
+    const commerce = await getCommerceSettings();
 
     const cart = await loadCheckoutCart(session.user.id);
     if (!cart || cart.items.length === 0) {
@@ -55,6 +83,30 @@ export async function createOrder(
     });
     if (!address || address.userId !== session.user.id) {
       return { success: false, error: "Invalid address" };
+    }
+
+    if (!isIndiaAddress(address.country)) {
+      return {
+        success: false,
+        error:
+          "Checkout currently supports India addresses only. Email support for international orders.",
+      };
+    }
+
+    if (validatedData.paymentMethod === "RAZORPAY" && !commerce.razorpayEnabled) {
+      return { success: false, error: "Online payment is temporarily unavailable" };
+    }
+
+    if (validatedData.paymentMethod === "COD") {
+      if (!commerce.codEnabled) {
+        return { success: false, error: "Cash on Delivery is currently disabled" };
+      }
+      if (!isCodAvailableForPincode(address.postalCode)) {
+        return {
+          success: false,
+          error: codUnavailableMessage(address.postalCode),
+        };
+      }
     }
 
     const availability = stockError(cart.items);
@@ -76,7 +128,29 @@ export async function createOrder(
       couponCode: applied?.code ?? null,
       couponId: applied?.coupon.id ?? null,
     };
-    const totals = cartTotals(cart.items, { discount: couponOptions.discount });
+    const commerceShipping = {
+      freeShippingThreshold: commerce.freeShippingThreshold,
+      shippingFee: commerce.shippingFee,
+    };
+    const totals = cartTotals(cart.items, {
+      discount: couponOptions.discount,
+      ...commerceShipping,
+    });
+
+    if (
+      validatedData.paymentMethod === "COD" &&
+      commerce.maxCodOrderAmount > 0 &&
+      totals.total > commerce.maxCodOrderAmount
+    ) {
+      return {
+        success: false,
+        error: `COD is limited to orders up to ₹${commerce.maxCodOrderAmount}. Please pay online.`,
+      };
+    }
+
+    const hidePriceOnInvoice = Boolean(validatedData.hidePriceOnInvoice);
+    const giftMessage = validatedData.giftMessage || null;
+    const occasionNote = validatedData.occasionNote || null;
 
     if (validatedData.paymentMethod === "RAZORPAY") {
       const razorpayOrder = await razorpayService.createOrder({
@@ -87,6 +161,9 @@ export async function createOrder(
           userId: session.user.id,
           addressId: address.id,
           couponCode: couponOptions.couponCode ?? "",
+          hidePriceOnInvoice: hidePriceOnInvoice ? "1" : "0",
+          giftMessage: giftMessage ?? "",
+          occasionNote: occasionNote ?? "",
         },
       });
 
@@ -112,6 +189,10 @@ export async function createOrder(
         paymentStatus: "PENDING",
         orderStatus: "ORDERED",
         deductStock: false,
+        hidePriceOnInvoice,
+        giftMessage,
+        occasionNote,
+        commerce: commerceShipping,
         ...couponOptions,
       });
 
@@ -174,6 +255,9 @@ export async function confirmRazorpayOrder(input: {
   razorpay_order_id: string;
   razorpay_payment_id: string;
   razorpay_signature: string;
+  hidePriceOnInvoice?: boolean;
+  giftMessage?: string;
+  occasionNote?: string;
 }): Promise<ActionResult<{ orderId: string; orderNumber: string }>> {
   try {
     const session = await requireAuth();
@@ -193,6 +277,9 @@ export async function confirmRazorpayOrder(input: {
       razorpayOrderId: input.razorpay_order_id,
       razorpayPaymentId: input.razorpay_payment_id,
       signature: input.razorpay_signature,
+      hidePriceOnInvoice: Boolean(input.hidePriceOnInvoice),
+      giftMessage: input.giftMessage,
+      occasionNote: input.occasionNote,
     });
 
     if (result.created) {

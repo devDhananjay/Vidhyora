@@ -9,6 +9,11 @@ import {
 import { createAddress } from "@/actions/address/create-address";
 import { updateAddress } from "@/actions/address/update-address";
 import {
+  AddressMapPreview,
+  type MapCoords,
+} from "@/components/address/address-map-preview";
+import type { GeocodePlace } from "@/lib/google/maps";
+import {
   addressFormSchema,
   type AddressFormInput,
 } from "@/lib/validations/address";
@@ -56,6 +61,25 @@ function toFormValues(address?: Address | null): AddressFormInput {
   };
 }
 
+function coordsFromPlace(place: {
+  lat: number | null;
+  lng: number | null;
+  formattedAddress?: string;
+}): { coords: MapCoords | null; label: string | null } {
+  if (
+    typeof place.lat === "number" &&
+    typeof place.lng === "number" &&
+    Number.isFinite(place.lat) &&
+    Number.isFinite(place.lng)
+  ) {
+    return {
+      coords: { lat: place.lat, lng: place.lng },
+      label: place.formattedAddress || null,
+    };
+  }
+  return { coords: null, label: null };
+}
+
 export function AccountAddressForm({
   address,
   onSuccess,
@@ -68,7 +92,10 @@ export function AccountAddressForm({
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [lookupHint, setLookupHint] = useState<string | null>(null);
+  const [mapCoords, setMapCoords] = useState<MapCoords | null>(null);
+  const [mapLabel, setMapLabel] = useState<string | null>(null);
   const cityLookupTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initialMapLoaded = useRef<string | null>(null);
   const isEdit = Boolean(address);
 
   useEffect(() => {
@@ -76,6 +103,9 @@ export function AccountAddressForm({
     setFieldErrors({});
     setFormError(null);
     setLookupHint(null);
+    setMapCoords(null);
+    setMapLabel(null);
+    initialMapLoaded.current = null;
   }, [address]);
 
   useEffect(() => {
@@ -83,6 +113,27 @@ export function AccountAddressForm({
       if (cityLookupTimer.current) clearTimeout(cityLookupTimer.current);
     };
   }, []);
+
+  // Edit mode: centre map on existing PIN
+  useEffect(() => {
+    if (!address?.id) return;
+    const pin = (address.postalCode || "").replace(/\D/g, "");
+    if (pin.length !== 6) return;
+    if (initialMapLoaded.current === address.id) return;
+    initialMapLoaded.current = address.id;
+
+    let cancelled = false;
+    void (async () => {
+      const result = await lookupAddressByPincode(pin);
+      if (cancelled || !result.success) return;
+      applyPlaceToForm(result.data, { skipOverwriteAddressLines: true });
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address?.id]);
 
   function setField<K extends keyof AddressFormInput>(
     key: K,
@@ -120,6 +171,38 @@ export function AccountAddressForm({
     });
   }
 
+  function applyPlaceToForm(
+    place: GeocodePlace,
+    options?: { skipOverwriteAddressLines?: boolean },
+  ) {
+    const { coords, label } = coordsFromPlace(place);
+    if (coords) {
+      setMapCoords(coords);
+      setMapLabel(label);
+    } else if (label) {
+      setMapLabel(label);
+    }
+
+    setValues((prev) => ({
+      ...prev,
+      postalCode: place.postalCode || prev.postalCode,
+      city: place.city || prev.city,
+      state: place.state || prev.state,
+      country: "IN",
+      addressLine1:
+        options?.skipOverwriteAddressLines || prev.addressLine1.trim()
+          ? prev.addressLine1
+          : place.formattedAddress?.split(",")[0]?.trim() || prev.addressLine1,
+    }));
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      delete next.postalCode;
+      delete next.city;
+      delete next.state;
+      return next;
+    });
+  }
+
   async function fillFromPincode(pin: string) {
     setLookingUp("pin");
     setLookupHint(null);
@@ -129,25 +212,12 @@ export function AccountAddressForm({
       setLookupHint(result.error);
       return;
     }
-    setValues((prev) => ({
-      ...prev,
-      postalCode: result.data.postalCode || pin,
-      city: result.data.city || prev.city,
-      state: result.data.state || prev.state,
-      country: "IN",
-    }));
+    applyPlaceToForm(result.data, { skipOverwriteAddressLines: true });
     setLookupHint(
       result.data.city
-        ? `Auto-filled: ${result.data.city}${result.data.state ? `, ${result.data.state}` : ""}`
+        ? `Auto-filled: ${result.data.city}${result.data.state ? `, ${result.data.state}` : ""}, India`
         : "PIN found",
     );
-    setFieldErrors((prev) => {
-      const next = { ...prev };
-      delete next.postalCode;
-      delete next.city;
-      delete next.state;
-      return next;
-    });
   }
 
   async function fillFromCity(city: string) {
@@ -159,13 +229,7 @@ export function AccountAddressForm({
       setLookupHint(result.error);
       return;
     }
-    setValues((prev) => ({
-      ...prev,
-      city: result.data.city || city,
-      state: result.data.state || prev.state,
-      postalCode: result.data.postalCode || prev.postalCode,
-      country: "IN",
-    }));
+    applyPlaceToForm(result.data, { skipOverwriteAddressLines: true });
     setLookupHint(
       [
         result.data.city ? `City: ${result.data.city}` : null,
@@ -175,13 +239,19 @@ export function AccountAddressForm({
         .filter(Boolean)
         .join(" · ") || "Location found",
     );
-    setFieldErrors((prev) => {
-      const next = { ...prev };
-      delete next.city;
-      delete next.state;
-      delete next.postalCode;
-      return next;
-    });
+  }
+
+  function onMapPlaceSelect(place: GeocodePlace) {
+    applyPlaceToForm(place, { skipOverwriteAddressLines: true });
+    setLookupHint(
+      [
+        place.city ? `City: ${place.city}` : null,
+        place.postalCode ? `PIN: ${place.postalCode}` : null,
+        place.state ? `State: ${place.state}` : null,
+      ]
+        .filter(Boolean)
+        .join(" · ") || "Location selected from map",
+    );
   }
 
   function onSubmit(event: React.FormEvent) {
@@ -230,6 +300,119 @@ export function AccountAddressForm({
       {lookupHint ? (
         <p className="text-sm text-[#8b2e2e]">{lookupHint}</p>
       ) : null}
+
+      <div className="space-y-2">
+        <Label>Location on map</Label>
+        <AddressMapPreview
+          coords={mapCoords}
+          autoLocate={!address}
+          label={
+            mapLabel ||
+            (mapCoords
+              ? [values.city, values.state, values.postalCode]
+                  .filter(Boolean)
+                  .join(", ")
+              : undefined)
+          }
+          onPlaceSelect={onMapPlaceSelect}
+        />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field
+          id="addr-pin"
+          label="PIN code"
+          required
+          error={fieldErrors.postalCode}
+          hint={
+            lookingUp === "pin"
+              ? "Looking up city…"
+              : "6 digits — city, state & country auto-fill"
+          }
+        >
+          <Input
+            id="addr-pin"
+            inputMode="numeric"
+            autoComplete="postal-code"
+            placeholder="110001"
+            maxLength={6}
+            value={values.postalCode}
+            onChange={(e) => {
+              const next = e.target.value.replace(/\D/g, "").slice(0, 6);
+              setField("postalCode", next);
+              if (next.length === 6) {
+                void fillFromPincode(next);
+              }
+            }}
+            onBlur={() => {
+              validateField("postalCode");
+              if (values.postalCode.length === 6) {
+                void fillFromPincode(values.postalCode);
+              }
+            }}
+            aria-invalid={Boolean(fieldErrors.postalCode)}
+          />
+        </Field>
+
+        <Field
+          id="addr-city"
+          label="City"
+          required
+          error={fieldErrors.city}
+          hint={
+            lookingUp === "city"
+              ? "Looking up PIN…"
+              : "Auto-fills from PIN / map"
+          }
+        >
+          <Input
+            id="addr-city"
+            autoComplete="address-level2"
+            placeholder="City"
+            value={values.city}
+            onChange={(e) => {
+              const next = e.target.value;
+              setField("city", next);
+              if (cityLookupTimer.current) clearTimeout(cityLookupTimer.current);
+              if (next.trim().length >= 3) {
+                cityLookupTimer.current = setTimeout(() => {
+                  void fillFromCity(next.trim());
+                }, 700);
+              }
+            }}
+            onBlur={() => {
+              validateField("city");
+              if (values.city.trim().length >= 2) {
+                void fillFromCity(values.city.trim());
+              }
+            }}
+            aria-invalid={Boolean(fieldErrors.city)}
+          />
+        </Field>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field
+          id="addr-state"
+          label="State"
+          required
+          error={fieldErrors.state}
+        >
+          <Input
+            id="addr-state"
+            autoComplete="address-level1"
+            placeholder="State"
+            value={values.state}
+            onChange={(e) => setField("state", e.target.value)}
+            onBlur={() => validateField("state")}
+            aria-invalid={Boolean(fieldErrors.state)}
+          />
+        </Field>
+
+        <Field id="addr-country" label="Country" required>
+          <Input id="addr-country" value="India" readOnly disabled />
+        </Field>
+      </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field
@@ -316,102 +499,6 @@ export function AccountAddressForm({
           placeholder="Near metro / market"
         />
       </Field>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field
-          id="addr-pin"
-          label="PIN code"
-          required
-          error={fieldErrors.postalCode}
-          hint={
-            lookingUp === "pin"
-              ? "Looking up city…"
-              : "6 digits — city & state auto-fill"
-          }
-        >
-          <Input
-            id="addr-pin"
-            inputMode="numeric"
-            autoComplete="postal-code"
-            placeholder="110001"
-            maxLength={6}
-            value={values.postalCode}
-            onChange={(e) => {
-              const next = e.target.value.replace(/\D/g, "").slice(0, 6);
-              setField("postalCode", next);
-              if (next.length === 6) {
-                void fillFromPincode(next);
-              }
-            }}
-            onBlur={() => {
-              validateField("postalCode");
-              if (values.postalCode.length === 6) {
-                void fillFromPincode(values.postalCode);
-              }
-            }}
-            aria-invalid={Boolean(fieldErrors.postalCode)}
-          />
-        </Field>
-
-        <Field
-          id="addr-city"
-          label="City"
-          required
-          error={fieldErrors.city}
-          hint={
-            lookingUp === "city"
-              ? "Looking up PIN…"
-              : "Type city — PIN & state auto-fill"
-          }
-        >
-          <Input
-            id="addr-city"
-            autoComplete="address-level2"
-            placeholder="City"
-            value={values.city}
-            onChange={(e) => {
-              const next = e.target.value;
-              setField("city", next);
-              if (cityLookupTimer.current) clearTimeout(cityLookupTimer.current);
-              if (next.trim().length >= 3) {
-                cityLookupTimer.current = setTimeout(() => {
-                  void fillFromCity(next.trim());
-                }, 700);
-              }
-            }}
-            onBlur={() => {
-              validateField("city");
-              if (values.city.trim().length >= 2) {
-                void fillFromCity(values.city.trim());
-              }
-            }}
-            aria-invalid={Boolean(fieldErrors.city)}
-          />
-        </Field>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field
-          id="addr-state"
-          label="State"
-          required
-          error={fieldErrors.state}
-        >
-          <Input
-            id="addr-state"
-            autoComplete="address-level1"
-            placeholder="State"
-            value={values.state}
-            onChange={(e) => setField("state", e.target.value)}
-            onBlur={() => validateField("state")}
-            aria-invalid={Boolean(fieldErrors.state)}
-          />
-        </Field>
-
-        <Field id="addr-country" label="Country" required>
-          <Input id="addr-country" value="India" readOnly disabled />
-        </Field>
-      </div>
 
       <Field id="addr-type" label="Address type" required>
         <select

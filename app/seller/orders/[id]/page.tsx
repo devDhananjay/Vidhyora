@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { getSellerOrderById } from "@/actions/seller/get-orders";
+import { getActingSeller } from "@/lib/seller-context";
+import prisma from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
@@ -25,11 +27,22 @@ export default async function SellerOrderDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const orderItem = await getSellerOrderById(id);
+  const [orderItem, acting] = await Promise.all([
+    getSellerOrderById(id),
+    getActingSeller(),
+  ]);
 
   if (!orderItem) {
     notFound();
   }
+
+  const profile = acting
+    ? await prisma.sellerProfile.findUnique({
+        where: { sellerId: acting.sellerUserId },
+        select: { preferredCourier: true },
+      })
+    : null;
+  const preferredCourier = profile?.preferredCourier || "";
 
   const attributes = orderItem.variant.attributes as Record<
     string,
@@ -243,6 +256,7 @@ export default async function SellerOrderDetailPage({
               <SellerFulfillmentActions
                 orderItemId={orderItem.id}
                 currentStatus={orderItem.order.orderStatus}
+                preferredCourier={preferredCourier}
               />
               {orderItem.order.shipments[0] ? (
                 <div className="border-t pt-4 text-sm">

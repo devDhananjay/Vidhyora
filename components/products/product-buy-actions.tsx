@@ -16,6 +16,7 @@ type ProductBuyActionsProps = {
   productText?: string;
   price: number;
   weightLabel?: string | null;
+  whatsappNumber?: string;
 };
 
 export function ProductBuyActions({
@@ -27,6 +28,7 @@ export function ProductBuyActions({
   productText,
   price,
   weightLabel,
+  whatsappNumber,
 }: ProductBuyActionsProps) {
   const [giftPackaging, setGiftPackaging] = useState(false);
 
@@ -46,7 +48,11 @@ export function ProductBuyActions({
           className="flex-1 shadow-[0_10px_28px_rgba(139,46,46,0.28)]"
         />
         <WishlistButton productId={productId} isInWishlist={isInWishlist} />
-        <ProductShareButton title={productName} text={productText} />
+        <ProductShareButton
+          title={productName}
+          text={productText}
+          whatsappNumber={whatsappNumber}
+        />
       </div>
 
       <FloatingAddToCartBar

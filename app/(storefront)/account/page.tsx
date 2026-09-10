@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { getUserAddresses } from "@/actions/address/get-addresses";
+import { getNotificationPreferences } from "@/actions/account/notification-preferences";
 import { AccountSettingsShell } from "@/components/account/account-settings-shell";
 import { requireAuthOrRedirect } from "@/lib/auth-helpers";
 import { ROUTES } from "@/lib/constants";
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 export default async function AccountPage() {
   const session = await requireAuthOrRedirect(ROUTES.account);
 
-  const [user, addresses] = await Promise.all([
+  const [user, addresses, notificationPreferences] = await Promise.all([
     prisma.user.findUnique({
       where: { id: session.user.id },
       select: {
@@ -28,6 +29,7 @@ export default async function AccountPage() {
       },
     }),
     getUserAddresses(),
+    getNotificationPreferences(),
   ]);
 
   if (!user) {
@@ -47,6 +49,7 @@ export default async function AccountPage() {
       initialPhone={user.phone ?? ""}
       hasExistingPassword={Boolean(user.passwordHash)}
       addresses={addresses}
+      notificationPreferences={notificationPreferences}
     />
   );
 }

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireSuperAdmin } from "@/lib/auth-helpers";
+import { requireAdmin } from "@/lib/auth-helpers";
 import {
   ensureHomepageConfigSeeded,
   getHomepageConfigForAdmin,
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminHomepagePage() {
-  await requireSuperAdmin();
+  await requireAdmin();
   await ensureHomepageConfigSeeded();
   const { data, updatedAt, source } = await getHomepageConfigForAdmin();
 

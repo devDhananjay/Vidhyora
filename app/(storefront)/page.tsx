@@ -16,12 +16,25 @@ import {
   isBestSellerFlag,
 } from "@/lib/products/product-card-data";
 import { getHomepageConfig } from "@/lib/content/get-homepage";
+import {
+  resolveHomepageSectionOrder,
+  resolveHomepageVisibility,
+  filterVisibleHeroSlides,
+  type HomepageSectionId,
+} from "@/lib/validations/homepage";
 import { StyleStories } from "@/components/storefront/style-stories";
 import { ChooseYourLook } from "@/components/storefront/choose-your-look";
 import { WeddingMoodboard } from "@/components/storefront/wedding-moodboard";
 import { ExploreTraditions } from "@/components/storefront/explore-traditions";
 import { HeroBannerSlider } from "@/components/storefront/hero-banner-slider";
 import { MediaFill } from "@/components/storefront/media-fill";
+import { RecentlyViewedRail } from "@/components/products/recently-viewed";
+import {
+  generateOrganizationStructuredData,
+  generateWebSiteStructuredData,
+} from "@/lib/structured-data";
+import { getSiteSettings } from "@/lib/content/get-site-settings";
+import type { ReactNode } from "react";
 
 const ASSURANCE_ICONS = [Hammer, HeartHandshake, Gem] as const;
 const EXCHANGE_ICONS = [RefreshCcw, Shield, Sparkles, Award] as const;
@@ -76,9 +89,10 @@ function SectionHeading({
 }
 
 export default async function HomePage() {
-  const [featuredProducts, homepage] = await Promise.all([
+  const [featuredProducts, homepage, siteSettings] = await Promise.all([
     getFeaturedProducts(),
     getHomepageConfig(),
+    getSiteSettings(),
   ]);
 
   const {
@@ -95,12 +109,22 @@ export default async function HomePage() {
     exploreTraditions,
     weddingMoodboard,
   } = homepage;
+  const visibility = resolveHomepageVisibility(homepage);
+  const sectionOrder = resolveHomepageSectionOrder(homepage);
+  const organizationLd = generateOrganizationStructuredData({
+    name: "VIDYORA",
+    url: process.env.NEXT_PUBLIC_APP_URL || "https://vidyora.co.in",
+    email: siteSettings.contact.supportEmail,
+    phone: siteSettings.contact.supportPhone,
+  });
+  const websiteLd = generateWebSiteStructuredData({
+    name: "VIDYORA",
+    url: process.env.NEXT_PUBLIC_APP_URL || "https://vidyora.co.in",
+  });
 
-  return (
-    <div className="bg-white text-[#2b1a16]">
-      <HeroBannerSlider slides={hero.slides} />
-
-      {/* Collections mosaic */}
+  const sections: Record<HomepageSectionId, ReactNode> = {
+    hero: <HeroBannerSlider slides={filterVisibleHeroSlides(hero.slides)} />,
+    collections: (
       <section className="mx-auto max-w-6xl px-4 py-16 md:py-20">
         <SectionHeading
           title={collections.title}
@@ -153,8 +177,8 @@ export default async function HomePage() {
           })}
         </div>
       </section>
-
-      {/* Shop by categories */}
+    ),
+    categories: (
       <section className="mx-auto max-w-6xl px-4 py-8 md:py-12">
         <SectionHeading
           title={categories.title}
@@ -196,8 +220,8 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
-
-      {/* Trending */}
+    ),
+    trending: (
       <section className="mx-auto max-w-6xl px-4 py-16">
         <SectionHeading title={trending.title} subtitle={trending.subtitle} />
         <div className="grid gap-6 md:grid-cols-3">
@@ -218,8 +242,8 @@ export default async function HomePage() {
           ))}
         </div>
       </section>
-
-      {/* Bridal world */}
+    ),
+    world: (
       <section className="mx-auto max-w-6xl px-4 py-8 md:py-12">
         <SectionHeading title={world.title} subtitle={world.subtitle} />
         <div className="grid gap-4 md:grid-cols-2">
@@ -281,7 +305,8 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
+    ),
+    weddingMoodboard: (
       <WeddingMoodboard
         eyebrow={weddingMoodboard.eyebrow}
         title={weddingMoodboard.title}
@@ -291,12 +316,14 @@ export default async function HomePage() {
         polaroids={weddingMoodboard.polaroids}
         notes={weddingMoodboard.notes}
       />
+    ),
+    exploreTraditions: (
       <ExploreTraditions
         title={exploreTraditions.title}
         items={exploreTraditions.items}
       />
-
-      {/* Featured products */}
+    ),
+    featured: (
       <section className="mx-auto max-w-6xl px-4 py-16">
         <SectionHeading title={featured.title} subtitle={featured.subtitle} />
         {featuredProducts.length > 0 ? (
@@ -316,20 +343,22 @@ export default async function HomePage() {
           </Link>
         </div>
       </section>
-
-      {/* Choose Your Look + Styling 101 (kept together, above Assurance) */}
+    ),
+    chooseYourLook: (
       <ChooseYourLook
         title={chooseYourLook.title}
         looks={chooseYourLook.looks}
       />
+    ),
+    styleStories: (
       <StyleStories
         eyebrow={styleStories.eyebrow}
         title={styleStories.title}
         subtitle={styleStories.subtitle}
         stories={styleStories.stories}
       />
-
-      {/* Assurance */}
+    ),
+    assurance: (
       <section className="border-y border-neutral-100 bg-[#faf8f6] py-16">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 md:grid-cols-2">
           <div>
@@ -357,8 +386,8 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* Trust bar */}
+    ),
+    exchange: (
       <section className="py-14">
         <div className="mx-auto mb-10 max-w-3xl px-4 text-center">
           <h2 className="font-serif text-3xl md:text-4xl">{exchange.title}</h2>
@@ -383,6 +412,25 @@ export default async function HomePage() {
           })}
         </div>
       </section>
+    ),
+  };
+
+  return (
+    <div className="bg-white text-[#2b1a16]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }}
+      />
+
+      {sectionOrder.map((id) =>
+        visibility[id] ? <div key={id}>{sections[id]}</div> : null,
+      )}
+
+      <RecentlyViewedRail />
     </div>
   );
 }

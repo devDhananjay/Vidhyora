@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { requireSuperAdmin } from "@/lib/auth-helpers";
+import { requireAdmin } from "@/lib/auth-helpers";
 import { ensureMegaMenuConfigSeeded, getMegaMenuConfigForAdmin } from "@/lib/nav/get-mega-menu";
 import { MegaMenuEditor } from "@/components/admin/mega-menu-editor";
 
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminMegaMenuPage() {
-  await requireSuperAdmin();
+  await requireAdmin();
   await ensureMegaMenuConfigSeeded();
   const { data, updatedAt, source } = await getMegaMenuConfigForAdmin();
 

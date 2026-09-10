@@ -21,4 +21,7 @@ export type CartSummary = {
   couponCode: string | null;
   total: number;
   itemCount: number;
+  freeShippingThreshold: number;
+  shippingFee: number;
+  gstPercent: number;
 };

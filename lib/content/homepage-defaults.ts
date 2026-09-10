@@ -4,6 +4,35 @@ import type { HomepageConfigData } from "@/lib/validations/homepage";
 
 export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfigData = {
   version: 1,
+  visibility: {
+    hero: true,
+    collections: true,
+    categories: true,
+    trending: true,
+    world: true,
+    weddingMoodboard: true,
+    exploreTraditions: true,
+    featured: true,
+    chooseYourLook: true,
+    styleStories: true,
+    assurance: true,
+    exchange: true,
+  },
+  sectionOrder: [
+    "hero",
+    "collections",
+    "categories",
+    "trending",
+    "world",
+    "weddingMoodboard",
+    "exploreTraditions",
+    "featured",
+    "chooseYourLook",
+    "styleStories",
+    "assurance",
+    "exchange",
+  ],
+  sectionSchedule: {},
   collections: {
     title: "VIDYORA Collections",
     subtitle: "Explore our newly launched collection",
@@ -14,7 +43,7 @@ export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfigData = {
         subtitle: "Everyday diamond edit",
         image:
           "https://images.unsplash.com/photo-1599643477877-530eb83abc8e?w=1200&q=80",
-        href: shopHref({ maxPrice: "50000", collection: "Under 50K" }),
+        href: "/collections/under-50k",
         span: "tall",
       },
       {
@@ -30,11 +59,7 @@ export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfigData = {
         title: "Gold Coins & Daily Wear",
         image:
           "https://images.unsplash.com/photo-1617038220319-276d3cfab638?w=1000&q=80",
-        href: shopHref({
-          type: "gold",
-          occasion: "daily",
-          collection: "Gold Daily Wear",
-        }),
+        href: "/collections/daily",
         span: "normal",
       },
     ],
@@ -107,7 +132,7 @@ export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfigData = {
       },
       {
         title: "Gifting Jewellery",
-        href: shopHref({ occasion: "festive", collection: "Gifting" }),
+        href: "/collections/gifting",
         image:
           "https://images.unsplash.com/photo-1589674781759-c21c37956a44?w=900&q=80",
       },
@@ -130,21 +155,18 @@ export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfigData = {
       title: "Wedding",
       subtitle: "Unforgettable jewels for the most memorable moment",
       image: "/images/bridal-rivaah.jpg",
-      href: shopHref({
-        occasion: "wedding",
-        collection: "Wedding Jewellery",
-      }),
+      href: "/collections/wedding",
     },
     diamond: {
       title: "Diamond",
       videoSrc: "/videos/vidyora-world-diamond.mp4?v=4",
-      href: shopHref({ type: "diamond", collection: "Diamond" }),
+      href: "/collections/diamond",
     },
     gold: {
       title: "Gold",
       image:
         "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=1000&q=80",
-      href: shopHref({ type: "gold", collection: "Gold" }),
+      href: "/collections/gold",
     },
   },
   featured: {

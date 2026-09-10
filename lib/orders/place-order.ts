@@ -2,6 +2,10 @@ import type { Address, CartItem, Product, ProductVariant } from "@prisma/client"
 import type { Prisma } from "@prisma/client";
 import { calculateOrderTotals, generateOrderNumber } from "@/lib/orders/order-utils";
 import { giftPackagingFeeForItems } from "@/lib/cart/gift-packaging";
+import { DEFAULT_HSN, resolveGstPercent } from "@/lib/tax/jewellery-gst";
+import { buildJewelleryBreakup } from "@/lib/orders/jewellery-breakup";
+import { DEFAULT_COMMERCE_SETTINGS } from "@/lib/validations/site-settings";
+import type { CommerceSettings } from "@/lib/validations/site-settings";
 
 type CartLine = CartItem & {
   product: Product;
@@ -32,13 +36,18 @@ export function addressSnapshot(address: Address) {
 
 export function cartTotals(
   items: CartLine[],
-  options?: { discount?: number; distanceKm?: number },
+  options?: {
+    discount?: number;
+    distanceKm?: number;
+    freeShippingThreshold?: number;
+    shippingFee?: number;
+  },
 ) {
   return calculateOrderTotals(
     items.map((item) => ({
       price: Number(item.variant.price),
       quantity: item.quantity,
-      tax: Number(item.product.tax),
+      tax: resolveGstPercent(Number(item.product.tax)),
     })),
     {
       ...options,
@@ -70,9 +79,27 @@ export async function createShopOrder(
     discount?: number;
     couponCode?: string | null;
     couponId?: string | null;
+    hidePriceOnInvoice?: boolean;
+    notes?: string | null;
+    giftMessage?: string | null;
+    occasionNote?: string | null;
+    commerce?: Pick<
+      CommerceSettings,
+      "freeShippingThreshold" | "shippingFee"
+    >;
   },
 ) {
-  const totals = cartTotals(options.items, { discount: options.discount });
+  const commerce = {
+    freeShippingThreshold:
+      options.commerce?.freeShippingThreshold ??
+      DEFAULT_COMMERCE_SETTINGS.freeShippingThreshold,
+    shippingFee:
+      options.commerce?.shippingFee ?? DEFAULT_COMMERCE_SETTINGS.shippingFee,
+  };
+  const totals = cartTotals(options.items, {
+    discount: options.discount,
+    ...commerce,
+  });
   const orderNumber = generateOrderNumber();
 
   for (const item of options.items) {
@@ -100,25 +127,41 @@ export async function createShopOrder(
       tax: totals.tax,
       total: totals.total,
       couponCode: options.couponCode ?? null,
+      notes: options.notes ?? null,
+      giftMessage: options.giftMessage?.trim() || null,
+      occasionNote: options.occasionNote?.trim() || null,
+      hidePriceOnInvoice: Boolean(options.hidePriceOnInvoice),
       paymentStatus: options.paymentStatus,
       orderStatus: options.orderStatus,
       shippingAddress: addressSnapshot(options.address),
       billingAddress: addressSnapshot(options.address),
       items: {
-        create: options.items.map((item) => ({
-          productId: item.productId,
-          variantId: item.variantId,
-          sellerId: item.product.sellerId,
-          quantity: item.quantity,
-          price: Number(item.variant.price),
-          tax: Number(item.product.tax),
-          discount: 0,
-          total: Number(item.variant.price) * item.quantity,
-          productName: item.product.name,
-          sku: item.variant.sku,
-          variantLabel: variantLabelFrom(item.variant.attributes),
-          giftPackaging: item.giftPackaging,
-        })),
+        create: options.items.map((item) => {
+          const unitPrice = Number(item.variant.price);
+          const jewelleryBreakup = buildJewelleryBreakup({
+            unitPrice,
+            quantity: item.quantity,
+            taxField: Number(item.product.tax),
+            attributes: item.product.attributes,
+          });
+          return {
+            productId: item.productId,
+            variantId: item.variantId,
+            sellerId: item.product.sellerId,
+            quantity: item.quantity,
+            price: unitPrice,
+            tax: resolveGstPercent(Number(item.product.tax)),
+            discount: 0,
+            total: unitPrice * item.quantity,
+            productName: item.product.name,
+            sku: item.variant.sku,
+            variantLabel: variantLabelFrom(item.variant.attributes),
+            hsn: item.product.hsn || DEFAULT_HSN,
+            certificateNumber: item.product.certificateNumber || null,
+            giftPackaging: item.giftPackaging,
+            jewelleryBreakup,
+          };
+        }),
       },
     },
   });

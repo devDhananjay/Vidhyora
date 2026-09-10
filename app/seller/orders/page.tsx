@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getSellerOrders } from "@/actions/seller/get-orders";
+import { getActingSeller } from "@/lib/seller-context";
+import prisma from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
 import { getOrderStatusLabel } from "@/lib/orders/order-utils";
 import { format } from "date-fns";
@@ -16,7 +18,17 @@ export const metadata: Metadata = {
 };
 
 export default async function SellerOrdersPage() {
-  const orderItems = await getSellerOrders();
+  const [orderItems, acting] = await Promise.all([
+    getSellerOrders(),
+    getActingSeller(),
+  ]);
+  const profile = acting
+    ? await prisma.sellerProfile.findUnique({
+        where: { sellerId: acting.sellerUserId },
+        select: { preferredCourier: true },
+      })
+    : null;
+  const preferredCourier = profile?.preferredCourier || "";
 
   return (
     <div className="space-y-6">
@@ -142,6 +154,7 @@ export default async function SellerOrdersPage() {
                           orderItemId={item.id}
                           currentStatus={item.order.orderStatus}
                           compact
+                          preferredCourier={preferredCourier}
                         />
                       </div>
                     </div>

@@ -202,3 +202,47 @@ export async function getCouponById(id: string) {
     return null;
   }
 }
+
+export async function getCouponPerformance() {
+  try {
+    await requireAdmin();
+
+    const coupons = await prisma.coupon.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+
+    const revenueByCode = await prisma.order.groupBy({
+      by: ["couponCode"],
+      where: {
+        couponCode: { not: null },
+        paymentStatus: { in: ["PAID", "PARTIALLY_REFUNDED"] },
+      },
+      _sum: { total: true },
+      _count: { _all: true },
+    });
+
+    const revenueMap = new Map(
+      revenueByCode
+        .filter((row) => row.couponCode)
+        .map((row) => [
+          row.couponCode!.toUpperCase(),
+          {
+            revenue: Number(row._sum.total ?? 0),
+            orderCount: row._count._all,
+          },
+        ]),
+    );
+
+    return coupons.map((coupon) => {
+      const stats = revenueMap.get(coupon.code.toUpperCase());
+      return {
+        ...coupon,
+        revenue: stats?.revenue ?? 0,
+        orderCount: stats?.orderCount ?? 0,
+      };
+    });
+  } catch (error) {
+    console.error("Get coupon performance error:", error);
+    return [];
+  }
+}

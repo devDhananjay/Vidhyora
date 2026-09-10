@@ -63,7 +63,7 @@ export function StorefrontHeader({
         </Link>
 
         <div className="hidden flex-1 justify-center md:flex">
-          <form action={ROUTES.products} className="relative w-full max-w-xl">
+          <form action={ROUTES.search} className="relative w-full max-w-xl">
             <input
               type="search"
               name="q"
@@ -85,7 +85,7 @@ export function StorefrontHeader({
         </div>
 
         {/* Mobile search */}
-        <form action={ROUTES.products} className="relative min-w-0 flex-1 md:hidden">
+        <form action={ROUTES.search} className="relative min-w-0 flex-1 md:hidden">
           <input
             type="search"
             name="q"

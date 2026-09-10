@@ -45,6 +45,28 @@ export function migrateHomepageRaw(raw: unknown): unknown {
   if (!data.weddingMoodboard) {
     data.weddingMoodboard = defaults.weddingMoodboard;
   }
+  if (!data.visibility || typeof data.visibility !== "object") {
+    data.visibility = defaults.visibility ?? {
+      hero: true,
+      collections: true,
+      categories: true,
+      trending: true,
+      world: true,
+      weddingMoodboard: true,
+      exploreTraditions: true,
+      featured: true,
+      chooseYourLook: true,
+      styleStories: true,
+      assurance: true,
+      exchange: true,
+    };
+  }
+  if (!Array.isArray(data.sectionOrder) || data.sectionOrder.length === 0) {
+    data.sectionOrder = defaults.sectionOrder;
+  }
+  if (!data.sectionSchedule || typeof data.sectionSchedule !== "object") {
+    data.sectionSchedule = defaults.sectionSchedule ?? {};
+  }
 
   return data;
 }

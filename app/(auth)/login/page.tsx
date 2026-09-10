@@ -3,6 +3,7 @@ import Link from "next/link";
 import { LoginForm } from "@/components/auth/login-form";
 import { AuthFrame } from "@/components/auth/auth-frame";
 import { APP_NAME, ROUTES } from "@/lib/constants";
+// import { getIntegrationsSettings } from "@/lib/content/integrations-settings";
 
 export const metadata: Metadata = {
   title: "Login",
@@ -15,6 +16,7 @@ export default async function LoginPage({
   searchParams: Promise<{ callbackUrl?: string; error?: string }>;
 }) {
   const { callbackUrl, error } = await searchParams;
+  // const integrations = await getIntegrationsSettings();
 
   return (
     <AuthFrame
@@ -42,7 +44,13 @@ export default async function LoginPage({
         </>
       }
     >
-      <LoginForm callbackUrl={callbackUrl} oauthError={error} />
+      <LoginForm
+        callbackUrl={callbackUrl}
+        oauthError={error}
+        // TODO(sms): re-enable when SMS provider (MSG91/Twilio) is live —
+        // phoneOtpEnabled={integrations.phoneOtpEnabled}
+        phoneOtpEnabled={false}
+      />
     </AuthFrame>
   );
 }

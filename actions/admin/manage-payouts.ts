@@ -142,11 +142,16 @@ export async function getPayoutOverview() {
 
 export async function settleSellerPayout(
   sellerId: string,
-  note?: string,
+  options?: { note?: string; utr?: string } | string,
 ): Promise<ActionResult<{ payoutId: string }>> {
   try {
     await requireAdmin();
     await syncUnrecordedEarnings();
+
+    const note =
+      typeof options === "string" ? options : options?.note;
+    const utr =
+      typeof options === "string" ? undefined : options?.utr?.trim() || undefined;
 
     const available = await prisma.sellerEarning.findMany({
       where: { sellerId, status: "AVAILABLE" },
@@ -172,6 +177,7 @@ export async function settleSellerPayout(
           amount,
           status: "PAID",
           note: note?.trim() || null,
+          utr: utr || null,
           paidAt: new Date(),
         },
       });
@@ -190,6 +196,7 @@ export async function settleSellerPayout(
     revalidatePath("/admin/payouts");
     revalidatePath("/admin");
     revalidatePath("/seller/payments");
+    revalidatePath(`/seller/payments/${payout.id}/advice`);
     revalidatePath(`/admin/sellers/${sellerId}`);
 
     return { success: true, data: { payoutId: payout.id } };

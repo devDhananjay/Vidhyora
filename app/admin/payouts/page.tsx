@@ -151,6 +151,7 @@ export default async function AdminPayoutsPage() {
                     <div className="text-sm text-muted-foreground">
                       {payout._count.earnings} items •{" "}
                       {format(new Date(payout.createdAt), "dd MMM yyyy")}
+                      {payout.utr ? ` • UTR ${payout.utr}` : ""}
                       {payout.note ? ` • ${payout.note}` : ""}
                     </div>
                   </div>

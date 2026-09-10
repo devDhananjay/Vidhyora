@@ -1,18 +1,86 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import prisma from "@/lib/prisma";
-import { ProductGrid } from "@/components/products/product-grid";
+import { ProductCard } from "@/components/products/product-card";
+import { Pagination } from "@/components/products/pagination";
 import { TanishqFilterBar } from "@/components/products/tanishq-filter-bar";
 import { ProductListingSkeleton } from "@/components/products/product-listing-skeleton";
+import { getWishlistProductIds } from "@/actions/wishlist/manage-wishlist";
 import {
   buildProductWhere,
   type ProductListParams,
 } from "@/lib/products/product-query";
+import {
+  imageUrlsForProduct,
+  isBestSellerFlag,
+} from "@/lib/products/product-card-data";
+import { productSearch } from "@/lib/search/product-search";
+import { PAGINATION } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "Search Jewellery | VIDYORA",
   description: "Search gold, diamond and fine jewellery on VIDYORA",
 };
+
+async function SearchResults({
+  searchParams,
+}: {
+  searchParams: Promise<ProductListParams>;
+}) {
+  const params = await searchParams;
+  const query = params.q || "";
+  const page = parseInt(params.page || "1", 10) || 1;
+  const pageSize = PAGINATION.DEFAULT_PAGE_SIZE;
+
+  const filters = productSearch.filtersFromParams({
+    ...params,
+    sort:
+      query && (!params.sort || params.sort === "default")
+        ? "relevance"
+        : params.sort,
+  });
+
+  const [result, wishlistIds] = await Promise.all([
+    productSearch.search(query, filters, page, pageSize),
+    getWishlistProductIds(),
+  ]);
+  const savedIds = new Set(wishlistIds);
+
+  if (result.items.length === 0) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center rounded-2xl border border-dashed border-neutral-200 p-12">
+        <div className="text-center">
+          <h3 className="mb-2 font-serif text-2xl">No jewellery found</h3>
+          <p className="text-sm text-neutral-500">
+            Try adjusting your filters or search query
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-10">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3">
+        {result.items.map((product) => (
+          <ProductCard
+            key={product.id}
+            isInWishlist={savedIds.has(product.id)}
+            product={{
+              ...product,
+              images: imageUrlsForProduct(product),
+              isBestSeller: isBestSellerFlag(product.attributes),
+            }}
+          />
+        ))}
+      </div>
+
+      {result.totalPages > 1 ? (
+        <Pagination currentPage={result.page} totalPages={result.totalPages} />
+      ) : null}
+    </div>
+  );
+}
 
 export default async function SearchPage({
   searchParams,
@@ -50,7 +118,7 @@ export default async function SearchPage({
       </Suspense>
 
       <Suspense fallback={<ProductListingSkeleton />}>
-        <ProductGrid searchParams={searchParams} />
+        <SearchResults searchParams={searchParams} />
       </Suspense>
     </div>
   );

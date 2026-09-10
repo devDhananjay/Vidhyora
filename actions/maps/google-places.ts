@@ -4,6 +4,8 @@ import {
   estimateDeliveryByPincode,
   geocodeIndianCity,
   geocodeIndianPincode,
+  geocodeSearchQuery,
+  reverseGeocodeLatLng,
   type DeliveryMatrixResult,
   type GeocodePlace,
 } from "@/lib/google/maps";
@@ -52,11 +54,55 @@ export async function lookupAddressByCity(
   }
 }
 
+export async function lookupAddressByCoords(
+  lat: number,
+  lng: number,
+): Promise<ActionResult<GeocodePlace>> {
+  try {
+    const place = await reverseGeocodeLatLng(lat, lng);
+    if (!place) {
+      return { success: false, error: "Could not find this location" };
+    }
+    return { success: true, data: place };
+  } catch (error) {
+    console.error("lookupAddressByCoords error:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to look up location",
+    };
+  }
+}
+
+export async function searchLocation(
+  query: string,
+): Promise<ActionResult<GeocodePlace>> {
+  try {
+    const place = await geocodeSearchQuery(query);
+    if (!place) {
+      return { success: false, error: "No results for this search" };
+    }
+    return { success: true, data: place };
+  } catch (error) {
+    console.error("searchLocation error:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to search location",
+    };
+  }
+}
+
 export async function checkDeliveryEstimate(
   pincode: string,
+  options?: { sellerProcessingDays?: number },
 ): Promise<ActionResult<DeliveryMatrixResult>> {
   try {
-    const estimate = await estimateDeliveryByPincode(pincode);
+    const estimate = await estimateDeliveryByPincode(pincode, {
+      processingDays: options?.sellerProcessingDays,
+    });
     return { success: true, data: estimate };
   } catch (error) {
     console.error("checkDeliveryEstimate error:", error);

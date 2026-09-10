@@ -53,7 +53,9 @@ export function CartSummary({
         )}
 
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Tax (GST 18%)</span>
+          <span className="text-muted-foreground">
+            Tax (GST {summary.gstPercent}%)
+          </span>
           <span>{formatCurrency(summary.tax)}</span>
         </div>
 
@@ -75,10 +77,12 @@ export function CartSummary({
           </div>
         ) : null}
 
-        {summary.subtotal < 500 && (
+        {summary.subtotal < summary.freeShippingThreshold && (
           <div className="flex items-center gap-2 rounded bg-blue-50 p-2 text-xs text-blue-700">
             <Truck className="size-4" />
-            Add {formatCurrency(500 - summary.subtotal)} more for FREE shipping
+            Add{" "}
+            {formatCurrency(summary.freeShippingThreshold - summary.subtotal)}{" "}
+            more for FREE shipping
           </div>
         )}
 

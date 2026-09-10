@@ -6,6 +6,7 @@ import type {
   Product,
   ProductVariant,
   Review,
+  Shipment,
 } from "@prisma/client";
 
 export type OrderWithDetails = Order & {
@@ -17,6 +18,7 @@ export type OrderWithDetails = Order & {
   shippingAddress: Address;
   billingAddress: Address | null;
   payments?: Payment[];
+  shipments?: Shipment[];
 };
 
 export type OrderItemWithDetails = OrderItem & {

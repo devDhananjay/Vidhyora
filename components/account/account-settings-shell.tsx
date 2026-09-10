@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Address } from "@prisma/client";
 import {
   ArrowLeft,
+  Bell,
   ChevronRight,
   Heart,
   Lock,
@@ -16,9 +17,11 @@ import {
 import { AccountAddressBook } from "@/components/account/account-address-book";
 import { ChangePasswordForm } from "@/components/account/change-password-form";
 import { ProfileForm } from "@/components/account/profile-form";
+import { NotificationPreferencesForm } from "@/components/account/notification-preferences-form";
+import type { NotificationPreferenceValues } from "@/actions/account/notification-preferences";
 import { ROUTES } from "@/lib/constants";
 
-type PanelId = "profile" | "password" | "addresses";
+type PanelId = "profile" | "password" | "addresses" | "notifications";
 
 type AccountSettingsShellProps = {
   userName: string;
@@ -29,6 +32,7 @@ type AccountSettingsShellProps = {
   initialPhone: string;
   hasExistingPassword: boolean;
   addresses: Address[];
+  notificationPreferences: NotificationPreferenceValues;
 };
 
 const PANELS: {
@@ -54,6 +58,12 @@ const PANELS: {
     label: "Saved addresses",
     description: "Add, edit or remove delivery addresses",
     icon: MapPin,
+  },
+  {
+    id: "notifications",
+    label: "Notifications",
+    description: "Email alerts for orders and offers",
+    icon: Bell,
   },
 ];
 
@@ -87,6 +97,7 @@ export function AccountSettingsShell({
   initialPhone,
   hasExistingPassword,
   addresses,
+  notificationPreferences,
 }: AccountSettingsShellProps) {
   const [activePanel, setActivePanel] = useState<PanelId | null>(null);
   const [addressNested, setAddressNested] = useState(false);
@@ -144,6 +155,11 @@ export function AccountSettingsShell({
                 <AccountAddressBook
                   addresses={addresses}
                   onNestedChange={setAddressNested}
+                />
+              ) : null}
+              {activePanel === "notifications" ? (
+                <NotificationPreferencesForm
+                  initial={notificationPreferences}
                 />
               ) : null}
             </div>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getSellerPayments } from "@/actions/seller/get-payments";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -170,8 +171,15 @@ export default async function SellerPaymentsPage() {
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {format(new Date(payout.createdAt), "dd MMM yyyy")}
+                      {payout.utr ? ` • UTR ${payout.utr}` : ""}
                       {payout.note ? ` • ${payout.note}` : ""}
                     </div>
+                    <Link
+                      href={`/seller/payments/${payout.id}/advice`}
+                      className="mt-1 inline-block text-sm text-[#8b2e2e] hover:underline"
+                    >
+                      Print payout advice
+                    </Link>
                   </div>
                   <Badge
                     className={

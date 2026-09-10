@@ -5,6 +5,8 @@ export type MegaLink = {
   href: string;
   image: string;
   swatch?: string;
+  /** When false, hidden from storefront mega menu. Default true. */
+  isActive?: boolean;
 };
 
 export type MegaPanel = {

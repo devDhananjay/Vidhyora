@@ -22,8 +22,18 @@ export function SettlePayoutButton({
       return;
     }
 
+    const utr = window.prompt(
+      "Enter bank UTR / NEFT / IMPS reference (optional but recommended):",
+      "",
+    );
+    if (utr === null) {
+      return;
+    }
+
     startTransition(async () => {
-      const result = await settleSellerPayout(sellerId);
+      const result = await settleSellerPayout(sellerId, {
+        utr: utr.trim() || undefined,
+      });
       if (result.success) {
         window.location.reload();
       } else {

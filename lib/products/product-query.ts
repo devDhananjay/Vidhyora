@@ -17,6 +17,7 @@ export type ProductListParams = {
   item?: string;
   stone?: string;
   collection?: string;
+  size?: string;
 };
 
 export function splitCsv(value?: string | null): string[] {
@@ -48,6 +49,13 @@ const GENDER_TERMS: Record<string, string[]> = {
 const KARAT_TERMS: Record<string, string[]> = {
   "18": ["18K", "18KT", "18 KT"],
   "22": ["22K", "22KT", "22 KT"],
+};
+
+const SIZE_TERMS: Record<string, string[]> = {
+  "16": ["16", "16 inch", '16"', "16in"],
+  "18": ["18", "18 inch", '18"', "18in"],
+  "20": ["20", "20 inch", '20"', "20in"],
+  "Free Size": ["free size", "freesize", "one size", "onesize", "adjustable"],
 };
 
 const METAL_TERMS: Record<string, string[]> = {
@@ -191,6 +199,70 @@ function parsePriceRanges(params: ProductListParams) {
   return [];
 }
 
+/** Split a free-text query into searchable tokens (2+ chars). */
+export function searchTokens(q?: string | null): string[] {
+  if (!q?.trim()) return [];
+  return q
+    .trim()
+    .split(/[\s,]+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 2);
+}
+
+function tokenMatchClause(token: string): Prisma.ProductWhereInput {
+  const mode = "insensitive" as const;
+  return {
+    OR: [
+      { name: { contains: token, mode } },
+      { brand: { contains: token, mode } },
+      { slug: { contains: token, mode } },
+      { shortDescription: { contains: token, mode } },
+      { description: { contains: token, mode } },
+      {
+        variants: {
+          some: { sku: { contains: token, mode } },
+        },
+      },
+    ],
+  };
+}
+
+function querySearchClause(q?: string | null): Prisma.ProductWhereInput | null {
+  const tokens = searchTokens(q);
+  if (tokens.length === 0) return null;
+  if (tokens.length === 1) return tokenMatchClause(tokens[0]);
+  return { AND: tokens.map((token) => tokenMatchClause(token)) };
+}
+
+/**
+ * Prefer name prefix matches, then name contains, then brand, then others.
+ * Safe to call after DB fetch when sort is default/relevance and `q` is set.
+ */
+export function rankBySearchRelevance<T extends { name: string; brand?: string | null }>(
+  items: T[],
+  q?: string | null,
+): T[] {
+  const tokens = searchTokens(q);
+  if (tokens.length === 0) return items;
+  const primary = tokens[0].toLowerCase();
+
+  const score = (item: T) => {
+    const name = item.name.toLowerCase();
+    const brand = (item.brand ?? "").toLowerCase();
+    if (name.startsWith(primary)) return 0;
+    if (name.includes(primary)) return 1;
+    if (brand.startsWith(primary)) return 2;
+    if (brand.includes(primary)) return 3;
+    return 4;
+  };
+
+  return [...items].sort((a, b) => {
+    const diff = score(a) - score(b);
+    if (diff !== 0) return diff;
+    return a.name.localeCompare(b.name);
+  });
+}
+
 export function buildProductWhere(
   params: ProductListParams,
 ): Prisma.ProductWhereInput {
@@ -205,6 +277,9 @@ export function buildProductWhere(
 
   const karatFilter = anyGroup(splitCsv(params.karat), KARAT_TERMS);
   if (karatFilter) extra.push(karatFilter);
+
+  const sizeFilter = anyGroup(splitCsv(params.size), SIZE_TERMS);
+  if (sizeFilter) extra.push(sizeFilter);
 
   const metalFilter = anyGroup(splitCsv(params.metal), METAL_TERMS);
   if (metalFilter) extra.push(metalFilter);
@@ -227,16 +302,12 @@ export function buildProductWhere(
     });
   }
 
+  const qClause = querySearchClause(params.q);
+  if (qClause) extra.push(qClause);
+
   return {
     status: "ACTIVE",
     approvalStatus: "APPROVED",
-    ...(params.q && {
-      OR: [
-        { name: { contains: params.q, mode: "insensitive" } },
-        { brand: { contains: params.q, mode: "insensitive" } },
-        { description: { contains: params.q, mode: "insensitive" } },
-      ],
-    }),
     ...(params.category && {
       category: { slug: params.category },
     }),
@@ -278,6 +349,11 @@ export function getListingTitle(params: ProductListParams) {
   return "All Jewellery";
 }
 
+export function isRelevanceSort(sort?: string | null, q?: string | null) {
+  if (!searchTokens(q).length) return false;
+  return !sort || sort === "default" || sort === "relevance";
+}
+
 export function getProductOrderBy(sort?: string) {
   switch (sort) {
     case "price-low":
@@ -287,6 +363,7 @@ export function getProductOrderBy(sort?: string) {
     case "newest":
       return { createdAt: "desc" as const };
     case "name":
+    case "relevance":
       return { name: "asc" as const };
     default:
       return { createdAt: "desc" as const };

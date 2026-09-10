@@ -3,35 +3,51 @@ import {
   BadgeCheck,
   RefreshCcw,
   Shield,
+  Truck,
 } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
-const TRUST_ITEMS = [
-  {
-    label: "BIS Hallmark",
-    hint: "Purity assured",
-    icon: Award,
-  },
-  {
-    label: "Certified",
-    hint: "Authentic stones",
-    icon: BadgeCheck,
-  },
-  {
-    label: "Easy Returns",
-    hint: "7-day window",
-    icon: RefreshCcw,
-  },
-  {
-    label: "Insured Ship",
-    hint: "Safe delivery",
-    icon: Shield,
-  },
-] as const;
+type ProductTrustStripProps = {
+  returnWindowDays?: number;
+  freeShippingThreshold?: number;
+};
 
-export function ProductTrustStrip() {
+export function ProductTrustStrip({
+  returnWindowDays = 7,
+  freeShippingThreshold,
+}: ProductTrustStripProps) {
+  const items = [
+    {
+      label: "BIS Hallmark",
+      hint: "Purity assured",
+      icon: Award,
+    },
+    {
+      label: "Certified",
+      hint: "Authentic stones",
+      icon: BadgeCheck,
+    },
+    {
+      label: "Easy Returns",
+      hint: `${returnWindowDays}-day window`,
+      icon: RefreshCcw,
+    },
+    freeShippingThreshold != null && freeShippingThreshold > 0
+      ? {
+          label: "Free Shipping",
+          hint: `Orders over ${formatCurrency(freeShippingThreshold)}`,
+          icon: Truck,
+        }
+      : {
+          label: "Insured Ship",
+          hint: "Safe delivery",
+          icon: Shield,
+        },
+  ] as const;
+
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-      {TRUST_ITEMS.map(({ label, hint, icon: Icon }) => (
+      {items.map(({ label, hint, icon: Icon }) => (
         <div
           key={label}
           className="group flex items-center gap-2.5 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 transition duration-300 hover:border-[#8b2e2e]/25 hover:shadow-[0_8px_24px_rgba(139,46,46,0.08)]"

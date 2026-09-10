@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
@@ -10,11 +10,23 @@ import {
   confirmRazorpayOrder,
   createOrder,
 } from "@/actions/orders/create-order";
+import {
+  codUnavailableMessage,
+  isCodAvailableForPincode,
+} from "@/lib/shipping/cod";
+
+type AddressLite = {
+  id: string;
+  postalCode: string;
+};
 
 type CheckoutSummaryProps = {
   summary: CartSummary;
   itemCount: number;
   selectedAddressId?: string;
+  addresses?: AddressLite[];
+  codEnabled?: boolean;
+  giftNotesEnabled?: boolean;
 };
 
 declare global {
@@ -57,16 +69,39 @@ export function CheckoutSummary({
   summary,
   itemCount,
   selectedAddressId,
+  addresses = [],
+  codEnabled = true,
+  giftNotesEnabled = true,
 }: CheckoutSummaryProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [paymentMethod, setPaymentMethod] = useState<"RAZORPAY" | "COD">(
     "RAZORPAY",
   );
+  const [hidePriceOnInvoice, setHidePriceOnInvoice] = useState(false);
+  const [giftMessage, setGiftMessage] = useState("");
+  const [occasionNote, setOccasionNote] = useState("");
+
+  const selectedAddress = useMemo(
+    () => addresses.find((address) => address.id === selectedAddressId),
+    [addresses, selectedAddressId],
+  );
+  const codAvailable =
+    codEnabled && isCodAvailableForPincode(selectedAddress?.postalCode);
+
+  useEffect(() => {
+    if (!codAvailable && paymentMethod === "COD") {
+      setPaymentMethod("RAZORPAY");
+    }
+  }, [codAvailable, paymentMethod]);
 
   const handlePlaceOrder = () => {
     if (!selectedAddressId) {
       alert("Please select a delivery address");
+      return;
+    }
+    if (paymentMethod === "COD" && !codAvailable) {
+      alert(codUnavailableMessage(selectedAddress?.postalCode));
       return;
     }
 
@@ -74,6 +109,16 @@ export function CheckoutSummary({
       const formData = new FormData();
       formData.append("addressId", selectedAddressId);
       formData.append("paymentMethod", paymentMethod);
+      formData.append(
+        "hidePriceOnInvoice",
+        hidePriceOnInvoice ? "true" : "false",
+      );
+      if (giftMessage.trim()) {
+        formData.append("giftMessage", giftMessage.trim());
+      }
+      if (occasionNote.trim()) {
+        formData.append("occasionNote", occasionNote.trim());
+      }
 
       const result = await createOrder(formData);
 
@@ -100,12 +145,15 @@ export function CheckoutSummary({
       try {
         await loadRazorpayScript();
       } catch {
-        alert("Could not open Razorpay. Please try again or use Cash on Delivery.");
+        alert(
+          "Could not open Razorpay. Please try again or use Cash on Delivery.",
+        );
         return;
       }
 
       const options = {
-        key: result.data.razorpayKeyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key:
+          result.data.razorpayKeyId || process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: Math.round(result.data.amount * 100),
         currency: "INR",
         name: "VIDYORA",
@@ -121,6 +169,9 @@ export function CheckoutSummary({
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
+            hidePriceOnInvoice,
+            giftMessage: giftMessage.trim() || undefined,
+            occasionNote: occasionNote.trim() || undefined,
           });
           if (confirmed.success) {
             router.push(`/orders/${confirmed.data.orderId}?success=true`);
@@ -141,7 +192,9 @@ export function CheckoutSummary({
 
       const razorpay = new window.Razorpay(options);
       razorpay.on("payment.failed", () => {
-        alert("Payment failed. Your cart is still saved — try again or use COD.");
+        alert(
+          "Payment failed. Your cart is still saved — try again or use COD.",
+        );
       });
       razorpay.open();
     });
@@ -154,31 +207,24 @@ export function CheckoutSummary({
       <div className="space-y-3 text-sm">
         <div className="flex justify-between">
           <span className="text-muted-foreground">
-            Price ({itemCount} items)
+            Subtotal ({itemCount} items)
           </span>
           <span>{formatCurrency(summary.subtotal)}</span>
         </div>
 
-        {summary.discount > 0 && (
+        {summary.discount > 0 ? (
           <div className="flex justify-between text-green-700">
-            <span>
-              Promo discount
-              {summary.couponCode ? (
-                <span className="ml-1 font-mono text-xs">
-                  ({summary.couponCode})
-                </span>
-              ) : null}
-            </span>
+            <span>Discount</span>
             <span>-{formatCurrency(summary.discount)}</span>
           </div>
-        )}
+        ) : null}
 
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Delivery Charges</span>
+          <span className="text-muted-foreground">Shipping</span>
           <span>
             {summary.shipping === 0 ? (
               <span className="text-green-600 line-through">
-                {formatCurrency(50)}
+                {formatCurrency(summary.shippingFee)}
               </span>
             ) : (
               formatCurrency(summary.shipping)
@@ -194,7 +240,9 @@ export function CheckoutSummary({
         ) : null}
 
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Tax (GST 18%)</span>
+          <span className="text-muted-foreground">
+            Tax (GST {summary.gstPercent}%)
+          </span>
           <span>{formatCurrency(summary.tax)}</span>
         </div>
 
@@ -205,11 +253,70 @@ export function CheckoutSummary({
           </div>
           {summary.shipping === 0 && (
             <p className="text-xs text-green-600">
-              You saved {formatCurrency(50)} on delivery!
+              You saved {formatCurrency(summary.shippingFee)} on delivery!
             </p>
           )}
         </div>
       </div>
+
+      <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 px-3 py-3">
+        <input
+          type="checkbox"
+          className="mt-1 size-4"
+          checked={hidePriceOnInvoice}
+          onChange={(event) => setHidePriceOnInvoice(event.target.checked)}
+        />
+        <span className="text-sm leading-5">
+          <span className="font-medium text-neutral-900">
+            Gift invoice (hide prices)
+          </span>
+          <span className="mt-0.5 block text-xs text-muted-foreground">
+            Printable invoice will hide amounts — useful for gifts.
+          </span>
+        </span>
+      </label>
+
+      {giftNotesEnabled ? (
+      <div className="mt-4 space-y-3">
+        <div>
+          <label
+            htmlFor="occasionNote"
+            className="text-sm font-medium text-neutral-900"
+          >
+            Occasion
+          </label>
+          <input
+            id="occasionNote"
+            type="text"
+            value={occasionNote}
+            onChange={(event) => setOccasionNote(event.target.value)}
+            maxLength={200}
+            placeholder="Birthday, anniversary, wedding…"
+            className="mt-1.5 h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-400"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="giftMessage"
+            className="text-sm font-medium text-neutral-900"
+          >
+            Gift message
+          </label>
+          <textarea
+            id="giftMessage"
+            value={giftMessage}
+            onChange={(event) => setGiftMessage(event.target.value)}
+            maxLength={500}
+            rows={3}
+            placeholder="Optional note for the recipient"
+            className="mt-1.5 w-full resize-y rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-400"
+          />
+          <p className="mt-1 text-xs text-muted-foreground">
+            Shown on the order and invoice when provided.
+          </p>
+        </div>
+      </div>
+      ) : null}
 
       <div className="my-6 space-y-3">
         <label className="flex cursor-pointer items-center gap-3">
@@ -223,22 +330,38 @@ export function CheckoutSummary({
           />
           <span className="text-sm">Online Payment (Razorpay)</span>
         </label>
-        <label className="flex cursor-pointer items-center gap-3">
+        <label
+          className={`flex items-center gap-3 ${
+            codAvailable ? "cursor-pointer" : "cursor-not-allowed opacity-60"
+          }`}
+        >
           <input
             type="radio"
             name="payment"
             value="COD"
             checked={paymentMethod === "COD"}
+            disabled={!codAvailable}
             onChange={() => setPaymentMethod("COD")}
             className="size-4"
           />
-          <span className="text-sm">Cash on Delivery</span>
+          <span className="text-sm">
+            Cash on Delivery
+            {!codEnabled ? (
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                Cash on Delivery is currently unavailable
+              </span>
+            ) : !codAvailable && selectedAddressId ? (
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                {codUnavailableMessage(selectedAddress?.postalCode)}
+              </span>
+            ) : null}
+          </span>
         </label>
       </div>
 
       <Button
         size="lg"
-        className="mt-6 w-full"
+        className="mt-2 w-full"
         onClick={handlePlaceOrder}
         disabled={isPending || !selectedAddressId}
       >

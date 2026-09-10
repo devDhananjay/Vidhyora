@@ -3,10 +3,10 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { Address } from "@prisma/client";
-import { ArrowLeft, MapPin, Pencil, Plus, Star, Trash2 } from "lucide-react";
+import { MapPin, Pencil, Plus, Star, Trash2 } from "lucide-react";
 import { deleteAddress } from "@/actions/address/delete-address";
 import { setDefaultAddress } from "@/actions/address/set-default-address";
-import { AccountAddressForm } from "@/components/account/account-address-form";
+import { AddressFormSheet } from "@/components/address/address-form-sheet";
 import { Button } from "@/components/ui/button";
 
 type AccountAddressBookProps = {
@@ -16,37 +16,31 @@ type AccountAddressBookProps = {
 
 export function AccountAddressBook({
   addresses,
-  onNestedChange,
 }: AccountAddressBookProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [mode, setMode] = useState<"list" | "add" | "edit">("list");
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [editing, setEditing] = useState<Address | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  function openList() {
-    setMode("list");
-    setEditing(null);
-    setError(null);
-    onNestedChange?.(false);
-  }
-
   function openAdd() {
     setEditing(null);
-    setMode("add");
+    setSheetOpen(true);
     setError(null);
-    onNestedChange?.(true);
   }
 
   function openEdit(address: Address) {
     setEditing(address);
-    setMode("edit");
+    setSheetOpen(true);
     setError(null);
-    onNestedChange?.(true);
+  }
+
+  function handleSheetChange(open: boolean) {
+    setSheetOpen(open);
+    if (!open) setEditing(null);
   }
 
   function refresh() {
-    openList();
     router.refresh();
   }
 
@@ -73,33 +67,6 @@ export function AccountAddressBook({
       }
       router.refresh();
     });
-  }
-
-  if (mode === "add" || (mode === "edit" && editing)) {
-    return (
-      <div className="space-y-4">
-        <button
-          type="button"
-          onClick={openList}
-          className="inline-flex items-center gap-2 text-sm text-[#8b2e2e] transition hover:underline"
-        >
-          <ArrowLeft className="size-4" strokeWidth={1.8} />
-          Back to Saved addresses
-        </button>
-        <div>
-          <h3 className="font-serif text-2xl text-neutral-900">
-            {mode === "edit" ? "Edit address" : "Add address"}
-          </h3>
-          <p className="mt-1 text-sm text-neutral-500">
-            All required fields must be filled correctly before saving.
-          </p>
-        </div>
-        <AccountAddressForm
-          address={mode === "edit" ? editing : null}
-          onSuccess={refresh}
-        />
-      </div>
-    );
   }
 
   return (
@@ -211,6 +178,13 @@ export function AccountAddressBook({
           ))}
         </ul>
       )}
+
+      <AddressFormSheet
+        open={sheetOpen}
+        onOpenChange={handleSheetChange}
+        address={editing}
+        onSuccess={refresh}
+      />
     </div>
   );
 }

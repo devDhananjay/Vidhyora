@@ -77,7 +77,7 @@ export const BLOG_POSTS: BlogPost[] = [
       "Jewellery is an intimate gift. That is the charm and the risk. A ring in the wrong size sits in a drawer. A pendant in the right metal gets worn the same evening.",
       "If you cannot ask the size, skip rings. Choose earrings (studs and hoops rarely fail), a pendant on a chain with a few extra links, or an adjustable bracelet. Gold coins and small chains also travel well if the recipient already has a favourite chain at home.",
       "Match metal to what they already wear. If their everyday pieces are yellow gold, do not surprise them with rose gold unless they have asked. For men, a plain chain or kara is safer than a fashion bracelet.",
-      "VIDYORA ships insured across India. Add a note at checkout if you want the invoice without a price, and keep the return window in mind — unused, tagged jewellery can come back if the gift misses.",
+      "VIDYORA ships insured across India. At checkout you can choose a gift invoice that hides prices, and keep the return window in mind — unused, tagged jewellery can come back if the gift misses.",
     ],
     tips: [
       "Safest gifts: earrings, pendants, coins, adjustable bracelets.",

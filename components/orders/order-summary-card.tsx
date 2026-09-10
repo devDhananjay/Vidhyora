@@ -23,7 +23,7 @@ export function OrderSummaryCard({ order }: OrderSummaryCardProps) {
             <span>{formatCurrency(Number(order.subtotal))}</span>
           </div>
 
-          {order.discount > 0 && (
+          {Number(order.discount) > 0 && (
             <div className="flex justify-between text-green-600">
               <span>Discount</span>
               <span>-{formatCurrency(Number(order.discount))}</span>
@@ -59,6 +59,30 @@ export function OrderSummaryCard({ order }: OrderSummaryCardProps) {
           </div>
         </div>
       </div>
+
+      {order.occasionNote || order.giftMessage ? (
+        <div className="rounded-lg border p-6">
+          <h3 className="mb-4 font-semibold">Gift details</h3>
+          <div className="space-y-3 text-sm">
+            {order.occasionNote ? (
+              <div>
+                <p className="text-muted-foreground">Occasion</p>
+                <p className="mt-0.5 font-medium text-neutral-900">
+                  {order.occasionNote}
+                </p>
+              </div>
+            ) : null}
+            {order.giftMessage ? (
+              <div>
+                <p className="text-muted-foreground">Gift message</p>
+                <p className="mt-0.5 whitespace-pre-line text-neutral-900">
+                  {order.giftMessage}
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       {/* Delivery Address */}
       <div className="rounded-lg border p-6">

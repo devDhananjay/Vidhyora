@@ -31,19 +31,12 @@ export function ProductFavoriteButton({
           setSaved(false);
           return;
         }
-        if (result.error.toLowerCase().includes("sign in")) {
-          redirectToLogin();
-        }
         return;
       }
 
       const result = await addToWishlist(productId);
       if (result.success) {
         setSaved(true);
-        return;
-      }
-      if (result.error.toLowerCase().includes("sign in")) {
-        redirectToLogin();
       }
     });
   }
@@ -65,9 +58,4 @@ export function ProductFavoriteButton({
       />
     </button>
   );
-}
-
-function redirectToLogin() {
-  const next = `${window.location.pathname}${window.location.search}`;
-  window.location.href = `/login?callbackUrl=${encodeURIComponent(next)}`;
 }

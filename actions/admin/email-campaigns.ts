@@ -75,7 +75,14 @@ async function resolveAudience(
       where: {
         userId: { not: null },
         updatedAt: { lte: cutoff },
-        user: { isActive: true, role: "CUSTOMER" },
+        user: {
+          isActive: true,
+          role: "CUSTOMER",
+          OR: [
+            { notificationPreference: null },
+            { notificationPreference: { promotions: true } },
+          ],
+        },
         items: { some: { savedForLater: false } },
       },
       include: {
@@ -104,12 +111,22 @@ async function resolveAudience(
     email: { not: "" },
   };
 
-  if (audience === "ALL_CUSTOMERS") where.role = "CUSTOMER";
+  if (audience === "ALL_CUSTOMERS") {
+    where.role = "CUSTOMER";
+    where.OR = [
+      { notificationPreference: null },
+      { notificationPreference: { promotions: true } },
+    ];
+  }
   if (audience === "ALL_SELLERS") where.role = "SELLER";
   if (audience === "NEVER_ORDERED") {
     where.role = "CUSTOMER";
     where.orders = { none: {} };
     where.createdAt = { lte: new Date(Date.now() - NEVER_ORDERED_AFTER_MS) };
+    where.OR = [
+      { notificationPreference: null },
+      { notificationPreference: { promotions: true } },
+    ];
   }
 
   const users = await prisma.user.findMany({

@@ -3,6 +3,8 @@
  * Key must stay in GOOGLE_MAPS_API_KEY — never expose to the client.
  */
 
+import { isCodAvailableForPincode } from "@/lib/shipping/cod";
+
 export type GeocodePlace = {
   city: string;
   state: string;
@@ -124,6 +126,32 @@ export async function geocodeIndianCity(city: string) {
   );
 }
 
+export async function reverseGeocodeLatLng(lat: number, lng: number) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    throw new Error("Invalid coordinates");
+  }
+
+  return geocode(
+    new URLSearchParams({
+      latlng: `${lat},${lng}`,
+    }),
+  );
+}
+
+export async function geocodeSearchQuery(query: string) {
+  const q = query.trim();
+  if (q.length < 2) {
+    throw new Error("Enter a location to search");
+  }
+
+  return geocode(
+    new URLSearchParams({
+      address: q,
+      components: "country:IN",
+    }),
+  );
+}
+
 export type DeliveryMatrixResult = {
   pincode: string;
   city: string;
@@ -159,9 +187,13 @@ function formatDay(date: Date) {
   });
 }
 
-function daysFromMatrix(distanceMeters: number | null, durationSeconds: number | null) {
+function daysFromMatrix(
+  distanceMeters: number | null,
+  durationSeconds: number | null,
+  processingDays = 2,
+) {
   // Packing / processing buffer
-  let transitDays = 2;
+  let transitDays = Math.max(1, processingDays);
 
   if (durationSeconds != null) {
     transitDays += Math.max(1, Math.ceil(durationSeconds / (3600 * 18)));
@@ -183,11 +215,17 @@ function daysFromMatrix(distanceMeters: number | null, durationSeconds: number |
 
 export async function estimateDeliveryByPincode(
   destinationPincode: string,
+  options?: { processingDays?: number },
 ): Promise<DeliveryMatrixResult> {
   const pin = destinationPincode.replace(/\D/g, "");
   if (!/^\d{6}$/.test(pin)) {
     throw new Error("Enter a valid 6-digit PIN code");
   }
+
+  const processingDays =
+    options?.processingDays != null && Number.isFinite(options.processingDays)
+      ? Math.max(1, Math.min(14, Math.round(options.processingDays)))
+      : 2;
 
   const place = await geocodeIndianPincode(pin);
   const originPin =
@@ -241,6 +279,7 @@ export async function estimateDeliveryByPincode(
   const { minDays, maxDays, isFast } = daysFromMatrix(
     distanceMeters,
     durationSeconds,
+    processingDays,
   );
   const now = new Date();
   const start = addBusinessDays(now, minDays);
@@ -257,7 +296,7 @@ export async function estimateDeliveryByPincode(
     minDays,
     maxDays,
     isFast,
-    codAvailable: true,
+    codAvailable: isCodAvailableForPincode(pin),
     etaLabel: `${minDays}–${maxDays} working days`,
     dateRange:
       formatDay(start) === formatDay(end)

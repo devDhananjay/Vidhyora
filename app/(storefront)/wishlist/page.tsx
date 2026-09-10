@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { requireAuth } from "@/lib/auth-helpers";
 import { getWishlist } from "@/actions/wishlist/manage-wishlist";
 import { AccountBackLink } from "@/components/account/account-back-link";
 import { WishlistItem } from "@/components/wishlist/wishlist-item";
@@ -11,12 +9,6 @@ export const metadata: Metadata = {
 };
 
 export default async function WishlistPage() {
-  const session = await requireAuth();
-
-  if (!session) {
-    redirect("/login?callbackUrl=/wishlist");
-  }
-
   const items = await getWishlist();
 
   return (

@@ -6,6 +6,8 @@ import {
   calculateCartSummary,
 } from "@/lib/cart/cart-utils";
 import { resolveCartCouponDiscount } from "@/lib/coupons/coupon-utils";
+import { getCommerceSettings } from "@/lib/content/commerce-settings";
+import { getIntegrationsSettings } from "@/lib/content/integrations-settings";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { CheckoutSteps } from "@/components/checkout/checkout-steps";
@@ -31,14 +33,17 @@ export default async function CheckoutPage() {
   });
 
   const subtotal = calculateCartSubtotal(cart);
-  const applied = await resolveCartCouponDiscount(
-    cart.couponCode,
-    cart.userId,
-    subtotal,
-  );
+  const [applied, commerce, integrations] = await Promise.all([
+    resolveCartCouponDiscount(cart.couponCode, cart.userId, subtotal),
+    getCommerceSettings(),
+    getIntegrationsSettings(),
+  ]);
   const summary = calculateCartSummary(cart, {
     discount: applied?.discount ?? 0,
     couponCode: applied?.code ?? null,
+    freeShippingThreshold: commerce.freeShippingThreshold,
+    shippingFee: commerce.shippingFee,
+    gstPercent: commerce.gstPercent,
   });
 
   return (
@@ -47,7 +52,13 @@ export default async function CheckoutPage() {
 
       <CheckoutSteps currentStep={1} />
 
-      <ClientCheckout addresses={addresses} cart={cart} summary={summary} />
+      <ClientCheckout
+        addresses={addresses}
+        cart={cart}
+        summary={summary}
+        codEnabled={commerce.codEnabled}
+        giftNotesEnabled={integrations.giftNotesEnabled}
+      />
     </div>
   );
 }

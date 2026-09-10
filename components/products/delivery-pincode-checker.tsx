@@ -17,7 +17,15 @@ type DeliveryEstimate = {
   codAvailable: boolean;
 };
 
-export function DeliveryPincodeChecker() {
+type DeliveryPincodeCheckerProps = {
+  processingDays?: number;
+  freeShippingThreshold?: number;
+};
+
+export function DeliveryPincodeChecker({
+  processingDays,
+  freeShippingThreshold = 500,
+}: DeliveryPincodeCheckerProps) {
   const [pincode, setPincode] = useState("");
   const [error, setError] = useState("");
   const [estimate, setEstimate] = useState<DeliveryEstimate | null>(null);
@@ -33,7 +41,9 @@ export function DeliveryPincodeChecker() {
 
     setError("");
     startTransition(async () => {
-      const result = await checkDeliveryEstimate(value);
+      const result = await checkDeliveryEstimate(value, {
+        sellerProcessingDays: processingDays,
+      });
       if (!result.success) {
         setError(result.error);
         setEstimate(null);
@@ -129,7 +139,7 @@ export function DeliveryPincodeChecker() {
                 </div>
               </div>
               <p className="pl-6 text-sm text-neutral-600">
-                Free delivery on orders above ₹500 · COD{" "}
+                Free delivery on orders above ₹{freeShippingThreshold} · COD{" "}
                 {estimate.codAvailable ? "available" : "not available"}
               </p>
             </div>

@@ -5,11 +5,22 @@ import { forgotPasswordSchema } from "@/lib/validations/auth";
 import { actionError, actionSuccess, type ActionResult } from "@/lib/utils";
 import { generatePasswordResetToken } from "@/lib/auth/tokens";
 import { sendPasswordResetEmail } from "@/lib/email/send-password-reset";
+import {
+  getRequestIp,
+  rateLimit,
+  rateLimitMessage,
+} from "@/lib/security/rate-limit";
 
 export async function forgotPasswordAction(
   data: unknown,
 ): Promise<ActionResult<{ message: string }>> {
   try {
+    const ip = await getRequestIp();
+    const limited = rateLimit(`forgot-password:${ip}`, 5, 60_000);
+    if (!limited.ok) {
+      return actionError(rateLimitMessage(limited.retryAfterSec));
+    }
+
     const validated = forgotPasswordSchema.parse(data);
 
     const user = await prisma.user.findUnique({

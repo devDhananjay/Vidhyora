@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import {
   getBlogPostBySlug,
@@ -8,6 +9,7 @@ import {
 } from "@/lib/content/get-blog-posts";
 import { ROUTES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import { generateArticleStructuredData } from "@/lib/structured-data";
 
 type BlogPostPageProps = {
   params: Promise<{ slug: string }>;
@@ -29,6 +31,7 @@ export async function generateMetadata({
       title: post.title,
       description: post.excerpt,
       url: `/blog/${slug}`,
+      images: post.image ? [post.image] : [],
     },
   };
 }
@@ -40,9 +43,21 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   if (!post) notFound();
 
   const more = posts.filter((item) => item.slug !== post.slug).slice(0, 3);
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vidyora.co.in";
+  const articleLd = generateArticleStructuredData({
+    title: post.title,
+    description: post.excerpt,
+    url: `${appUrl}/blog/${post.slug}`,
+    image: post.image,
+    datePublished: post.date,
+  });
 
   return (
     <div className="bg-[#faf8f6]">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(articleLd) }}
+      />
       <article className="mx-auto max-w-3xl px-4 py-14 md:px-6">
         <Link
           href={ROUTES.blog}
@@ -87,9 +102,22 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
         ) : null}
 
         {post.shopHref ? (
-          <div className="mt-8">
-            <Button asChild className="rounded-full px-6">
-              <Link href={post.shopHref}>{post.shopLabel ?? "Shop"}</Link>
+          <div className="mt-10 overflow-hidden rounded-2xl border border-[#ead9c4] bg-gradient-to-br from-[#faf6f0] to-white p-6 sm:p-8">
+            <p className="text-xs tracking-[0.2em] text-[#8b2e2e] uppercase">
+              Shop the look
+            </p>
+            <h2 className="mt-2 font-serif text-2xl text-neutral-900 sm:text-3xl">
+              Ready to explore this jewellery?
+            </h2>
+            <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-600">
+              Browse curated pieces on VIDYORA — hallmarked, seller-approved, and
+              ready to ship.
+            </p>
+            <Button asChild className="mt-6 rounded-full px-7">
+              <Link href={post.shopHref} className="inline-flex items-center gap-2">
+                {post.shopLabel ?? "Shop now"}
+                <ArrowRight className="size-4" />
+              </Link>
             </Button>
           </div>
         ) : null}

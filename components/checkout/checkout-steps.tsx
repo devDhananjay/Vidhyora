@@ -14,45 +14,57 @@ const steps = [
 
 export function CheckoutSteps({ currentStep }: CheckoutStepsProps) {
   return (
-    <div className="mx-auto flex w-full max-w-lg items-center justify-between gap-1 sm:justify-center sm:gap-0">
-      {steps.map((step, index) => (
-        <div key={step.number} className="flex min-w-0 items-center">
-          {/* Step Circle */}
-          <div className="flex flex-col items-center sm:flex-row">
-            <div
-              className={cn(
-                "flex size-8 shrink-0 items-center justify-center rounded-full border-2 text-sm font-semibold sm:size-10 sm:text-base",
-                step.number < currentStep
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : step.number === currentStep
-                    ? "border-primary bg-background text-primary"
-                    : "border-muted-foreground/30 bg-background text-muted-foreground",
-              )}
-            >
-              {step.number < currentStep ? (
-                <Check className="size-4 sm:size-5" />
-              ) : (
-                step.number
-              )}
-            </div>
-            <div className="mt-1 max-w-[4.5rem] truncate text-center text-[10px] font-medium sm:ml-2 sm:mt-0 sm:max-w-none sm:text-left sm:text-sm">
-              {step.label}
-            </div>
-          </div>
+    <nav aria-label="Checkout progress" className="mx-auto w-full max-w-3xl">
+      <ol className="flex w-full">
+        {steps.map((step, index) => {
+          const done = step.number < currentStep;
+          const active = step.number === currentStep;
+          const isLast = index === steps.length - 1;
 
-          {/* Connector Line */}
-          {index < steps.length - 1 && (
-            <div
-              className={cn(
-                "mx-1 h-0.5 w-4 shrink-0 sm:mx-4 sm:w-12 md:w-24",
-                step.number < currentStep
-                  ? "bg-primary"
-                  : "bg-muted-foreground/30",
-              )}
-            />
-          )}
-        </div>
-      ))}
-    </div>
+          return (
+            <li
+              key={step.number}
+              className="relative flex min-w-0 flex-1 flex-col items-center"
+            >
+              {!isLast ? (
+                <span
+                  aria-hidden
+                  className={cn(
+                    "pointer-events-none absolute left-1/2 top-4 z-0 h-0.5 w-full sm:top-5",
+                    done ? "bg-primary" : "bg-neutral-200",
+                  )}
+                />
+              ) : null}
+
+              <div
+                className={cn(
+                  "relative z-10 flex size-8 items-center justify-center rounded-full border-2 bg-white text-sm font-semibold sm:size-10 sm:text-base",
+                  done
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : active
+                      ? "border-primary text-primary"
+                      : "border-neutral-300 text-neutral-400",
+                )}
+              >
+                {done ? (
+                  <Check className="size-4 sm:size-5" aria-hidden />
+                ) : (
+                  step.number
+                )}
+              </div>
+
+              <span
+                className={cn(
+                  "mt-2 w-full px-0.5 text-center text-[11px] font-medium leading-tight sm:text-sm",
+                  active || done ? "text-neutral-900" : "text-neutral-400",
+                )}
+              >
+                {step.label}
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+    </nav>
   );
 }

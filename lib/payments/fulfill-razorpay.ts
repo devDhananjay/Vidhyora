@@ -6,6 +6,7 @@ import {
   stockError,
 } from "@/lib/orders/place-order";
 import { resolveCartCouponDiscount } from "@/lib/coupons/coupon-utils";
+import { getCommerceSettings } from "@/lib/content/commerce-settings";
 
 type FulfillInput = {
   userId: string;
@@ -13,6 +14,9 @@ type FulfillInput = {
   razorpayOrderId: string;
   razorpayPaymentId: string;
   signature?: string;
+  hidePriceOnInvoice?: boolean;
+  giftMessage?: string | null;
+  occasionNote?: string | null;
 };
 
 /**
@@ -64,6 +68,12 @@ export async function fulfillRazorpayCheckout(input: FulfillInput): Promise<{
     throw new Error(availability);
   }
 
+  const commerce = await getCommerceSettings();
+  const commerceShipping = {
+    freeShippingThreshold: commerce.freeShippingThreshold,
+    shippingFee: commerce.shippingFee,
+  };
+
   const lineSubtotal = cart.items.reduce(
     (sum, item) => sum + Number(item.variant.price) * item.quantity,
     0,
@@ -88,6 +98,10 @@ export async function fulfillRazorpayCheckout(input: FulfillInput): Promise<{
       paymentStatus: "PAID",
       orderStatus: "CONFIRMED",
       deductStock: true,
+      hidePriceOnInvoice: Boolean(input.hidePriceOnInvoice),
+      giftMessage: input.giftMessage?.trim() || null,
+      occasionNote: input.occasionNote?.trim() || null,
+      commerce: commerceShipping,
       ...couponOptions,
     });
 

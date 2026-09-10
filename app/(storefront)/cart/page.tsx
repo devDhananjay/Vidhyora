@@ -6,6 +6,7 @@ import {
   calculateCartSummary,
 } from "@/lib/cart/cart-utils";
 import { resolveCartCouponDiscount } from "@/lib/coupons/coupon-utils";
+import { getCommerceSettings } from "@/lib/content/commerce-settings";
 import { CartItemCard } from "@/components/cart/cart-item-card";
 import { CartSummary } from "@/components/cart/cart-summary";
 import { EmptyCart } from "@/components/cart/empty-cart";
@@ -32,13 +33,17 @@ export default async function CartPage() {
   }
 
   const subtotal = calculateCartSubtotal(cart);
-  const [applied, offers] = await Promise.all([
+  const [applied, offers, commerce] = await Promise.all([
     resolveCartCouponDiscount(cart.couponCode, cart.userId, subtotal),
     getPublicOffers(),
+    getCommerceSettings(),
   ]);
   const summary = calculateCartSummary(cart, {
     discount: applied?.discount ?? 0,
     couponCode: applied?.code ?? null,
+    freeShippingThreshold: commerce.freeShippingThreshold,
+    shippingFee: commerce.shippingFee,
+    gstPercent: commerce.gstPercent,
   });
   const availablePromos = offers.map((offer) => ({
     id: offer.id,

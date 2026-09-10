@@ -35,6 +35,12 @@ export const homepageHeroSlideSchema = z.object({
   cta: z.string().min(1),
   ctaHref: z.string().min(1),
   ctaClassName: z.string().min(1),
+  /** When false, slide is hidden on the storefront. Default true. */
+  isActive: z.boolean().optional(),
+  /** ISO datetime — empty/null = no start bound. */
+  visibleFrom: z.string().optional().nullable(),
+  /** ISO datetime — empty/null = no end bound. */
+  visibleUntil: z.string().optional().nullable(),
 });
 
 export const homepageLookSchema = z.object({
@@ -89,8 +95,90 @@ export const homepageMoodboardNoteSchema = z.object({
   z: z.number(),
 });
 
+export const HOMEPAGE_SECTION_IDS = [
+  "hero",
+  "collections",
+  "categories",
+  "trending",
+  "world",
+  "weddingMoodboard",
+  "exploreTraditions",
+  "featured",
+  "chooseYourLook",
+  "styleStories",
+  "assurance",
+  "exchange",
+] as const;
+
+export type HomepageSectionId = (typeof HOMEPAGE_SECTION_IDS)[number];
+
+export const DEFAULT_HOMEPAGE_VISIBILITY: Record<HomepageSectionId, boolean> = {
+  hero: true,
+  collections: true,
+  categories: true,
+  trending: true,
+  world: true,
+  weddingMoodboard: true,
+  exploreTraditions: true,
+  featured: true,
+  chooseYourLook: true,
+  styleStories: true,
+  assurance: true,
+  exchange: true,
+};
+
+export const homepageSectionVisibilitySchema = z
+  .object({
+    hero: z.boolean().default(true),
+    collections: z.boolean().default(true),
+    categories: z.boolean().default(true),
+    trending: z.boolean().default(true),
+    world: z.boolean().default(true),
+    weddingMoodboard: z.boolean().default(true),
+    exploreTraditions: z.boolean().default(true),
+    featured: z.boolean().default(true),
+    chooseYourLook: z.boolean().default(true),
+    styleStories: z.boolean().default(true),
+    assurance: z.boolean().default(true),
+    exchange: z.boolean().default(true),
+  })
+  .default(DEFAULT_HOMEPAGE_VISIBILITY);
+
+export const homepageSectionScheduleEntrySchema = z.object({
+  /** ISO date string (date or datetime). Empty/null = no start bound. */
+  visibleFrom: z.string().optional().nullable(),
+  /** ISO date string (date or datetime). Empty/null = no end bound. */
+  visibleUntil: z.string().optional().nullable(),
+});
+
+export const homepageSectionScheduleSchema = z
+  .object({
+    hero: homepageSectionScheduleEntrySchema.optional(),
+    collections: homepageSectionScheduleEntrySchema.optional(),
+    categories: homepageSectionScheduleEntrySchema.optional(),
+    trending: homepageSectionScheduleEntrySchema.optional(),
+    world: homepageSectionScheduleEntrySchema.optional(),
+    weddingMoodboard: homepageSectionScheduleEntrySchema.optional(),
+    exploreTraditions: homepageSectionScheduleEntrySchema.optional(),
+    featured: homepageSectionScheduleEntrySchema.optional(),
+    chooseYourLook: homepageSectionScheduleEntrySchema.optional(),
+    styleStories: homepageSectionScheduleEntrySchema.optional(),
+    assurance: homepageSectionScheduleEntrySchema.optional(),
+    exchange: homepageSectionScheduleEntrySchema.optional(),
+  })
+  .optional();
+
+export const DEFAULT_HOMEPAGE_SECTION_ORDER: HomepageSectionId[] = [
+  ...HOMEPAGE_SECTION_IDS,
+];
+
 export const homepageConfigSchema = z.object({
   version: z.literal(1),
+  visibility: homepageSectionVisibilitySchema.optional(),
+  /** Display order of homepage sections (ids). Missing ids append in default order. */
+  sectionOrder: z.array(z.enum(HOMEPAGE_SECTION_IDS)).optional(),
+  /** Optional date windows when a section should appear. */
+  sectionSchedule: homepageSectionScheduleSchema,
   collections: z.object({
     title: z.string().min(1),
     subtitle: z.string().min(1),
@@ -184,3 +272,79 @@ export type HomepageMoodboardPolaroid = z.infer<
   typeof homepageMoodboardPolaroidSchema
 >;
 export type HomepageMoodboardNote = z.infer<typeof homepageMoodboardNoteSchema>;
+
+function parseScheduleBound(value?: string | null): Date | null {
+  if (!value || !String(value).trim()) return null;
+  const d = new Date(value);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+
+function isWithinSchedule(
+  schedule:
+    | { visibleFrom?: string | null; visibleUntil?: string | null }
+    | undefined,
+  now: Date,
+): boolean {
+  if (!schedule) return true;
+  const from = parseScheduleBound(schedule.visibleFrom);
+  const until = parseScheduleBound(schedule.visibleUntil);
+  if (from && now < from) return false;
+  if (until && now > until) return false;
+  return true;
+}
+
+export function resolveHomepageVisibility(
+  config: HomepageConfigData,
+  now: Date = new Date(),
+): Record<HomepageSectionId, boolean> {
+  const base = {
+    ...DEFAULT_HOMEPAGE_VISIBILITY,
+    ...(config.visibility ?? {}),
+  };
+  const schedule = config.sectionSchedule ?? {};
+  const result = { ...base };
+  for (const id of HOMEPAGE_SECTION_IDS) {
+    if (!result[id]) continue;
+    if (!isWithinSchedule(schedule[id], now)) {
+      result[id] = false;
+    }
+  }
+  return result;
+}
+
+/** Ordered section ids for rendering (all ids, including hidden — filter with visibility). */
+export function resolveHomepageSectionOrder(
+  config: HomepageConfigData,
+): HomepageSectionId[] {
+  const preferred = config.sectionOrder ?? [];
+  const seen = new Set<HomepageSectionId>();
+  const ordered: HomepageSectionId[] = [];
+  for (const id of preferred) {
+    if (HOMEPAGE_SECTION_IDS.includes(id) && !seen.has(id)) {
+      ordered.push(id);
+      seen.add(id);
+    }
+  }
+  for (const id of DEFAULT_HOMEPAGE_SECTION_ORDER) {
+    if (!seen.has(id)) ordered.push(id);
+  }
+  return ordered;
+}
+
+/** Hero slides that should render now (active + within schedule window). */
+export function filterVisibleHeroSlides(
+  slides: HomepageHeroSlide[],
+  now: Date = new Date(),
+): HomepageHeroSlide[] {
+  return slides.filter(
+    (slide) =>
+      slide.isActive !== false &&
+      isWithinSchedule(
+        {
+          visibleFrom: slide.visibleFrom,
+          visibleUntil: slide.visibleUntil,
+        },
+        now,
+      ),
+  );
+}

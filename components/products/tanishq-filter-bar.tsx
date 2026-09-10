@@ -22,6 +22,7 @@ const DRAWER_SECTIONS = [
   "Brand",
   "Gender",
   "Karatage",
+  "Size",
   "Occasion",
   "Metal",
 ] as const;
@@ -34,9 +35,12 @@ const FILTER_KEYS = [
   "type",
   "gender",
   "karat",
+  "size",
   "metal",
   "occasion",
 ] as const;
+
+const SIZE_PILLS = ["16", "18", "20", "Free Size"] as const;
 
 function priceKey(min: string, max: string) {
   return `${min}-${max}`;
@@ -63,6 +67,7 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
       type: searchParams.get("type") ?? "",
       gender: searchParams.get("gender") ?? "",
       karat: searchParams.get("karat") ?? "",
+      size: searchParams.get("size") ?? "",
       metal: searchParams.get("metal") ?? "",
       occasion: searchParams.get("occasion") ?? "",
       sort: searchParams.get("sort") ?? "default",
@@ -112,6 +117,7 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
         type: draft.type,
         gender: draft.gender,
         karat: draft.karat,
+        size: draft.size,
         metal: draft.metal,
         occasion: draft.occasion,
         minPrice: "",
@@ -129,6 +135,7 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
       type: "",
       gender: "",
       karat: "",
+      size: "",
       metal: "",
       occasion: "",
       sort: current.sort,
@@ -211,6 +218,11 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
         label: `${value}KT`,
         onClick: () => toggleParam("karat", value),
       })),
+    ...splitCsv(current.size).map((value) => ({
+      key: `size-${value}`,
+      label: value === "Free Size" ? "Free Size" : `Size ${value}`,
+      onClick: () => toggleParam("size", value),
+    })),
   ];
 
   return (
@@ -443,6 +455,21 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
                           />
                         </>
                       ) : null}
+                      {section === "Size"
+                        ? SIZE_PILLS.map((size) => (
+                            <FilterOption
+                              key={size}
+                              label={size === "Free Size" ? "Free Size" : size}
+                              checked={splitCsv(draft.size).includes(size)}
+                              onChange={() =>
+                                setDraft((value) => ({
+                                  ...value,
+                                  size: toggleCsv(value.size, size),
+                                }))
+                              }
+                            />
+                          ))
+                        : null}
                       {section === "Occasion" ? (
                         <>
                           <FilterOption

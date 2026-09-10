@@ -57,7 +57,11 @@ export async function getAllProducts(filters?: {
     if (filters?.search) {
       where.OR = [
         { name: { contains: filters.search, mode: "insensitive" } },
-        { sku: { contains: filters.search, mode: "insensitive" } },
+        {
+          variants: {
+            some: { sku: { contains: filters.search, mode: "insensitive" } },
+          },
+        },
       ];
     }
 
@@ -226,6 +230,97 @@ export async function activateProduct(
     return {
       success: false,
       error: "Failed to activate product",
+    };
+  }
+}
+
+export async function bulkApproveProducts(
+  ids: string[],
+): Promise<ActionResult<{ count: number }>> {
+  try {
+    await requireAdmin();
+
+    const uniqueIds = [...new Set(ids.filter(Boolean))];
+    if (uniqueIds.length === 0) {
+      return { success: false, error: "No products selected" };
+    }
+
+    const result = await prisma.product.updateMany({
+      where: { id: { in: uniqueIds } },
+      data: {
+        approvalStatus: "APPROVED",
+        status: "ACTIVE",
+        rejectionReason: null,
+      },
+    });
+
+    for (const id of uniqueIds) {
+      void notifyProductApproved(id).catch((error) =>
+        console.error("Product approve email failed:", error),
+      );
+      revalidatePath(`/admin/products/${id}`);
+    }
+
+    revalidatePath("/admin/products");
+    revalidatePath("/products");
+
+    return {
+      success: true,
+      data: { count: result.count },
+    };
+  } catch (error) {
+    console.error("Bulk approve products error:", error);
+    return {
+      success: false,
+      error: "Failed to approve products",
+    };
+  }
+}
+
+export async function bulkRejectProducts(
+  ids: string[],
+  reason: string,
+): Promise<ActionResult<{ count: number }>> {
+  try {
+    await requireAdmin();
+
+    const uniqueIds = [...new Set(ids.filter(Boolean))];
+    const trimmedReason = reason.trim();
+    if (uniqueIds.length === 0) {
+      return { success: false, error: "No products selected" };
+    }
+    if (!trimmedReason) {
+      return { success: false, error: "Rejection reason is required" };
+    }
+
+    const result = await prisma.product.updateMany({
+      where: { id: { in: uniqueIds } },
+      data: {
+        approvalStatus: "REJECTED",
+        status: "INACTIVE",
+        rejectionReason: trimmedReason,
+      },
+    });
+
+    for (const id of uniqueIds) {
+      void notifyProductRejected(id, trimmedReason).catch((error) =>
+        console.error("Product reject email failed:", error),
+      );
+      revalidatePath(`/admin/products/${id}`);
+    }
+
+    revalidatePath("/admin/products");
+    revalidatePath("/products");
+
+    return {
+      success: true,
+      data: { count: result.count },
+    };
+  } catch (error) {
+    console.error("Bulk reject products error:", error);
+    return {
+      success: false,
+      error: "Failed to reject products",
     };
   }
 }

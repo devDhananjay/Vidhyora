@@ -7,6 +7,7 @@ import { OrderItems } from "@/components/orders/order-items";
 import { OrderTimeline } from "@/components/orders/order-timeline";
 import { OrderSummaryCard } from "@/components/orders/order-summary-card";
 import { OrderActions } from "@/components/orders/order-actions";
+import { OrderTrackingCard } from "@/components/orders/order-tracking-card";
 
 export const metadata: Metadata = {
   title: "Order Details | VIDYORA",
@@ -32,6 +33,7 @@ export default async function OrderDetailPage({
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           <OrderItems items={order.items} orderStatus={order.orderStatus} />
+          <OrderTrackingCard shipments={order.shipments ?? []} />
           <OrderTimeline orderId={order.id} currentStatus={order.orderStatus} />
         </div>
 

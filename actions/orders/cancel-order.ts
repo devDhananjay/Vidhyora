@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { cancelOrderSchema } from "@/lib/validations/order";
 import { canCancelOrder } from "@/lib/orders/order-utils";
+import { notifyOrderCancelled } from "@/lib/email/transactional";
 import type { ActionResult } from "@/lib/utils";
 
 export async function cancelOrder(
@@ -84,6 +85,10 @@ export async function cancelOrder(
 
     revalidatePath("/orders");
     revalidatePath(`/orders/${order.id}`);
+
+    void notifyOrderCancelled(order.id, validatedData.reason).catch((error) =>
+      console.error("Cancel order email failed:", error),
+    );
 
     return {
       success: true,

@@ -68,6 +68,9 @@ export async function POST(request: Request) {
           razorpayOrderId: payment.order_id,
           razorpayPaymentId: payment.id,
           signature: "webhook",
+          hidePriceOnInvoice: notes.hidePriceOnInvoice === "1",
+          giftMessage: notes.giftMessage || null,
+          occasionNote: notes.occasionNote || null,
         });
 
         if (result.created) {

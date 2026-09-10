@@ -5,6 +5,7 @@ export const megaLinkSchema = z.object({
   href: z.string().min(1),
   image: z.string().min(1),
   swatch: z.string().optional(),
+  isActive: z.boolean().optional(),
 });
 
 export const megaPanelSchema = z.object({

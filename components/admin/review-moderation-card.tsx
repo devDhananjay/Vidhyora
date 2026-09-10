@@ -17,6 +17,7 @@ type Review = {
   title: string | null;
   comment: string | null;
   images: any;
+  status?: string;
   createdAt: Date;
   user: {
     name: string | null;
@@ -100,8 +101,17 @@ export function ReviewModerationCard({ review }: ReviewModerationCardProps) {
                   <span>{format(new Date(review.createdAt), "MMM dd, yyyy")}</span>
                 </div>
               </div>
-              <Badge variant="outline" className="bg-yellow-50">
-                PENDING
+              <Badge
+                variant="outline"
+                className={
+                  review.status === "APPROVED"
+                    ? "bg-green-50 text-green-700"
+                    : review.status === "REJECTED"
+                      ? "bg-red-50 text-red-700"
+                      : "bg-yellow-50"
+                }
+              >
+                {review.status || "PENDING"}
               </Badge>
             </div>
 
@@ -141,25 +151,29 @@ export function ReviewModerationCard({ review }: ReviewModerationCardProps) {
 
             {/* Actions */}
             <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={handleApprove}
-                disabled={isPending}
-                size="sm"
-                className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
-              >
-                <CheckCircle className="size-4" />
-                Approve
-              </Button>
-              <Button
-                type="button"
-                onClick={handleReject}
-                disabled={isPending}
-                size="sm"
-                className="gap-2 bg-red-600 text-white hover:bg-red-700"
-              >
-                <XCircle className="size-4" />
-                Reject
-              </Button>
+              {review.status !== "APPROVED" ? (
+                <Button
+                  onClick={handleApprove}
+                  disabled={isPending}
+                  size="sm"
+                  className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                >
+                  <CheckCircle className="size-4" />
+                  Approve
+                </Button>
+              ) : null}
+              {review.status !== "REJECTED" ? (
+                <Button
+                  type="button"
+                  onClick={handleReject}
+                  disabled={isPending}
+                  size="sm"
+                  className="gap-2 bg-red-600 text-white hover:bg-red-700"
+                >
+                  <XCircle className="size-4" />
+                  Reject
+                </Button>
+              ) : null}
             </div>
           </div>
         </div>

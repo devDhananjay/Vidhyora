@@ -47,6 +47,7 @@ export async function createProduct(
         basePrice: validated.basePrice,
         compareAtPrice: validated.compareAtPrice,
         tax: validated.tax,
+        attributes: validated.attributes ?? {},
         status: "DRAFT",
         approvalStatus: "PENDING_APPROVAL",
         
@@ -175,6 +176,7 @@ export async function updateProduct(
           basePrice: validated.basePrice,
           compareAtPrice: validated.compareAtPrice,
           tax: validated.tax,
+          attributes: validated.attributes ?? {},
           approvalStatus: "PENDING_APPROVAL", // Re-submit for approval
           
           images: {
@@ -292,6 +294,7 @@ type DraftProductInput = {
   basePrice?: number;
   compareAtPrice?: number;
   tax?: number;
+  attributes?: Record<string, string>;
 };
 
 function isPersistableImageUrl(value?: string) {
@@ -385,6 +388,7 @@ export async function saveProductDraft(
         : images[0]?.url,      basePrice: Number(data.basePrice) || variantPayload[0].price || 0,
       compareAtPrice: data.compareAtPrice || undefined,
       tax: Number(data.tax) || 0,
+      attributes: data.attributes ?? {},
       status: "DRAFT" as const,
       approvalStatus: "DRAFT" as const,
     };

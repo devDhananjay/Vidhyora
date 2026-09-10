@@ -16,6 +16,7 @@ export type CartSummary = {
   subtotal: number;
   tax: number;
   shipping: number;
+  giftPackaging: number;
   discount: number;
   couponCode: string | null;
   total: number;

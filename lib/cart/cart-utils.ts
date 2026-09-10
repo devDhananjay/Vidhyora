@@ -1,4 +1,5 @@
 import type { CartWithItems, CartSummary } from "@/types/cart";
+import { giftPackagingFeeForItems } from "@/lib/cart/gift-packaging";
 
 const TAX_RATE = 0.18; // 18% GST
 const FREE_SHIPPING_THRESHOLD = 500;
@@ -23,13 +24,18 @@ export function calculateCartSummary(
   const discount = Math.min(Math.max(0, options?.discount ?? 0), subtotal);
   const tax = subtotal * TAX_RATE;
   const shipping = subtotal >= FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_COST;
-  const total = Math.max(0, subtotal + tax + shipping - discount);
+  const giftPackaging = giftPackagingFeeForItems(items);
+  const total = Math.max(
+    0,
+    subtotal + tax + shipping + giftPackaging - discount,
+  );
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
   return {
     subtotal,
     tax,
     shipping,
+    giftPackaging,
     discount,
     couponCode: discount > 0 ? (options?.couponCode ?? null) : null,
     total,

@@ -1,5 +1,6 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { getOrderById } from "@/actions/orders/get-orders";
 import { OrderDetailHeader } from "@/components/orders/order-detail-header";
 import { OrderItems } from "@/components/orders/order-items";
@@ -37,6 +38,15 @@ export default async function OrderDetailPage({
         {/* Sidebar */}
         <div className="lg:col-span-1 space-y-6">
           <OrderSummaryCard order={order} />
+          <div className="rounded-lg border p-6">
+            <h3 className="mb-4 font-semibold">Documents</h3>
+            <Link
+              href={`/orders/${order.id}/invoice`}
+              className="inline-flex rounded-full border border-[#8b2e2e]/30 px-4 py-2 text-sm text-[#8b2e2e] hover:bg-[#8b2e2e]/5"
+            >
+              View / print invoice
+            </Link>
+          </div>
           <OrderActions order={order} />
         </div>
       </div>

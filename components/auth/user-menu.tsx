@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { logoutAction } from "@/actions/auth/logout";
 import type { SessionUser } from "@/types/user";
-import { isSellerAdmin, isSuperAdmin, roleLabel } from "@/lib/roles";
+import { isSellerAdmin, isPlatformAdmin, roleLabel } from "@/lib/roles";
 
 interface UserMenuProps {
   user: SessionUser;
@@ -85,7 +85,7 @@ export function UserMenu({ user }: UserMenuProps) {
           </>
         )}
         
-        {isSuperAdmin(user.role) && (
+        {isPlatformAdmin(user.role) && (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>

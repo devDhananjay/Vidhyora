@@ -12,6 +12,7 @@ type FloatingAddToCartBarProps = {
   price: number;
   weightLabel?: string | null;
   inStock: boolean;
+  giftPackaging?: boolean;
   /** Element id of the main Add to Cart row — bar shows when this leaves view */
   sentinelId?: string;
 };
@@ -22,6 +23,7 @@ export function FloatingAddToCartBar({
   price,
   weightLabel,
   inStock,
+  giftPackaging = false,
   sentinelId = "product-main-actions",
 }: FloatingAddToCartBarProps) {
   const router = useRouter();
@@ -83,6 +85,7 @@ export function FloatingAddToCartBar({
       formData.append("productId", productId);
       formData.append("variantId", variantId);
       formData.append("quantity", "1");
+      formData.append("giftPackaging", giftPackaging ? "true" : "false");
 
       const result = await addToCart(formData);
       if (result.success) {

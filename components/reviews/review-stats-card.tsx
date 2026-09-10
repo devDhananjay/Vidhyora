@@ -1,6 +1,5 @@
-import { StarRating } from "@/components/reviews/star-rating";
+import { Star } from "lucide-react";
 import type { ReviewStats } from "@/types/review";
-import { Progress } from "@/components/ui/progress";
 
 type ReviewStatsCardProps = {
   stats: ReviewStats;
@@ -19,30 +18,54 @@ export function ReviewStatsCard({ stats }: ReviewStatsCardProps) {
   }
 
   return (
-    <div className="rounded-lg border p-6">
-      <div className="mb-6 flex items-center gap-4">
-        <div className="text-center">
-          <div className="text-4xl font-bold">{stats.averageRating.toFixed(1)}</div>
-          <StarRating rating={stats.averageRating} size="sm" />
-          <div className="mt-1 text-sm text-muted-foreground">
-            {stats.totalReviews} {stats.totalReviews === 1 ? "review" : "reviews"}
+    <div className="rounded-lg border p-5 sm:p-6">
+      <div className="flex flex-col gap-5">
+        <div className="flex items-end gap-3">
+          <div className="text-4xl font-bold leading-none text-neutral-900">
+            {stats.averageRating.toFixed(1)}
+          </div>
+          <div className="pb-0.5">
+            <div className="flex items-center gap-0.5 text-amber-400">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <Star
+                  key={index}
+                  className={`size-4 ${
+                    index < Math.round(stats.averageRating)
+                      ? "fill-amber-400 text-amber-400"
+                      : "fill-none text-neutral-300"
+                  }`}
+                />
+              ))}
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {stats.totalReviews}{" "}
+              {stats.totalReviews === 1 ? "review" : "reviews"}
+            </p>
           </div>
         </div>
 
-        <div className="flex-1 space-y-2">
+        <div className="space-y-2.5">
           {[5, 4, 3, 2, 1].map((rating) => {
-            const count = stats.ratingDistribution[rating as keyof typeof stats.ratingDistribution];
+            const count =
+              stats.ratingDistribution[
+                rating as keyof typeof stats.ratingDistribution
+              ] ?? 0;
             const percentage =
               stats.totalReviews > 0 ? (count / stats.totalReviews) * 100 : 0;
 
             return (
-              <div key={rating} className="flex items-center gap-2">
-                <div className="flex w-16 items-center gap-1">
-                  <span className="text-sm">{rating}</span>
-                  <StarRating rating={rating} size="sm" />
+              <div key={rating} className="grid grid-cols-[2.5rem_1fr_1.5rem] items-center gap-2">
+                <div className="flex items-center gap-1 text-sm text-neutral-700">
+                  <span className="tabular-nums">{rating}</span>
+                  <Star className="size-3.5 fill-amber-400 text-amber-400" />
                 </div>
-                <Progress value={percentage} className="flex-1" />
-                <span className="w-12 text-right text-sm text-muted-foreground">
+                <div className="h-2 overflow-hidden rounded-full bg-neutral-100">
+                  <div
+                    className="h-full rounded-full bg-[#8b2e2e] transition-all"
+                    style={{ width: `${Math.max(0, Math.min(100, percentage))}%` }}
+                  />
+                </div>
+                <span className="text-right text-sm tabular-nums text-muted-foreground">
                   {count}
                 </span>
               </div>

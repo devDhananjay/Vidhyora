@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { format } from "date-fns";
+import { redirect } from "next/navigation";
+import { requireSuperAdmin } from "@/lib/auth-helpers";
 import { getEmailCampaignMeta } from "@/actions/admin/email-campaigns";
 import { EmailCampaignForm } from "@/components/admin/email-campaign-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +18,12 @@ const TYPE_LABEL: Record<string, string> = {
 };
 
 export default async function AdminEmailsPage() {
+  try {
+    await requireSuperAdmin();
+  } catch {
+    redirect("/admin");
+  }
+
   const meta = await getEmailCampaignMeta();
   if (!meta.success) {
     return <p className="text-sm text-red-700">{meta.error}</p>;

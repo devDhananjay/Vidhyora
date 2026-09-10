@@ -47,13 +47,34 @@ export async function updateVariantStock(
     }
 
     // Update stock
-    await prisma.productVariant.update({
+    const updated = await prisma.productVariant.update({
       where: { id: validated.variantId },
       data: { stock: validated.stock },
+      include: {
+        product: {
+          select: {
+            name: true,
+            sellerId: true,
+          },
+        },
+      },
     });
 
     revalidatePath("/seller/inventory");
     revalidatePath(`/seller/products/${variant.productId}`);
+
+    try {
+      const { notifyLowStockIfNeeded } = await import(
+        "@/lib/email/transactional"
+      );
+      await notifyLowStockIfNeeded(
+        updated.product.sellerId,
+        updated.product.name,
+        updated.stock - updated.reservedStock,
+      );
+    } catch (error) {
+      console.error("Low stock email failed:", error);
+    }
 
     return {
       success: true,

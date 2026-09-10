@@ -1,16 +1,11 @@
 "use server";
 
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
+import { revalidatePath } from "next/cache";
+import { uploadFile } from "@/lib/storage";
 import { getActingSeller } from "@/lib/seller-context";
 import type { ActionResult } from "@/lib/utils";
 
 const MAX_BYTES = 5 * 1024 * 1024;
-const ALLOWED = new Map([
-  ["image/jpeg", "jpg"],
-  ["image/png", "png"],
-  ["image/webp", "webp"],
-]);
 
 export async function uploadProductImage(
   formData: FormData,
@@ -25,44 +20,19 @@ export async function uploadProductImage(
     if (!(file instanceof File) || file.size === 0) {
       return { success: false, error: "Please choose an image" };
     }
-    if (file.size > MAX_BYTES) {
-      return { success: false, error: "Image must be 5 MB or smaller" };
-    }
-    const ext = ALLOWED.get(file.type);
-    if (!ext) {
-      return { success: false, error: "Upload a JPG, PNG, or WEBP image" };
-    }
 
-    const dir = path.join(
-      process.cwd(),
-      "public",
-      "uploads",
-      "products",
-      acting.sellerUserId,
-    );
-    await mkdir(dir, { recursive: true });
+    const uploaded = await uploadFile(file, {
+      maxSize: MAX_BYTES,
+      allowedTypes: ["image/jpeg", "image/jpg", "image/png", "image/webp"],
+      folder: `uploads/products/${acting.sellerUserId}`,
+    });
 
-    const safeBase = file.name
-      .toLowerCase()
-      .replace(/\.(jpe?g|png|webp)$/i, "")
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-|-$/g, "")
-      .slice(0, 40);
-    const filename = `${Date.now()}-${safeBase || "image"}.${ext}`;
-    await writeFile(
-      path.join(dir, filename),
-      Buffer.from(await file.arrayBuffer()),
-    );
-
-    return {
-      success: true,
-      data: {
-        url: `/uploads/products/${acting.sellerUserId}/${filename}`,
-      },
-    };
+    return { success: true, data: { url: uploaded.url } };
   } catch (error) {
     console.error("Upload product image error:", error);
-    return { success: false, error: "Failed to upload image" };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to upload image",
+    };
   }
 }

@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BLOG_POSTS, getBlogPost } from "@/lib/content/blog-posts";
+import {
+  getBlogPostBySlug,
+  getBlogPosts,
+} from "@/lib/content/get-blog-posts";
 import { ROUTES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 
@@ -10,15 +13,11 @@ type BlogPostPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export function generateStaticParams() {
-  return BLOG_POSTS.map((post) => ({ slug: post.slug }));
-}
-
 export async function generateMetadata({
   params,
 }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = getBlogPost(slug);
+  const post = await getBlogPostBySlug(slug);
   if (!post) return { title: "Article | VIDYORA" };
   return {
     title: `${post.title} | VIDYORA Blog`,
@@ -36,10 +35,11 @@ export async function generateMetadata({
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params;
-  const post = getBlogPost(slug);
+  const posts = await getBlogPosts();
+  const post = posts.find((item) => item.slug === slug);
   if (!post) notFound();
 
-  const more = BLOG_POSTS.filter((item) => item.slug !== post.slug).slice(0, 3);
+  const more = posts.filter((item) => item.slug !== post.slug).slice(0, 3);
 
   return (
     <div className="bg-[#faf8f6]">

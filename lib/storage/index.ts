@@ -1,7 +1,10 @@
 /**
- * Image Upload and Storage Service
- * Supports both local storage (dev) and cloud storage (production)
+ * File uploads — local disk in development, S3/R2 when STORAGE_* is set.
  */
+
+import { mkdir, writeFile } from "fs/promises";
+import path from "path";
+import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
 export type UploadedFile = {
   url: string;
@@ -12,27 +15,49 @@ export type UploadedFile = {
 };
 
 export type UploadOptions = {
-  maxSize?: number; // in bytes
+  maxSize?: number;
   allowedTypes?: string[];
   folder?: string;
 };
 
 const DEFAULT_OPTIONS: UploadOptions = {
-  maxSize: 5 * 1024 * 1024, // 5MB
-  allowedTypes: ["image/jpeg", "image/jpg", "image/png", "image/webp"],
+  maxSize: 5 * 1024 * 1024,
+  allowedTypes: [
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+    "application/pdf",
+  ],
   folder: "uploads",
 };
 
-/**
- * Validate file before upload
- */
+function storageConfigured() {
+  return Boolean(
+    process.env.STORAGE_BUCKET?.trim() &&
+      process.env.STORAGE_ACCESS_KEY?.trim() &&
+      process.env.STORAGE_SECRET_KEY?.trim(),
+  );
+}
+
+function getS3Client() {
+  return new S3Client({
+    endpoint: process.env.STORAGE_ENDPOINT || undefined,
+    region: process.env.STORAGE_REGION || "auto",
+    credentials: {
+      accessKeyId: process.env.STORAGE_ACCESS_KEY!,
+      secretAccessKey: process.env.STORAGE_SECRET_KEY!,
+    },
+    forcePathStyle: Boolean(process.env.STORAGE_ENDPOINT),
+  });
+}
+
 export function validateFile(
-  file: File,
+  file: { size: number; type: string },
   options: UploadOptions = DEFAULT_OPTIONS,
 ): { valid: boolean; error?: string } {
   const opts = { ...DEFAULT_OPTIONS, ...options };
 
-  // Check file size
   if (opts.maxSize && file.size > opts.maxSize) {
     return {
       valid: false,
@@ -40,7 +65,6 @@ export function validateFile(
     };
   }
 
-  // Check file type
   if (opts.allowedTypes && !opts.allowedTypes.includes(file.type)) {
     return {
       valid: false,
@@ -51,176 +75,109 @@ export function validateFile(
   return { valid: true };
 }
 
-/**
- * Upload file to storage
- * For production: Swap this implementation with S3/Cloudflare R2
- */
+function sanitizeName(name: string) {
+  return name
+    .toLowerCase()
+    .replace(/\.[a-z0-9]+$/i, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 40);
+}
+
+function extensionFor(file: File) {
+  const map: Record<string, string> = {
+    "image/jpeg": "jpg",
+    "image/jpg": "jpg",
+    "image/png": "png",
+    "image/webp": "webp",
+    "application/pdf": "pdf",
+  };
+  return map[file.type] || "bin";
+}
+
 export async function uploadFile(
   file: File,
   options: UploadOptions = DEFAULT_OPTIONS,
 ): Promise<UploadedFile> {
-  // Validate file
-  const validation = validateFile(file, options);
+  const opts = { ...DEFAULT_OPTIONS, ...options };
+  const validation = validateFile(file, opts);
   if (!validation.valid) {
     throw new Error(validation.error);
   }
 
-  // For development: Convert to base64 data URL
-  // For production: Replace with actual S3/Cloudflare R2 upload
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    
-    reader.onload = () => {
-      const dataUrl = reader.result as string;
-      const key = `${options.folder}/${Date.now()}-${file.name}`;
-      
-      resolve({
-        url: dataUrl, // In production, this would be the S3/CDN URL
-        key,
-        name: file.name,
-        size: file.size,
-        type: file.type,
-      });
+  const folder = (opts.folder || "uploads").replace(/^\/+|\/+$/g, "");
+  const ext = extensionFor(file);
+  const base = sanitizeName(file.name) || "file";
+  const key = `${folder}/${Date.now()}-${base}.${ext}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+
+  if (storageConfigured()) {
+    const client = getS3Client();
+    const bucket = process.env.STORAGE_BUCKET!;
+    await client.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: buffer,
+        ContentType: file.type,
+      }),
+    );
+
+    const publicBase = (
+      process.env.STORAGE_PUBLIC_URL ||
+      process.env.STORAGE_ENDPOINT ||
+      ""
+    ).replace(/\/$/, "");
+    const url = publicBase
+      ? `${publicBase}/${key}`
+      : `https://${bucket}.s3.amazonaws.com/${key}`;
+
+    return {
+      url,
+      key,
+      name: file.name,
+      size: file.size,
+      type: file.type,
     };
-    
-    reader.onerror = () => reject(new Error("Failed to read file"));
-    reader.readAsDataURL(file);
-  });
+  }
+
+  const absDir = path.join(process.cwd(), "public", ...folder.split("/"));
+  await mkdir(absDir, { recursive: true });
+  const filename = path.basename(key);
+  await writeFile(path.join(absDir, filename), buffer);
+
+  return {
+    url: `/${folder}/${filename}`.replace(/\/+/g, "/"),
+    key,
+    name: file.name,
+    size: file.size,
+    type: file.type,
+  };
 }
 
-/**
- * Upload multiple files
- */
 export async function uploadFiles(
   files: File[],
   options: UploadOptions = DEFAULT_OPTIONS,
 ): Promise<UploadedFile[]> {
-  const uploads = files.map((file) => uploadFile(file, options));
-  return Promise.all(uploads);
+  return Promise.all(files.map((file) => uploadFile(file, options)));
 }
 
-/**
- * Delete file from storage
- * For production: Implement actual S3 deletion
- */
+export function getPublicUrl(key: string): string {
+  if (storageConfigured() && process.env.STORAGE_PUBLIC_URL) {
+    return `${process.env.STORAGE_PUBLIC_URL.replace(/\/$/, "")}/${key}`;
+  }
+  return `/${key}`;
+}
+
 export async function deleteFile(key: string): Promise<void> {
-  // For production: Implement S3/Cloudflare R2 deletion
-  console.log(`File deleted: ${key}`);
+  if (!storageConfigured()) return;
+  const { DeleteObjectCommand } = await import("@aws-sdk/client-s3");
+  const client = getS3Client();
+  await client.send(
+    new DeleteObjectCommand({
+      Bucket: process.env.STORAGE_BUCKET!,
+      Key: key,
+    }),
+  );
 }
-
-/**
- * Get public URL for a file
- * For production: Return CDN URL
- */
-export function getFileUrl(key: string): string {
-  // For production: Return proper CDN URL
-  // For now, return the key as-is (assuming it's a data URL or relative path)
-  return key;
-}
-
-/**
- * Compress image before upload
- * Basic implementation - for production consider using sharp or similar
- */
-export async function compressImage(file: File, maxWidth = 1200): Promise<File> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let { width, height } = img;
-        
-        // Resize if needed
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
-        }
-        
-        canvas.width = width;
-        canvas.height = height;
-        
-        const ctx = canvas.getContext("2d");
-        ctx?.drawImage(img, 0, 0, width, height);
-        
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              const compressedFile = new File([blob], file.name, {
-                type: file.type,
-                lastModified: Date.now(),
-              });
-              resolve(compressedFile);
-            } else {
-              reject(new Error("Failed to compress image"));
-            }
-          },
-          file.type,
-          0.85, // Quality
-        );
-      };
-      
-      img.onerror = () => reject(new Error("Failed to load image"));
-      img.src = e.target?.result as string;
-    };
-    
-    reader.onerror = () => reject(new Error("Failed to read file"));
-    reader.readAsDataURL(file);
-  });
-}
-
-// =============================================================================
-// PRODUCTION IMPLEMENTATION GUIDE
-// =============================================================================
-/**
- * To use with S3/Cloudflare R2 in production:
- * 
- * 1. Install dependencies:
- *    npm install @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
- * 
- * 2. Add environment variables:
- *    STORAGE_ENDPOINT=https://s3.amazonaws.com (or Cloudflare R2 endpoint)
- *    STORAGE_ACCESS_KEY=your_access_key
- *    STORAGE_SECRET_KEY=your_secret_key
- *    STORAGE_BUCKET=your_bucket_name
- *    STORAGE_REGION=us-east-1
- *    STORAGE_PUBLIC_URL=https://cdn.yourdomain.com
- * 
- * 3. Replace uploadFile function with:
- * 
- *    import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
- *    import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
- * 
- *    const s3Client = new S3Client({
- *      endpoint: process.env.STORAGE_ENDPOINT,
- *      region: process.env.STORAGE_REGION || "auto",
- *      credentials: {
- *        accessKeyId: process.env.STORAGE_ACCESS_KEY!,
- *        secretAccessKey: process.env.STORAGE_SECRET_KEY!,
- *      },
- *    });
- * 
- *    export async function uploadFile(file: File, options: UploadOptions = DEFAULT_OPTIONS) {
- *      const validation = validateFile(file, options);
- *      if (!validation.valid) throw new Error(validation.error);
- * 
- *      const key = `${options.folder}/${Date.now()}-${file.name}`;
- *      const buffer = Buffer.from(await file.arrayBuffer());
- * 
- *      await s3Client.send(new PutObjectCommand({
- *        Bucket: process.env.STORAGE_BUCKET!,
- *        Key: key,
- *        Body: buffer,
- *        ContentType: file.type,
- *      }));
- * 
- *      return {
- *        url: `${process.env.STORAGE_PUBLIC_URL}/${key}`,
- *        key,
- *        name: file.name,
- *        size: file.size,
- *        type: file.type,
- *      };
- *    }
- */

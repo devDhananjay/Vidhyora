@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { CategoryForm } from "@/components/admin/category-form";
+import { CategoryAttributesForm } from "@/components/admin/category-attributes-form";
 import { getAllCategories, getCategoryById } from "@/actions/admin/manage-categories";
 
 export const metadata: Metadata = {
@@ -34,6 +35,11 @@ export default async function EditCategoryPage({
       <CategoryForm
         category={category}
         categories={allCategories.filter((c) => c.id !== id)} // Exclude self from parent options
+      />
+
+      <CategoryAttributesForm
+        categoryId={category.id}
+        attributes={category.attributes}
       />
     </div>
   );

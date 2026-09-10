@@ -2,7 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { requireAuth, requireAdmin } from "@/lib/auth-helpers";
-import { isSuperAdmin } from "@/lib/roles";
+import { isPlatformAdmin } from "@/lib/roles";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/utils";
 import { reverseEarningForOrderItem } from "@/lib/payouts/record-earnings";
@@ -49,7 +49,7 @@ export async function getAllReturnRequests() {
 
 async function canModerate(requestSellerId: string) {
   const session = await requireAuth();
-  if (isSuperAdmin(session.user.role)) {
+  if (isPlatformAdmin(session.user.role)) {
     return { ok: true as const, session };
   }
   if (session.user.role === "SELLER" && session.user.id === requestSellerId) {
@@ -155,6 +155,46 @@ export async function rejectReturnRequest(
   }
 }
 
+export async function markReturnPickedUp(
+  id: string,
+): Promise<ActionResult<void>> {
+  try {
+    const request = await prisma.returnRequest.findUnique({
+      where: { id },
+      include: { orderItem: true },
+    });
+    if (!request) {
+      return { success: false, error: "Return request not found" };
+    }
+
+    const access = await canModerate(request.orderItem.sellerId);
+    if (!access.ok) {
+      return { success: false, error: "You cannot moderate this request" };
+    }
+
+    if (request.status !== "APPROVED") {
+      return {
+        success: false,
+        error: "Only approved returns can be marked picked up",
+      };
+    }
+
+    await prisma.returnRequest.update({
+      where: { id },
+      data: { status: "PICKED_UP" },
+    });
+
+    revalidatePath("/admin/returns");
+    revalidatePath("/seller/returns");
+    revalidatePath("/admin");
+
+    return { success: true, data: undefined };
+  } catch (error) {
+    console.error("Mark return picked up error:", error);
+    return { success: false, error: "Failed to update pickup status" };
+  }
+}
+
 export async function completeReturnRequest(
   id: string,
 ): Promise<ActionResult<void>> {
@@ -181,8 +221,11 @@ export async function completeReturnRequest(
       return { success: false, error: "You cannot moderate this request" };
     }
 
-    if (request.status !== "APPROVED") {
-      return { success: false, error: "Approve the request before completing it" };
+    if (request.status !== "APPROVED" && request.status !== "PICKED_UP") {
+      return {
+        success: false,
+        error: "Approve (and optionally pick up) before completing",
+      };
     }
 
     const item = request.orderItem;

@@ -1,6 +1,7 @@
 import type { Address, CartItem, Product, ProductVariant } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 import { calculateOrderTotals, generateOrderNumber } from "@/lib/orders/order-utils";
+import { giftPackagingFeeForItems } from "@/lib/cart/gift-packaging";
 
 type CartLine = CartItem & {
   product: Product;
@@ -31,7 +32,7 @@ export function addressSnapshot(address: Address) {
 
 export function cartTotals(
   items: CartLine[],
-  options?: { discount?: number },
+  options?: { discount?: number; distanceKm?: number },
 ) {
   return calculateOrderTotals(
     items.map((item) => ({
@@ -39,7 +40,10 @@ export function cartTotals(
       quantity: item.quantity,
       tax: Number(item.product.tax),
     })),
-    options,
+    {
+      ...options,
+      giftPackagingFee: giftPackagingFeeForItems(items),
+    },
   );
 }
 
@@ -92,6 +96,7 @@ export async function createShopOrder(
       subtotal: totals.subtotal,
       discount: totals.discount,
       shippingFee: totals.shippingFee,
+      giftPackagingFee: totals.giftPackagingFee,
       tax: totals.tax,
       total: totals.total,
       couponCode: options.couponCode ?? null,
@@ -112,6 +117,7 @@ export async function createShopOrder(
           productName: item.product.name,
           sku: item.variant.sku,
           variantLabel: variantLabelFrom(item.variant.attributes),
+          giftPackaging: item.giftPackaging,
         })),
       },
     },

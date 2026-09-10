@@ -74,6 +74,11 @@ export function OrderReview({ items }: OrderReviewProps) {
                     Qty: {item.quantity}
                   </span>
                 </div>
+                {item.giftPackaging ? (
+                  <p className="text-xs font-medium text-[#2f6b4f]">
+                    Gift packaging included
+                  </p>
+                ) : null}
               </div>
 
               <div className="flex items-center justify-between font-semibold sm:block sm:text-right">

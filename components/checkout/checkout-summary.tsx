@@ -186,6 +186,13 @@ export function CheckoutSummary({
           </span>
         </div>
 
+        {summary.giftPackaging > 0 ? (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Gift packaging</span>
+            <span>{formatCurrency(summary.giftPackaging)}</span>
+          </div>
+        ) : null}
+
         <div className="flex justify-between">
           <span className="text-muted-foreground">Tax (GST 18%)</span>
           <span>{formatCurrency(summary.tax)}</span>

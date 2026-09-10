@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Handshake, ShieldCheck, Store, TrendingUp } from "lucide-react";
 import { auth } from "@/lib/auth";
-import { isSellerAdmin, isSuperAdmin } from "@/lib/roles";
+import { isSellerAdmin, isPlatformAdmin } from "@/lib/roles";
 import { ROUTES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default async function PartnerPage() {
   const session = await auth();
   const alreadySeller =
-    isSellerAdmin(session?.user?.role) || isSuperAdmin(session?.user?.role);
+    isSellerAdmin(session?.user?.role) || isPlatformAdmin(session?.user?.role);
   const applyHref = alreadySeller ? ROUTES.seller.root : ROUTES.auth.sellerRegister;
 
   return (

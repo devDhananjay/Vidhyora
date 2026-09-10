@@ -44,7 +44,7 @@ export function StorefrontHeader({
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 overflow-visible border-b border-neutral-100 bg-white/95 backdrop-blur-sm transition-[box-shadow] duration-300",
+        "sticky top-0 z-50 overflow-visible border-b border-neutral-100 bg-white/95 backdrop-blur-sm transition-[box-shadow] duration-300 print:hidden",
         compact && "shadow-[0_4px_18px_rgba(43,26,22,0.08)]",
       )}
     >

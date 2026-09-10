@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { BLOG_POSTS } from "@/lib/content/blog-posts";
+import { getBlogPosts } from "@/lib/content/get-blog-posts";
 
 export const metadata: Metadata = {
   title: "Blog | VIDYORA",
@@ -12,8 +12,9 @@ export const metadata: Metadata = {
   },
 };
 
-export default function BlogPage() {
-  const [featured, ...rest] = BLOG_POSTS;
+export default async function BlogPage() {
+  const posts = await getBlogPosts();
+  const [featured, ...rest] = posts;
 
   return (
     <div className="bg-[#faf8f6]">

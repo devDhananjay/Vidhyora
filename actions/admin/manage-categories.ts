@@ -1,7 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth-helpers";
+import { requireAdmin, requireSeller } from "@/lib/auth-helpers";
 import { revalidatePath } from "next/cache";
 import { categorySchema, type CategoryInput } from "@/lib/validations/category";
 import type { ActionResult } from "@/lib/utils";
@@ -156,7 +156,7 @@ export async function deleteCategory(id: string): Promise<ActionResult<void>> {
 
 export async function getAllCategories() {
   try {
-    await requireAdmin();
+    await requireSeller();
 
     const categories = await prisma.category.findMany({
       include: {
@@ -173,6 +173,9 @@ export async function getAllCategories() {
             name: true,
             slug: true,
           },
+        },
+        attributes: {
+          orderBy: { sortOrder: "asc" },
         },
         _count: {
           select: {

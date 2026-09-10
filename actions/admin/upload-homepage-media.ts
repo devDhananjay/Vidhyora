@@ -2,7 +2,7 @@
 
 import { mkdir, writeFile } from "fs/promises";
 import path from "path";
-import { requireAdmin } from "@/lib/auth-helpers";
+import { requireSuperAdmin } from "@/lib/auth-helpers";
 import type { ActionResult } from "@/lib/utils";
 
 const IMAGE_MAX = 5 * 1024 * 1024;
@@ -28,7 +28,7 @@ export async function uploadHomepageMedia(
   formData: FormData,
 ): Promise<ActionResult<{ url: string; kind: "image" | "video" }>> {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
 
     const file = formData.get("file");
     if (!(file instanceof File) || file.size === 0) {

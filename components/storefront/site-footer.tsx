@@ -59,7 +59,7 @@ export function SiteFooter({ settings }: SiteFooterProps) {
   ].filter((item) => item.href);
 
   return (
-    <footer className="bg-[#3b0f14] text-[#f4ece6]">
+    <footer className="bg-[#3b0f14] text-[#f4ece6] print:hidden">
       <div className="mx-auto max-w-7xl px-4 py-14 md:px-6">
         <div className="grid items-start gap-10 md:grid-cols-[200px_1fr_1fr_1fr] md:gap-8 lg:gap-12">
           <div className="flex justify-start md:-ml-1 md:self-center">

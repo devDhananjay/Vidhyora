@@ -6,22 +6,40 @@ export function generateOrderNumber(): string {
   return `ORD${timestamp.slice(-8)}${random}`;
 }
 
+export function calculateShippingFee(
+  subtotal: number,
+  distanceKm?: number,
+): number {
+  if (subtotal >= 500) return 0;
+  if (distanceKm == null) return 50;
+  if (distanceKm <= 50) return 0;
+  return Math.min(150, 50 + Math.ceil((distanceKm - 50) / 10) * 10);
+}
+
 export function calculateOrderTotals(
   items: Array<{ price: number; quantity: number; tax: number }>,
-  options?: { discount?: number },
+  options?: {
+    discount?: number;
+    distanceKm?: number;
+    giftPackagingFee?: number;
+  },
 ) {
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const tax = items.reduce((sum, item) => sum + Number(item.tax) * item.quantity, 0);
-  
-  // Shipping logic: Free for orders >= ₹500
-  const shippingFee = subtotal >= 500 ? 0 : 50;
+
+  const shippingFee = calculateShippingFee(subtotal, options?.distanceKm);
+  const giftPackagingFee = Math.max(0, options?.giftPackagingFee ?? 0);
   const discount = Math.min(Math.max(0, options?.discount ?? 0), subtotal);
-  const total = Math.max(0, subtotal + tax + shippingFee - discount);
+  const total = Math.max(
+    0,
+    subtotal + tax + shippingFee + giftPackagingFee - discount,
+  );
 
   return {
     subtotal,
     tax,
     shippingFee,
+    giftPackagingFee,
     total,
     discount,
   };

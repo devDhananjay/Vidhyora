@@ -1,3 +1,5 @@
+"use client";
+
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -40,11 +42,13 @@ export function StarRating({
           <button
             key={star}
             type="button"
-            onClick={() => handleClick(star)}
+            onClick={interactive ? () => handleClick(star) : undefined}
             disabled={!interactive}
             className={cn(
               "relative",
-              interactive && "cursor-pointer hover:scale-110 transition-transform",
+              interactive &&
+                "cursor-pointer transition-transform hover:scale-110",
+              !interactive && "cursor-default",
             )}
           >
             <Star

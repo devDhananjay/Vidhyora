@@ -133,3 +133,30 @@
 .animate-vidyora-twinkle {
   animation: vidyora-twinkle 2.4s ease-in-out infinite;
 }
+
+@media print {
+  @page {
+    margin: 14mm 16mm;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #111 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-invoice-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+
+  .print-invoice-sheet * {
+    overflow: visible !important;
+  }
+}

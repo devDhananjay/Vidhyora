@@ -103,6 +103,7 @@ export const createProductSchema = z.object({
   basePrice: requiredNumber,
   compareAtPrice: optionalNumber,
   tax: z.coerce.number().min(0).max(100).catch(0).default(0),
+  attributes: z.record(z.string()).optional().default({}),
 });
 
 export type ProductBasicInfoInput = z.infer<typeof productBasicInfoSchema>;
@@ -190,5 +191,15 @@ export function normalizeProductFormValues(product: any): CreateProductInput {
         ? undefined
         : Number(product.compareAtPrice),
     tax: Number(product.tax) || 0,
+    attributes:
+      product.attributes &&
+      typeof product.attributes === "object" &&
+      !Array.isArray(product.attributes)
+        ? Object.fromEntries(
+            Object.entries(product.attributes as Record<string, unknown>).map(
+              ([key, value]) => [key, String(value ?? "")],
+            ),
+          )
+        : {},
   };
 }

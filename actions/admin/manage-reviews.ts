@@ -5,12 +5,14 @@ import { requireAdmin } from "@/lib/auth-helpers";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/utils";
 
-export async function getPendingReviews() {
+export async function getReviewsByStatus(
+  status: "PENDING" | "APPROVED" | "REJECTED" | "ALL" = "PENDING",
+) {
   try {
     await requireAdmin();
 
-    const reviews = await prisma.review.findMany({
-      where: { status: "PENDING" },
+    return prisma.review.findMany({
+      where: status === "ALL" ? undefined : { status },
       include: {
         user: {
           select: {
@@ -27,13 +29,16 @@ export async function getPendingReviews() {
         },
       },
       orderBy: { createdAt: "desc" },
+      take: 100,
     });
-
-    return reviews;
   } catch (error) {
-    console.error("Get pending reviews error:", error);
+    console.error("Get reviews by status error:", error);
     return [];
   }
+}
+
+export async function getPendingReviews() {
+  return getReviewsByStatus("PENDING");
 }
 
 export async function approveReview(

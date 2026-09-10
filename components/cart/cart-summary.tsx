@@ -68,6 +68,13 @@ export function CartSummary({
           </span>
         </div>
 
+        {summary.giftPackaging > 0 ? (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Gift packaging</span>
+            <span>{formatCurrency(summary.giftPackaging)}</span>
+          </div>
+        ) : null}
+
         {summary.subtotal < 500 && (
           <div className="flex items-center gap-2 rounded bg-blue-50 p-2 text-xs text-blue-700">
             <Truck className="size-4" />

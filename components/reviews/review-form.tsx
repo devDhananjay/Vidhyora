@@ -4,14 +4,26 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createReviewSchema, type CreateReviewInput } from "@/lib/validations/review";
+import { z } from "zod";
 import { createReview } from "@/actions/reviews/create-review";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { StarRating } from "@/components/reviews/star-rating";
-import { Star } from "lucide-react";
+
+const reviewFormSchema = z.object({
+  title: z
+    .string()
+    .min(5, "Title must be at least 5 characters")
+    .max(100, "Title must be at most 100 characters"),
+  comment: z
+    .string()
+    .min(20, "Review must be at least 20 characters")
+    .max(1000, "Review must be at most 1000 characters"),
+});
+
+type ReviewFormValues = z.infer<typeof reviewFormSchema>;
 
 type ReviewFormProps = {
   productId: string;
@@ -29,52 +41,57 @@ export function ReviewForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [rating, setRating] = useState(0);
+  const [ratingError, setRatingError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
-  } = useForm<Partial<CreateReviewInput>>({
-    resolver: zodResolver(createReviewSchema) as any,
+  } = useForm<ReviewFormValues>({
+    resolver: zodResolver(reviewFormSchema),
+    defaultValues: {
+      title: "",
+      comment: "",
+    },
   });
 
-  const onSubmit = async (data: Partial<CreateReviewInput>) => {
-    if (rating === 0) {
-      alert("Please select a rating");
+  const onSubmit = (data: ReviewFormValues) => {
+    if (rating < 1) {
+      setRatingError("Please select a rating");
       return;
     }
+
+    setRatingError(null);
+    setSubmitError(null);
 
     startTransition(async () => {
       const formData = new FormData();
       formData.append("productId", productId);
       formData.append("orderItemId", orderItemId);
-      formData.append("rating", rating.toString());
-      formData.append("title", data.title || "");
-      formData.append("comment", data.comment || "");
+      formData.append("rating", String(rating));
+      formData.append("title", data.title.trim());
+      formData.append("comment", data.comment.trim());
       formData.append("images", JSON.stringify([]));
 
       const result = await createReview(formData);
 
       if (result.success) {
-        alert("Review submitted successfully! It will be published after moderation.");
         onSuccess?.();
         router.refresh();
       } else {
-        alert(result.error);
+        setSubmitError(result.error || "Failed to submit review");
       }
     });
   };
 
   return (
-    <div className="rounded-lg border p-6">
-      <h3 className="mb-4 text-lg font-semibold">Write a Review</h3>
-      <p className="mb-4 text-sm text-muted-foreground">
-        Reviewing: <span className="font-medium">{productName}</span>
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Reviewing: <span className="font-medium text-foreground">{productName}</span>
       </p>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        {/* Rating */}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div>
           <Label>Rating *</Label>
           <div className="mt-2 flex items-center gap-2">
@@ -82,17 +99,22 @@ export function ReviewForm({
               rating={rating}
               size="lg"
               interactive
-              onRatingChange={setRating}
+              onRatingChange={(value) => {
+                setRating(value);
+                setRatingError(null);
+              }}
             />
-            {rating > 0 && (
+            {rating > 0 ? (
               <span className="text-sm text-muted-foreground">
                 ({rating} {rating === 1 ? "star" : "stars"})
               </span>
-            )}
+            ) : null}
           </div>
+          {ratingError ? (
+            <p className="mt-1 text-sm text-destructive">{ratingError}</p>
+          ) : null}
         </div>
 
-        {/* Title */}
         <div>
           <Label htmlFor="title">Review Title *</Label>
           <Input
@@ -101,14 +123,13 @@ export function ReviewForm({
             placeholder="Summarize your experience"
             className="mt-2"
           />
-          {errors.title && (
+          {errors.title ? (
             <p className="mt-1 text-sm text-destructive">
               {errors.title.message}
             </p>
-          )}
+          ) : null}
         </div>
 
-        {/* Comment */}
         <div>
           <Label htmlFor="comment">Your Review *</Label>
           <Textarea
@@ -121,14 +142,19 @@ export function ReviewForm({
           <p className="mt-1 text-xs text-muted-foreground">
             Minimum 20 characters
           </p>
-          {errors.comment && (
+          {errors.comment ? (
             <p className="mt-1 text-sm text-destructive">
               {errors.comment.message}
             </p>
-          )}
+          ) : null}
         </div>
 
-        {/* Submit */}
+        {submitError ? (
+          <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+            {submitError}
+          </p>
+        ) : null}
+
         <Button type="submit" disabled={isPending} className="w-full">
           {isPending ? "Submitting..." : "Submit Review"}
         </Button>

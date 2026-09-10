@@ -3,7 +3,7 @@ import { requireSeller } from "@/lib/auth-helpers";
 import { getActingSeller, listSellersForAdminView } from "@/lib/seller-context";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 import { AdminSellerSwitcher } from "@/components/seller/admin-seller-switcher";
-import { isSuperAdmin } from "@/lib/roles";
+import { isPlatformAdmin } from "@/lib/roles";
 
 export default async function SellerLayout({
   children,
@@ -18,7 +18,7 @@ export default async function SellerLayout({
 
   const acting = await getActingSeller();
   const sellers =
-    isSuperAdmin(session.user.role) ? await listSellersForAdminView() : [];
+    isPlatformAdmin(session.user.role) ? await listSellersForAdminView() : [];
 
   return (
     <DashboardShell
@@ -30,8 +30,8 @@ export default async function SellerLayout({
       }
       extraLinks={[
         { href: "/", label: "View Storefront" },
-        ...(isSuperAdmin(session.user.role)
-          ? [{ href: "/admin", label: "Super Admin" }]
+        ...(isPlatformAdmin(session.user.role)
+          ? [{ href: "/admin", label: "Admin" }]
           : []),
       ]}
     >

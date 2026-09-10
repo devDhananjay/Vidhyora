@@ -2,7 +2,11 @@ import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { authConfig } from "@/lib/auth.config";
-import { dashboardPath, isSellerAdmin, isSuperAdmin } from "@/lib/roles";
+import {
+  dashboardPath,
+  isPlatformAdmin,
+  isSellerAdmin,
+} from "@/lib/roles";
 import { safeCallbackPath } from "@/lib/auth/callback-url";
 
 const { auth } = NextAuth(authConfig);
@@ -46,7 +50,7 @@ export async function middleware(request: NextRequest) {
     if (matchesPrefix(pathname, "/seller/register")) {
       if (
         isSellerAdmin(session.user.role) ||
-        isSuperAdmin(session.user.role)
+        isPlatformAdmin(session.user.role)
       ) {
         return NextResponse.redirect(new URL("/seller", request.url));
       }
@@ -66,14 +70,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isAdminRoute && !isSuperAdmin(session?.user?.role)) {
+  if (isAdminRoute && !isPlatformAdmin(session?.user?.role)) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
   if (
     isSellerRoute &&
     !isSellerAdmin(session?.user?.role) &&
-    !isSuperAdmin(session?.user?.role)
+    !isPlatformAdmin(session?.user?.role)
   ) {
     return NextResponse.redirect(new URL("/", request.url));
   }

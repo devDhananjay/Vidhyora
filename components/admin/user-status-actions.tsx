@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Ban, CheckCircle } from "lucide-react";
 import { setUserActive } from "@/actions/admin/manage-users";
 import { Button } from "@/components/ui/button";
-import { isSuperAdmin } from "@/lib/roles";
+import { isPlatformAdmin } from "@/lib/roles";
 
 export function UserStatusActions({
   userId,
@@ -19,7 +19,7 @@ export function UserStatusActions({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  if (isSuperAdmin(role)) {
+  if (isPlatformAdmin(role)) {
     return (
       <p className="text-sm text-muted-foreground">
         Super Admin accounts stay active from this screen.

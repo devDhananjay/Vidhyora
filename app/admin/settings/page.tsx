@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { APP_NAME, APP_DESCRIPTION, DEFAULT_CURRENCY } from "@/lib/constants";
 import { DEFAULT_COMMISSION_PERCENTAGE } from "@/lib/commission";
+import { requireSuperAdmin } from "@/lib/auth-helpers";
 import { getCommissionSettings } from "@/actions/admin/manage-commission";
 import {
   ensureSiteSettingsSeeded,
@@ -18,6 +20,12 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminSettingsPage() {
+  try {
+    await requireSuperAdmin();
+  } catch {
+    redirect("/admin");
+  }
+
   await ensureSiteSettingsSeeded();
   const [commission, site] = await Promise.all([
     getCommissionSettings(),
@@ -119,9 +127,13 @@ export default async function AdminSettingsPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Commerce</CardTitle>
+            <CardTitle>Commerce (code defaults)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              These values are fixed in app code today — display only, not
+              editable from admin.
+            </p>
             <div className="flex items-center justify-between rounded-xl border px-4 py-3">
               <div>
                 <div className="font-medium">Currency</div>
@@ -163,9 +175,12 @@ export default async function AdminSettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Policies & payments</CardTitle>
+            <CardTitle>Policies & payments (code defaults)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Runtime flags live in code. Badge status is informational.
+            </p>
             <div className="flex items-center justify-between rounded-xl border px-4 py-3">
               <div>
                 <div className="font-medium">Product approval</div>

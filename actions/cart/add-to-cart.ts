@@ -15,6 +15,7 @@ export async function addToCart(
       productId: formData.get("productId"),
       variantId: formData.get("variantId"),
       quantity: parseInt(formData.get("quantity") as string) || 1,
+      giftPackaging: formData.get("giftPackaging") === "true",
     };
 
     const validatedData = addToCartSchema.parse(rawData);
@@ -78,6 +79,8 @@ export async function addToCart(
         data: {
           quantity: newQuantity,
           savedForLater: false,
+          giftPackaging:
+            validatedData.giftPackaging || existingItem.giftPackaging,
         },
       });
       cartItemId = updated.id;
@@ -88,6 +91,7 @@ export async function addToCart(
           productId: validatedData.productId,
           variantId: validatedData.variantId,
           quantity: validatedData.quantity,
+          giftPackaging: validatedData.giftPackaging,
         },
       });
       cartItemId = created.id;

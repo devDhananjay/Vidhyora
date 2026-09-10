@@ -26,6 +26,8 @@ import {
   Home,
   Globe,
   Mail,
+  MessageSquare,
+  BookOpen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "@/components/brand/brand-logo";
@@ -40,7 +42,9 @@ const ADMIN_NAV = [
   { label: "Mega Menu", href: "/admin/mega-menu", icon: PanelTop },
   { label: "Homepage", href: "/admin/homepage", icon: Home },
   { label: "Website Settings", href: "/admin/settings", icon: Globe },
+  { label: "Blog", href: "/admin/blog", icon: BookOpen },
   { label: "Emails", href: "/admin/emails", icon: Mail },
+  { label: "Contact", href: "/admin/contact-messages", icon: MessageSquare },
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { label: "Returns", href: "/admin/returns", icon: RotateCcw },
   { label: "Reviews", href: "/admin/reviews", icon: Star },
@@ -64,19 +68,40 @@ const SELLER_NAV = [
   { label: "Settings", href: "/seller/settings", icon: Settings },
 ];
 
+const SUPER_ADMIN_ONLY_HREFS = new Set([
+  "/admin/mega-menu",
+  "/admin/homepage",
+  "/admin/settings",
+  "/admin/blog",
+  "/admin/emails",
+]);
+
 export function DashboardShell({
   variant,
   userName,
+  userRole,
   extraLinks,
   children,
 }: {
   variant: "admin" | "seller";
   userName?: string | null;
+  userRole?: string | null;
   extraLinks?: { href: string; label: string }[];
   children: React.ReactNode;
 }) {
-  const items = variant === "admin" ? ADMIN_NAV : SELLER_NAV;
-  const badge = variant === "admin" ? "Super Admin" : "Seller Admin";
+  const isSuper = userRole === "SUPER_ADMIN";
+  const items =
+    variant === "admin"
+      ? ADMIN_NAV.filter(
+          (item) => isSuper || !SUPER_ADMIN_ONLY_HREFS.has(item.href),
+        )
+      : SELLER_NAV;
+  const badge =
+    variant === "admin"
+      ? isSuper
+        ? "Super Admin"
+        : "Admin"
+      : "Seller Admin";
   const [mobileOpen, setMobileOpen] = useState(false);
   const pathname = usePathname();
 

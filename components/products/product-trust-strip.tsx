@@ -34,7 +34,7 @@ export function ProductTrustStrip() {
       {TRUST_ITEMS.map(({ label, hint, icon: Icon }) => (
         <div
           key={label}
-          className="group flex items-center gap-2.5 rounded-2xl border border-[#ead9c4]/80 bg-gradient-to-br from-white to-[#faf6f0] px-3 py-2.5 transition duration-300 hover:border-[#8b2e2e]/25 hover:shadow-[0_8px_24px_rgba(139,46,46,0.08)]"
+          className="group flex items-center gap-2.5 rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 transition duration-300 hover:border-[#8b2e2e]/25 hover:shadow-[0_8px_24px_rgba(139,46,46,0.08)]"
         >
           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#8b2e2e]/8 text-[#8b2e2e] transition duration-300 group-hover:bg-[#8b2e2e] group-hover:text-white">
             <Icon className="size-3.5" strokeWidth={1.7} />

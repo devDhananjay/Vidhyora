@@ -10,6 +10,9 @@ import type { CartItemWithDetails } from "@/types/cart";
 import { updateCartItemQuantity } from "@/actions/cart/update-cart-item";
 import { removeCartItem } from "@/actions/cart/remove-cart-item";
 import { toggleSaveForLater } from "@/actions/cart/save-for-later";
+import { setCartItemGiftPackaging } from "@/actions/cart/set-gift-packaging";
+import { Gift } from "lucide-react";
+import { GIFT_PACKAGING_FEE } from "@/lib/cart/gift-packaging";
 
 type CartItemCardProps = {
   item: CartItemWithDetails;
@@ -132,6 +135,30 @@ export function CartItemCard({ item }: CartItemCardProps) {
         {availableStock === 0 && (
           <div className="text-sm text-destructive">Out of stock</div>
         )}
+
+        <button
+          type="button"
+          disabled={isPending}
+          onClick={() =>
+            startTransition(async () => {
+              const result = await setCartItemGiftPackaging(
+                item.id,
+                !item.giftPackaging,
+              );
+              if (!result.success) alert(result.error);
+            })
+          }
+          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition ${
+            item.giftPackaging
+              ? "border-[#2f6b4f] bg-[#f3faf6] text-[#2f6b4f]"
+              : "border-neutral-200 text-neutral-600 hover:border-[#2f6b4f]/40"
+          }`}
+        >
+          <Gift className="size-3.5" strokeWidth={1.7} />
+          {item.giftPackaging
+            ? `Gift bag (+${formatCurrency(GIFT_PACKAGING_FEE)})`
+            : "Add gift packaging"}
+        </button>
 
         {/* Actions */}
         <div className="flex flex-wrap items-center gap-2 sm:gap-4">

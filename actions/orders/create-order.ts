@@ -6,9 +6,10 @@ import prisma from "@/lib/prisma";
 import { AuthError, requireAuth } from "@/lib/auth-helpers";
 import { createOrderSchema } from "@/lib/validations/order";
 import { razorpayService } from "@/lib/payments/razorpay-service";
-import { recordEarningsForOrder } from "@/lib/payouts/record-earnings";
+import { fulfillRazorpayCheckout } from "@/lib/payments/fulfill-razorpay";
 import { cartTotals, createShopOrder, stockError } from "@/lib/orders/place-order";
 import { resolveCartCouponDiscount } from "@/lib/coupons/coupon-utils";
+import { notifyOrderConfirmed } from "@/lib/email/transactional";
 import type { ActionResult } from "@/lib/utils";
 
 type CreateOrderResult = {
@@ -135,6 +136,10 @@ export async function createOrder(
     revalidatePath("/seller/orders");
     revalidatePath("/admin/orders");
 
+    void notifyOrderConfirmed(order.id).catch((error) =>
+      console.error("COD order email failed:", error),
+    );
+
     return {
       success: true,
       data: {
@@ -182,92 +187,23 @@ export async function confirmRazorpayOrder(input: {
       return { success: false, error: "Invalid payment signature" };
     }
 
-    const existing = await prisma.payment.findUnique({
-      where: { transactionId: input.razorpay_order_id },
-      select: { orderId: true, order: { select: { orderNumber: true } } },
-    });
-    if (existing) {
-      return {
-        success: true,
-        data: {
-          orderId: existing.orderId,
-          orderNumber: existing.order.orderNumber,
-        },
-      };
-    }
-
-    const cart = await loadCheckoutCart(session.user.id);
-    if (!cart || cart.items.length === 0) {
-      return { success: false, error: "Cart is empty" };
-    }
-
-    const address = await prisma.address.findUnique({
-      where: { id: input.addressId },
-    });
-    if (!address || address.userId !== session.user.id) {
-      return { success: false, error: "Invalid address" };
-    }
-
-    const availability = stockError(cart.items);
-    if (availability) {
-      return { success: false, error: availability };
-    }
-
-    const lineSubtotal = cart.items.reduce(
-      (sum, item) => sum + Number(item.variant.price) * item.quantity,
-      0,
-    );
-    const applied = await resolveCartCouponDiscount(
-      cart.couponCode,
-      session.user.id,
-      lineSubtotal,
-    );
-    const couponOptions = {
-      discount: applied?.discount ?? 0,
-      couponCode: applied?.code ?? null,
-      couponId: applied?.coupon.id ?? null,
-    };
-
-    const { order } = await prisma.$transaction(async (tx) => {
-      const placed = await createShopOrder(tx, {
-        userId: session.user.id,
-        address,
-        items: cart.items,
-        cartId: cart.id,
-        paymentStatus: "PAID",
-        orderStatus: "CONFIRMED",
-        deductStock: true,
-        ...couponOptions,
-      });
-
-      await tx.payment.create({
-        data: {
-          orderId: placed.order.id,
-          provider: "RAZORPAY",
-          providerPaymentId: input.razorpay_payment_id,
-          transactionId: input.razorpay_order_id,
-          amount: placed.totals.total,
-          currency: "INR",
-          status: "CAPTURED",
-          metadata: {
-            payment_id: input.razorpay_payment_id,
-            signature: input.razorpay_signature,
-          },
-        },
-      });
-
-      return placed;
+    const result = await fulfillRazorpayCheckout({
+      userId: session.user.id,
+      addressId: input.addressId,
+      razorpayOrderId: input.razorpay_order_id,
+      razorpayPaymentId: input.razorpay_payment_id,
+      signature: input.razorpay_signature,
     });
 
-    try {
-      await recordEarningsForOrder(order.id);
-    } catch (error) {
-      console.error("Record seller earnings error:", error);
+    if (result.created) {
+      void notifyOrderConfirmed(result.orderId).catch((error) =>
+        console.error("Razorpay order email failed:", error),
+      );
     }
 
     revalidatePath("/cart");
     revalidatePath("/orders");
-    revalidatePath(`/orders/${order.id}`);
+    revalidatePath(`/orders/${result.orderId}`);
     revalidatePath("/checkout");
     revalidatePath("/seller");
     revalidatePath("/seller/orders");
@@ -275,13 +211,17 @@ export async function confirmRazorpayOrder(input: {
 
     return {
       success: true,
-      data: { orderId: order.id, orderNumber: order.orderNumber },
+      data: { orderId: result.orderId, orderNumber: result.orderNumber },
     };
   } catch (error) {
     console.error("Confirm Razorpay order error:", error);
     if (error instanceof AuthError) {
       return { success: false, error: "Please log in to place an order" };
     }
-    return { success: false, error: "Failed to confirm payment" };
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to confirm payment",
+    };
   }
 }

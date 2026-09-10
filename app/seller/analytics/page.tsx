@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { getSellerAnalytics } from "@/actions/seller/get-analytics";
 import { StatCard } from "@/components/seller/stat-card";
+import { HorizontalBarChart } from "@/components/shared/horizontal-bar-chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
@@ -77,21 +78,12 @@ export default async function SellerAnalyticsPage() {
             <CardTitle>Orders by status</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {data.ordersByStatus.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                No order data yet.
-              </p>
-            ) : (
-              data.ordersByStatus.map((row) => (
-                <div
-                  key={row.status}
-                  className="flex items-center justify-between border-b pb-2 last:border-0"
-                >
-                  <span>{getOrderStatusLabel(row.status)}</span>
-                  <Badge variant="outline">{row.count}</Badge>
-                </div>
-              ))
-            )}
+            <HorizontalBarChart
+              items={data.ordersByStatus.map((row) => ({
+                label: getOrderStatusLabel(row.status),
+                value: row.count,
+              }))}
+            />
           </CardContent>
         </Card>
 
@@ -100,28 +92,13 @@ export default async function SellerAnalyticsPage() {
             <CardTitle>Top products</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {data.topProducts.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                No product sales yet.
-              </p>
-            ) : (
-              data.topProducts.map((product) => (
-                <div
-                  key={product.name}
-                  className="flex items-center justify-between border-b pb-3 last:border-0"
-                >
-                  <div>
-                    <div className="font-medium">{product.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {product.quantity} sold
-                    </div>
-                  </div>
-                  <div className="font-semibold">
-                    {formatCurrency(product.revenue)}
-                  </div>
-                </div>
-              ))
-            )}
+            <HorizontalBarChart
+              items={data.topProducts.map((product) => ({
+                label: product.name,
+                value: product.revenue,
+                display: formatCurrency(product.revenue),
+              }))}
+            />
           </CardContent>
         </Card>
       </div>

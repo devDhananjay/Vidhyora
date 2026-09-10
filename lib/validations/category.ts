@@ -21,11 +21,17 @@ export const categorySchema = z.object({
 
 export const categoryAttributeSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(50),
-  displayName: z.string().min(2, "Display name must be at least 2 characters").max(100),
-  dataType: z.enum(["STRING", "NUMBER", "BOOLEAN", "SELECT"]),
+  slug: z
+    .string()
+    .min(1)
+    .max(50)
+    .regex(/^[a-z0-9-]+$/, "Slug must be lowercase letters, numbers, and hyphens")
+    .optional()
+    .or(z.literal("")),
+  type: z.enum(["text", "number", "select", "boolean"]).default("text"),
+  options: z.array(z.string().min(1)).optional(),
   isRequired: z.boolean().default(false),
-  isFilterable: z.boolean().default(false),
-  selectOptions: z.array(z.string()).optional(),
+  isFilterable: z.boolean().default(true),
   sortOrder: z.number().int().min(0).default(0),
 });
 

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth-helpers";
+import { requireSuperAdmin } from "@/lib/auth-helpers";
 import type { ActionResult } from "@/lib/utils";
 import {
   defaultMegaMenuConfig,
@@ -24,7 +24,7 @@ export async function loadMegaMenuAdmin(): Promise<
   }>
 > {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     await ensureMegaMenuConfigSeeded();
     const result = await getMegaMenuConfigForAdmin();
     return {
@@ -45,7 +45,7 @@ export async function saveMegaMenuConfig(
   raw: unknown,
 ): Promise<ActionResult<{ updatedAt: string }>> {
   try {
-    const session = await requireAdmin();
+    const session = await requireSuperAdmin();
     const parsed = megaMenuConfigSchema.safeParse(raw);
     if (!parsed.success) {
       return {
@@ -92,7 +92,7 @@ export async function resetMegaMenuConfig(): Promise<
   ActionResult<{ data: MegaMenuConfigData }>
 > {
   try {
-    const session = await requireAdmin();
+    const session = await requireSuperAdmin();
     const data = defaultMegaMenuConfig();
 
     await prisma.megaMenuConfig.upsert({
@@ -123,7 +123,7 @@ export async function saveMegaMenuFromJsonString(
   jsonText: string,
 ): Promise<ActionResult<{ updatedAt: string }>> {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     let raw: unknown;
     try {
       raw = JSON.parse(jsonText);

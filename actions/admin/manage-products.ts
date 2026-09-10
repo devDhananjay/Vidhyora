@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { revalidatePath } from "next/cache";
+import { notifyProductApproved, notifyProductRejected } from "@/lib/email/transactional";
 import type { ActionResult } from "@/lib/utils";
 
 export async function getAdminProductById(productId: string) {
@@ -109,6 +110,10 @@ export async function approveProduct(
       },
     });
 
+    void notifyProductApproved(productId).catch((error) =>
+      console.error("Product approve email failed:", error),
+    );
+
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${productId}`);
 
@@ -141,7 +146,10 @@ export async function rejectProduct(
       },
     });
 
-    // TODO: Send rejection notification to seller with reason
+    // TODO removed — email seller on rejection
+    void notifyProductRejected(productId, reason).catch((error) =>
+      console.error("Product reject email failed:", error),
+    );
 
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${productId}`);

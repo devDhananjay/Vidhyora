@@ -24,6 +24,18 @@ export function BasicInfoStep({
   setValue,
   categories,
 }: BasicInfoStepProps) {
+  const categoryId = watch("categoryId");
+  const productAttributes = (watch("attributes") || {}) as Record<string, string>;
+  const selectedCategory = categories.find((c) => c.id === categoryId);
+  const categoryAttributes = (selectedCategory?.attributes ?? []) as Array<{
+    id: string;
+    name: string;
+    slug: string;
+    type: string;
+    options: unknown;
+    isRequired: boolean;
+  }>;
+
   // Auto-generate slug from name
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value;
@@ -34,6 +46,10 @@ export function BasicInfoStep({
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
     setValue("slug", slug);
+  };
+
+  const setAttributeValue = (slug: string, value: string) => {
+    setValue("attributes", { ...productAttributes, [slug]: value });
   };
 
   return (
@@ -106,6 +122,69 @@ export function BasicInfoStep({
           <p className="mt-1 text-sm text-destructive">{errors.categoryId.message}</p>
         )}
       </div>
+
+      {categoryAttributes.length > 0 ? (
+        <div className="space-y-4 rounded-2xl border border-neutral-100 bg-[#faf8f6] p-4">
+          <p className="text-sm font-medium text-neutral-900">
+            Category attributes
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {categoryAttributes.map((attr) => {
+              const options = Array.isArray(attr.options)
+                ? attr.options.map(String)
+                : [];
+              return (
+                <div key={attr.id} className="space-y-2">
+                  <Label htmlFor={`attr-${attr.slug}`}>
+                    {attr.name}
+                    {attr.isRequired ? " *" : ""}
+                  </Label>
+                  {attr.type === "select" ? (
+                    <select
+                      id={`attr-${attr.slug}`}
+                      className="flex h-10 w-full rounded-full border border-input bg-background px-3 text-sm"
+                      value={productAttributes[attr.slug] || ""}
+                      onChange={(e) =>
+                        setAttributeValue(attr.slug, e.target.value)
+                      }
+                    >
+                      <option value="">Select…</option>
+                      {options.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+                  ) : attr.type === "boolean" ? (
+                    <select
+                      id={`attr-${attr.slug}`}
+                      className="flex h-10 w-full rounded-full border border-input bg-background px-3 text-sm"
+                      value={productAttributes[attr.slug] || ""}
+                      onChange={(e) =>
+                        setAttributeValue(attr.slug, e.target.value)
+                      }
+                    >
+                      <option value="">Select…</option>
+                      <option value="true">Yes</option>
+                      <option value="false">No</option>
+                    </select>
+                  ) : (
+                    <Input
+                      id={`attr-${attr.slug}`}
+                      type={attr.type === "number" ? "number" : "text"}
+                      className="rounded-full"
+                      value={productAttributes[attr.slug] || ""}
+                      onChange={(e) =>
+                        setAttributeValue(attr.slug, e.target.value)
+                      }
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       {/* Short Description */}
       <div>

@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import type { UserRole } from "@prisma/client";
 import { redirect } from "next/navigation";
-import { isSuperAdmin } from "@/lib/roles";
+import { isPlatformAdmin, isSuperAdmin } from "@/lib/roles";
 
 export class AuthError extends Error {
   constructor(
@@ -48,8 +48,22 @@ export async function requireSeller() {
   return requireRole("SELLER", "SUPER_ADMIN", "ADMIN");
 }
 
+/** ADMIN or SUPER_ADMIN — general admin dashboard ops. */
 export async function requireAdmin() {
-  return requireRole("SUPER_ADMIN", "ADMIN");
+  const session = await requireAuth();
+  if (!isPlatformAdmin(session.user.role)) {
+    throw new AuthError("Insufficient permissions", 403);
+  }
+  return session;
+}
+
+/** SUPER_ADMIN only — site settings, mega menu, homepage, blog CMS. */
+export async function requireSuperAdmin() {
+  const session = await requireAuth();
+  if (!isSuperAdmin(session.user.role)) {
+    throw new AuthError("Insufficient permissions", 403);
+  }
+  return session;
 }
 
 export async function requireSellerProfile() {
@@ -58,7 +72,7 @@ export async function requireSellerProfile() {
   const profile = await prisma.sellerProfile.findUnique({
     where: { sellerId: session.user.id },
   });
-  if (!profile && !isSuperAdmin(session.user.role)) {
+  if (!profile && !isPlatformAdmin(session.user.role)) {
     throw new AuthError("Seller profile not found", 403);
   }
   return { session, profile };

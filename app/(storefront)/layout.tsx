@@ -35,7 +35,7 @@ export default async function StorefrontLayout({
 
   return (
     <div className="flex min-h-screen flex-col bg-white">
-      <div className="hidden border-b border-neutral-100 bg-[#f7f4f0] md:block">
+      <div className="hidden border-b border-neutral-100 bg-[#f7f4f0] print:hidden md:block">
         <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 text-[12px] text-neutral-600">
           <div className="flex items-center">
             <a

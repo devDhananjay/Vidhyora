@@ -10,6 +10,7 @@ import {
   type SellerFulfillmentInput,
 } from "@/lib/validations/order";
 import { recordEarningsForOrder } from "@/lib/payouts/record-earnings";
+import { notifyOrderShipped } from "@/lib/email/transactional";
 import type { ActionResult } from "@/lib/utils";
 
 function revalidateOrderSurfaces(orderId: string, orderItemId: string) {
@@ -163,6 +164,13 @@ export async function updateSellerOrderFulfillment(
     }
 
     revalidateOrderSurfaces(orderItem.orderId, orderItem.id);
+
+    if (validated.status === "SHIPPED") {
+      void notifyOrderShipped(
+        orderItem.orderId,
+        trackingNumber,
+      ).catch((error) => console.error("Ship email failed:", error));
+    }
 
     return { success: true, data: { status: validated.status } };
   } catch (error) {

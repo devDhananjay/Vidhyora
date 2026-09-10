@@ -140,7 +140,7 @@ export async function getReturnRequests() {
         },
       },
       orderBy: {
-        createdAt: "desc",
+        requestedAt: "desc",
       },
     });
 

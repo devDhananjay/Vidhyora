@@ -4,18 +4,15 @@ import prisma from "@/lib/prisma";
 import { formatCurrency } from "@/lib/utils";
 import { Breadcrumbs } from "@/components/products/breadcrumbs";
 import { VariantSelector } from "@/components/products/variant-selector";
-import { AddToCartButton } from "@/components/products/add-to-cart-button";
 import { SellerInfo } from "@/components/products/seller-info";
 import { ProductPolicy } from "@/components/products/product-policy";
 import { RelatedProducts } from "@/components/products/related-products";
 import { JewelleryDetails } from "@/components/products/jewellery-details";
 import { ProductTrustPanel } from "@/components/products/product-trust-panel";
-import { ProductShareButton } from "@/components/products/product-share-button";
 import { DeliveryPincodeChecker } from "@/components/products/delivery-pincode-checker";
 import { ProductGallery } from "@/components/products/product-gallery";
-import { FloatingAddToCartBar } from "@/components/products/floating-add-to-cart-bar";
 import { ProductTrustStrip } from "@/components/products/product-trust-strip";
-import { WishlistButton } from "@/components/wishlist/wishlist-button";
+import { ProductBuyActions } from "@/components/products/product-buy-actions";
 import { ReviewStatsCard } from "@/components/reviews/review-stats-card";
 import { ReviewsList } from "@/components/reviews/reviews-list";
 import { Sparkles, Star } from "lucide-react";
@@ -153,7 +150,7 @@ export default async function ProductDetailPage({
         }}
       />
 
-      <div className="bg-[radial-gradient(ellipse_at_top,_rgba(246,235,232,0.65),_transparent_55%)]">
+      <div className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-6 md:py-8">
           <Breadcrumbs
             items={[
@@ -201,7 +198,7 @@ export default async function ProductDetailPage({
                 ) : null}
               </div>
 
-              <div className="rounded-2xl border border-[#ead9c4]/70 bg-gradient-to-br from-white via-[#fffdfa] to-[#faf6f0] px-4 py-4 md:px-5">
+              <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 md:px-5">
                 <div className="flex flex-wrap items-end gap-3">
                   <span className="font-serif text-3xl text-neutral-900 md:text-4xl">
                     {formatCurrency(basePrice)}
@@ -243,22 +240,27 @@ export default async function ProductDetailPage({
                 />
               ) : null}
 
-              <div id="product-main-actions" className="flex items-center gap-3">
-                <AddToCartButton
-                  productId={product.id}
-                  variantId={defaultVariant?.id}
-                  inStock={inStock}
-                  className="flex-1 shadow-[0_10px_28px_rgba(139,46,46,0.28)]"
-                />
-                <WishlistButton
-                  productId={product.id}
-                  isInWishlist={isInWishlist}
-                />
-                <ProductShareButton
-                  title={product.name}
-                  text={product.shortDescription || undefined}
-                />
-              </div>
+              <ProductBuyActions
+                productId={product.id}
+                variantId={defaultVariant?.id}
+                inStock={inStock}
+                isInWishlist={isInWishlist}
+                productName={product.name}
+                productText={product.shortDescription || undefined}
+                price={
+                  defaultVariant ? Number(defaultVariant.price) : basePrice
+                }
+                weightLabel={
+                  defaultVariant?.weight
+                    ? `${Number(defaultVariant.weight)} g`
+                    : typeof (product.attributes as Record<string, unknown> | null)
+                        ?.weight === "string"
+                      ? String(
+                          (product.attributes as Record<string, unknown>).weight,
+                        )
+                      : null
+                }
+              />
 
               <DeliveryPincodeChecker />
 
@@ -313,25 +315,6 @@ export default async function ProductDetailPage({
           </div>
         </div>
       </div>
-
-      <FloatingAddToCartBar
-        productId={product.id}
-        variantId={defaultVariant?.id}
-        price={
-          defaultVariant ? Number(defaultVariant.price) : basePrice
-        }
-        weightLabel={
-          defaultVariant?.weight
-            ? `${Number(defaultVariant.weight)} g`
-            : typeof (product.attributes as Record<string, unknown> | null)
-                ?.weight === "string"
-              ? String(
-                  (product.attributes as Record<string, unknown>).weight,
-                )
-              : null
-        }
-        inStock={inStock}
-      />
     </>
   );
 }

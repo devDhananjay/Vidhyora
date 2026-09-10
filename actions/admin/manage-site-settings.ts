@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth-helpers";
+import { requireSuperAdmin } from "@/lib/auth-helpers";
 import type { ActionResult } from "@/lib/utils";
 import {
   defaultSiteSettings,
@@ -32,7 +32,7 @@ export async function saveSiteSettings(
   raw: unknown,
 ): Promise<ActionResult<{ updatedAt: string }>> {
   try {
-    const session = await requireAdmin();
+    const session = await requireSuperAdmin();
     const parsed = siteSettingsSchema.safeParse(raw);
     if (!parsed.success) {
       return {
@@ -70,7 +70,7 @@ export async function resetSiteSettings(): Promise<
   ActionResult<{ data: SiteSettingsData }>
 > {
   try {
-    const session = await requireAdmin();
+    const session = await requireSuperAdmin();
     const data = defaultSiteSettings();
 
     await prisma.siteSettings.upsert({
@@ -102,7 +102,7 @@ export async function loadSiteSettingsAdmin(): Promise<
   }>
 > {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     await ensureSiteSettingsSeeded();
     const result = await getSiteSettingsForAdmin();
     return {

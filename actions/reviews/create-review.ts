@@ -93,6 +93,12 @@ export async function createReview(
     };
   } catch (error) {
     console.error("Create review error:", error);
+    if (error instanceof Error && error.name === "ZodError") {
+      return {
+        success: false,
+        error: "Please check your review details and try again",
+      };
+    }
     return {
       success: false,
       error: "Failed to submit review",

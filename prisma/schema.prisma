@@ -222,6 +222,10 @@ model SellerProfile {
   bankAccountNumber    String?
   bankIfscCode         String?
   bankName             String?
+  notifyNewOrders      Boolean                  @default(true)
+  notifyLowStock       Boolean                  @default(true)
+  preferredCourier     String?
+  processingDays       Int                      @default(2)
   kycStatus            KycStatus                @default(NOT_SUBMITTED)
   kycGstDocumentUrl    String?
   kycPanDocumentUrl    String?
@@ -407,14 +411,15 @@ model Cart {
 }
 
 model CartItem {
-  id           String   @id @default(cuid())
-  cartId       String
-  productId    String
-  variantId    String
-  quantity     Int      @default(1)
-  savedForLater Boolean @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String   @id @default(cuid())
+  cartId        String
+  productId     String
+  variantId     String
+  quantity      Int      @default(1)
+  giftPackaging Boolean  @default(false)
+  savedForLater Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   cart    Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
   product Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -484,6 +489,7 @@ model Order {
   subtotal        Decimal       @db.Decimal(12, 2)
   discount        Decimal       @default(0) @db.Decimal(12, 2)
   shippingFee     Decimal       @default(0) @db.Decimal(12, 2)
+  giftPackagingFee Decimal      @default(0) @db.Decimal(12, 2)
   tax             Decimal       @default(0) @db.Decimal(12, 2)
   total           Decimal       @db.Decimal(12, 2)
   paymentStatus   PaymentStatus @default(PENDING)
@@ -522,6 +528,7 @@ model OrderItem {
   productName  String
   sku          String
   variantLabel String?
+  giftPackaging Boolean @default(false)
 
   order          Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product        Product         @relation(fields: [productId], references: [id])
@@ -807,6 +814,29 @@ model SiteSettings {
   data      Json
   updatedAt DateTime @updatedAt
   updatedBy String?
+}
+
+/// JSON CMS for blog posts (fallback to hardcoded posts if empty).
+model BlogConfig {
+  id        String   @id @default("default")
+  data      Json
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String   @db.Text
+  status    String   @default("NEW")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
 }
 
 model EmailCampaign {

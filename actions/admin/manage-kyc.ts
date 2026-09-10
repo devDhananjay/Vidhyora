@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { revalidatePath } from "next/cache";
+import { notifyKycStatus } from "@/lib/email/transactional";
 import type { ActionResult } from "@/lib/utils";
 
 export async function verifySellerKyc(
@@ -33,6 +34,10 @@ export async function verifySellerKyc(
       },
     });
 
+    void notifyKycStatus(sellerId, "VERIFIED").catch((error) =>
+      console.error("KYC verify email failed:", error),
+    );
+
     revalidatePath("/admin/sellers");
     revalidatePath(`/admin/sellers/${sellerId}`);
 
@@ -61,6 +66,10 @@ export async function rejectSellerKyc(
         kycRejectionReason: note,
       },
     });
+
+    void notifyKycStatus(sellerId, "REJECTED", note).catch((error) =>
+      console.error("KYC reject email failed:", error),
+    );
 
     revalidatePath("/admin/sellers");
     revalidatePath(`/admin/sellers/${sellerId}`);

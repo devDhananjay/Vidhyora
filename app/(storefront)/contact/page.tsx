@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPage } from "@/components/storefront/content-page";
+import { ContactForm } from "@/components/storefront/contact-form";
 import { ROUTES } from "@/lib/constants";
 import { getSiteSettings } from "@/lib/content/get-site-settings";
 import {
@@ -48,6 +49,7 @@ export default async function ContactPage() {
           {supportPhone}
         </a>
       </p>
+      <ContactForm />
       <h2 className="font-serif text-2xl text-neutral-900">Visit a boutique</h2>
       <p>
         Try gold colour, size and wedding sets in person. Addresses and hours are

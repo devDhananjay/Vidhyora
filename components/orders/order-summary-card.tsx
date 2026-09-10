@@ -33,11 +33,18 @@ export function OrderSummaryCard({ order }: OrderSummaryCardProps) {
           <div className="flex justify-between">
             <span className="text-muted-foreground">Delivery</span>
             <span>
-              {order.shippingFee > 0
+              {Number(order.shippingFee) > 0
                 ? formatCurrency(Number(order.shippingFee))
                 : "FREE"}
             </span>
           </div>
+
+          {Number(order.giftPackagingFee) > 0 ? (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Gift packaging</span>
+              <span>{formatCurrency(Number(order.giftPackagingFee))}</span>
+            </div>
+          ) : null}
 
           <div className="flex justify-between">
             <span className="text-muted-foreground">Tax (GST)</span>

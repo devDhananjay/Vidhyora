@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import prisma from "@/lib/prisma";
-import { requireAdmin } from "@/lib/auth-helpers";
+import { requireSuperAdmin } from "@/lib/auth-helpers";
 import type { ActionResult } from "@/lib/utils";
 import {
   defaultHomepageConfig,
@@ -23,7 +23,7 @@ export async function loadHomepageAdmin(): Promise<
   }>
 > {
   try {
-    await requireAdmin();
+    await requireSuperAdmin();
     await ensureHomepageConfigSeeded();
     const result = await getHomepageConfigForAdmin();
     return {
@@ -44,7 +44,7 @@ export async function saveHomepageConfig(
   raw: unknown,
 ): Promise<ActionResult<{ updatedAt: string }>> {
   try {
-    const session = await requireAdmin();
+    const session = await requireSuperAdmin();
     const parsed = homepageConfigSchema.safeParse(raw);
     if (!parsed.success) {
       return {
@@ -83,7 +83,7 @@ export async function resetHomepageConfig(): Promise<
   ActionResult<{ data: HomepageConfigData }>
 > {
   try {
-    const session = await requireAdmin();
+    const session = await requireSuperAdmin();
     const data = defaultHomepageConfig();
 
     await prisma.homepageConfig.upsert({

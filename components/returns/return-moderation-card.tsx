@@ -17,10 +17,11 @@ import {
   approveReturnRequest,
   rejectReturnRequest,
   completeReturnRequest,
+  markReturnPickedUp,
 } from "@/actions/admin/manage-returns";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, Package, XCircle } from "lucide-react";
 
 export type ReturnRequestCardData = {
   id: string;
@@ -92,6 +93,17 @@ export function ReturnModerationCard({
   const complete = () => {
     startTransition(async () => {
       const result = await completeReturnRequest(item.id);
+      if (result.success) {
+        window.location.reload();
+      } else {
+        alert(result.error);
+      }
+    });
+  };
+
+  const pickUp = () => {
+    startTransition(async () => {
+      const result = await markReturnPickedUp(item.id);
       if (result.success) {
         window.location.reload();
       } else {
@@ -182,6 +194,16 @@ export function ReturnModerationCard({
                 <>
                   <Button
                     type="button"
+                    onClick={pickUp}
+                    disabled={isPending}
+                    variant="outline"
+                    className="gap-2"
+                  >
+                    <Package className="size-4" />
+                    Mark picked up
+                  </Button>
+                  <Button
+                    type="button"
                     onClick={complete}
                     disabled={isPending}
                     className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
@@ -204,6 +226,19 @@ export function ReturnModerationCard({
                     Reject
                   </Button>
                 </>
+              ) : null}
+              {item.status === "PICKED_UP" ? (
+                <Button
+                  type="button"
+                  onClick={complete}
+                  disabled={isPending}
+                  className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                >
+                  <CheckCircle className="size-4" />
+                  {item.type === "RETURN"
+                    ? "Complete & refund"
+                    : "Mark completed"}
+                </Button>
               ) : null}
             </div>
           </div>

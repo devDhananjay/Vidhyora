@@ -258,11 +258,32 @@ export default async function AdminSellerDetailPage({
 
       {/* Recent Products */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-row flex-wrap items-center justify-between gap-3">
           <CardTitle>Recent Products</CardTitle>
-          <Link href={`/seller/products?seller=${seller.id}`} className="text-sm text-primary hover:underline">
-            View All Products
-          </Link>
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href={`/admin/products?seller=${seller.sellerId}`}
+              className="text-sm text-primary hover:underline"
+            >
+              View in admin products
+            </Link>
+            <form
+              action={async () => {
+                "use server";
+                const { setViewAsSeller } = await import(
+                  "@/actions/seller/view-as-seller"
+                );
+                await setViewAsSeller(seller.sellerId, "/seller/products");
+              }}
+            >
+              <button
+                type="submit"
+                className="text-sm text-primary hover:underline"
+              >
+                Open as seller
+              </button>
+            </form>
+          </div>
         </CardHeader>
         <CardContent>
           {seller.products.length === 0 ? (

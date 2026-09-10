@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import type { UserRole } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-helpers";
-import { isSuperAdmin } from "@/lib/roles";
+import { isPlatformAdmin, isSuperAdmin } from "@/lib/roles";
 import {
   adminResetUserPasswordSchema,
   adminUpdateUserProfileSchema,
@@ -39,10 +39,10 @@ export async function setUserActive(
       return { success: false, error: "You cannot deactivate your own account" };
     }
 
-    if (isSuperAdmin(user.role)) {
+    if (isPlatformAdmin(user.role)) {
       return {
         success: false,
-        error: "Super Admin accounts cannot be deactivated here",
+        error: "Platform admin accounts cannot be deactivated here",
       };
     }
 
@@ -162,8 +162,8 @@ export async function updateUserRole(
     if (
       (parsed.data.role === "ADMIN" ||
         parsed.data.role === "SUPER_ADMIN" ||
-        isSuperAdmin(user.role)) &&
-      session.user.role !== "SUPER_ADMIN"
+        isPlatformAdmin(user.role)) &&
+      !isSuperAdmin(session.user.role)
     ) {
       return {
         success: false,
@@ -214,7 +214,7 @@ export async function adminResetUserPassword(
       };
     }
 
-    if (isSuperAdmin(user.role) && session.user.role !== "SUPER_ADMIN") {
+    if (isPlatformAdmin(user.role) && !isSuperAdmin(session.user.role)) {
       return {
         success: false,
         error: "Only Super Admin can reset another admin password",

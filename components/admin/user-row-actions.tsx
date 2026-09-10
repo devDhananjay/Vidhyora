@@ -6,7 +6,7 @@ import { Ban, CheckCircle, Eye } from "lucide-react";
 import Link from "next/link";
 import { setUserActive } from "@/actions/admin/manage-users";
 import { Button } from "@/components/ui/button";
-import { isSuperAdmin } from "@/lib/roles";
+import { isPlatformAdmin } from "@/lib/roles";
 
 export function UserRowActions({
   userId,
@@ -21,7 +21,7 @@ export function UserRowActions({
   const [isPending, startTransition] = useTransition();
 
   function toggle() {
-    if (isSuperAdmin(role)) return;
+    if (isPlatformAdmin(role)) return;
     startTransition(async () => {
       const result = await setUserActive(userId, !isActive);
       if (!result.success) {
@@ -40,7 +40,7 @@ export function UserRowActions({
           View
         </Link>
       </Button>
-      {!isSuperAdmin(role) ? (
+      {!isPlatformAdmin(role) ? (
         <Button
           type="button"
           size="sm"

@@ -11,6 +11,7 @@ type AddToCartButtonProps = {
   productId: string;
   variantId?: string;
   inStock: boolean;
+  giftPackaging?: boolean;
   className?: string;
 };
 
@@ -18,6 +19,7 @@ export function AddToCartButton({
   productId,
   variantId,
   inStock,
+  giftPackaging = false,
   className,
 }: AddToCartButtonProps) {
   const router = useRouter();
@@ -35,6 +37,7 @@ export function AddToCartButton({
       formData.append("productId", productId);
       formData.append("variantId", variantId);
       formData.append("quantity", "1");
+      formData.append("giftPackaging", giftPackaging ? "true" : "false");
 
       const result = await addToCart(formData);
 

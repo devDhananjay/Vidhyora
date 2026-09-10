@@ -17,6 +17,7 @@ export default async function AdminLayout({
     <DashboardShell
       variant="admin"
       userName={session.user.name}
+      userRole={session.user.role}
       extraLinks={[
         { href: "/", label: "View Storefront" },
         { href: "/seller", label: "Monitor Seller Admins" },

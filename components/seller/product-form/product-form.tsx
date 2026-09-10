@@ -119,6 +119,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         },
         basePrice: 0,
         tax: 0,
+        attributes: {},
       };
 
   const {

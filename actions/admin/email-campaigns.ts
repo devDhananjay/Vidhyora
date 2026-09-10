@@ -1,7 +1,7 @@
 "use server";
 
 import type { EmailCampaignType, Prisma } from "@prisma/client";
-import { requireAdmin } from "@/lib/auth-helpers";
+import { requireSuperAdmin } from "@/lib/auth-helpers";
 import prisma from "@/lib/prisma";
 import { actionError, actionSuccess, type ActionResult } from "@/lib/utils";
 import { isEmailConfigured, sendEmail } from "@/lib/email";
@@ -142,7 +142,7 @@ export async function getEmailCampaignMeta(): Promise<
     }>;
   }>
 > {
-  await requireAdmin();
+  await requireSuperAdmin();
   const [customers, dropouts, neverOrdered, campaigns] = await Promise.all([
     prisma.user.count({ where: { isActive: true, role: "CUSTOMER" } }),
     resolveAudience("CART_DROPOUT", "").then((rows) => rows.length),
@@ -178,7 +178,7 @@ export async function previewCampaignAudience(
   audience: string,
   customEmails?: string,
 ): Promise<ActionResult<{ count: number }>> {
-  const session = await requireAdmin();
+  const session = await requireSuperAdmin();
   const parsed = campaignAudienceSchema.safeParse(audience);
   if (!parsed.success) return actionError("Choose a valid audience");
   const recipients = await resolveAudience(
@@ -192,7 +192,7 @@ export async function previewCampaignAudience(
 export async function sendEmailCampaign(
   data: unknown,
 ): Promise<ActionResult<{ sent: number; failed: number; skipped: number }>> {
-  const session = await requireAdmin();
+  const session = await requireSuperAdmin();
   const parsed = sendEmailCampaignSchema.safeParse(data);
   if (!parsed.success) {
     return actionError("Please check the campaign fields and try again");

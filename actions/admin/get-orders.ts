@@ -56,6 +56,12 @@ export async function getAdminOrderById(orderId: string) {
               select: {
                 thumbnail: true,
                 slug: true,
+                seller: {
+                  select: {
+                    businessName: true,
+                    sellerId: true,
+                  },
+                },
               },
             },
           },

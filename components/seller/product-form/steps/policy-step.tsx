@@ -25,7 +25,7 @@ export function PolicyStep({ register, watch, setValue, errors }: PolicyStepProp
       </div>
 
       {/* Return Policy */}
-      <div className="space-y-4 rounded-lg border p-4">
+      <div className="space-y-4 rounded-xl border p-4">
         <div className="flex items-center justify-between">
           <div>
             <Label htmlFor="returnAllowed" className="cursor-pointer">
@@ -60,7 +60,7 @@ export function PolicyStep({ register, watch, setValue, errors }: PolicyStepProp
       </div>
 
       {/* Replacement Policy */}
-      <div className="space-y-4 rounded-lg border p-4">
+      <div className="space-y-4 rounded-xl border p-4">
         <div className="flex items-center justify-between">
           <div>
             <Label htmlFor="replacementAllowed" className="cursor-pointer">
@@ -95,7 +95,7 @@ export function PolicyStep({ register, watch, setValue, errors }: PolicyStepProp
       </div>
 
       {/* Warranty Policy */}
-      <div className="space-y-4 rounded-lg border p-4">
+      <div className="space-y-4 rounded-xl border p-4">
         <div className="flex items-center justify-between">
           <div>
             <Label htmlFor="warrantyAvailable" className="cursor-pointer">

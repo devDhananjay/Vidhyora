@@ -225,7 +225,7 @@ export function CheckoutSummary({
     summary.subtotal >= summary.freeShippingThreshold ? 0 : summary.shippingFee;
 
   return (
-    <div className="rounded-lg border p-6">
+    <div className="rounded-xl border p-6">
       <h2 className="mb-4 text-lg font-semibold">Price Summary</h2>
 
       <div className="space-y-3 text-sm">
@@ -365,7 +365,7 @@ export function CheckoutSummary({
               onChange={(event) => setOccasionNote(event.target.value)}
               maxLength={200}
               placeholder="Birthday, anniversary, wedding…"
-              className="mt-1.5 h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-400"
+              className="mt-1.5 h-10 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-400"
             />
           </div>
           <div>
@@ -382,7 +382,7 @@ export function CheckoutSummary({
               maxLength={500}
               rows={3}
               placeholder="Optional note for the recipient"
-              className="mt-1.5 w-full resize-y rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-400"
+              className="mt-1.5 w-full resize-y rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-400"
             />
           </div>
         </div>

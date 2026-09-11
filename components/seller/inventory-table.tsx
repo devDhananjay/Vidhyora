@@ -43,7 +43,7 @@ export function InventoryTable({ inventory }: InventoryTableProps) {
   return (
     <div className="space-y-4">
       {inventory.map((product) => (
-        <div key={product.id} className="rounded-lg border">
+        <div key={product.id} className="rounded-xl border">
           {/* Product Header */}
           <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:gap-4">
             {product.thumbnail ? (

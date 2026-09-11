@@ -58,7 +58,7 @@ export function SavedForLaterSection({ items }: SavedForLaterSectionProps) {
           > | null;
 
           return (
-            <div key={item.id} className="rounded-lg border p-4">
+            <div key={item.id} className="rounded-xl border p-4">
               <Link
                 href={`/products/${item.product.slug}`}
                 className="relative mb-3 block aspect-square overflow-hidden rounded"

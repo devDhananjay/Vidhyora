@@ -8,7 +8,7 @@ type ReviewStatsCardProps = {
 export function ReviewStatsCard({ stats }: ReviewStatsCardProps) {
   if (stats.totalReviews === 0) {
     return (
-      <div className="rounded-lg border p-6 text-center">
+      <div className="rounded-xl border p-6 text-center">
         <p className="text-muted-foreground">No reviews yet</p>
         <p className="mt-2 text-sm text-muted-foreground">
           Be the first to review this product!
@@ -18,7 +18,7 @@ export function ReviewStatsCard({ stats }: ReviewStatsCardProps) {
   }
 
   return (
-    <div className="rounded-lg border p-5 sm:p-6">
+    <div className="rounded-xl border p-5 sm:p-6">
       <div className="flex flex-col gap-5">
         <div className="flex items-end gap-3">
           <div className="text-4xl font-bold leading-none text-neutral-900">

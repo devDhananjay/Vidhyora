@@ -506,7 +506,7 @@ function Banner({
         {item.banner.thumbs.map((thumb) => (
           <span
             key={thumb}
-            className="relative size-9 overflow-hidden rounded-md border border-white bg-white"
+            className="relative size-9 overflow-hidden rounded-xl border border-white bg-white"
           >
             <Image src={thumb} alt="" fill className="object-contain p-0.5" sizes="36px" />
           </span>

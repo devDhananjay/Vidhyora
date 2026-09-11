@@ -119,7 +119,7 @@ export function IntegrationsSettingsForm({
             <Label htmlFor="smsProvider">Provider</Label>
             <select
               id="smsProvider"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              className="flex h-10 w-full rounded-xl border border-input bg-background px-3 text-sm"
               value={integrations.smsProvider}
               onChange={(e) =>
                 setField(

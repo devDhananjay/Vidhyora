@@ -156,7 +156,7 @@ export function ReturnRequestForm({ orderItem, order, eligibility }: ReturnReque
             <select
               id="reason"
               {...register("reason")}
-              className="mt-2 w-full rounded-md border p-2"
+              className="mt-2 w-full rounded-xl border p-2"
             >
               <option value="">Choose a reason...</option>
               <option value="Defective or damaged">Defective or damaged</option>
@@ -209,7 +209,7 @@ export function ReturnRequestForm({ orderItem, order, eligibility }: ReturnReque
       </Card>
 
       {/* Important Information */}
-      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-900/10">
+      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-900/10">
         <h4 className="mb-2 font-medium text-blue-900 dark:text-blue-100">
           Important Information
         </h4>

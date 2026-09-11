@@ -47,7 +47,7 @@ export function LowStockAlert({ products }: LowStockAlertProps) {
             return (
               <div
                 key={product.id}
-                className="flex flex-col gap-3 rounded-lg border bg-background p-3 sm:flex-row sm:items-center sm:gap-4"
+                className="flex flex-col gap-3 rounded-xl border bg-background p-3 sm:flex-row sm:items-center sm:gap-4"
               >
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <div className="relative size-12 shrink-0 overflow-hidden rounded">

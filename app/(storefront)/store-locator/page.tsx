@@ -89,7 +89,7 @@ export default async function StoreLocatorPage({
         </p>
 
         {stores.length === 0 ? (
-          <div className="mt-6 rounded-lg border bg-white p-10 text-center text-neutral-500">
+          <div className="mt-6 rounded-xl border bg-white p-10 text-center text-neutral-500">
             No stores match this search. Try another city or clear the filters.
           </div>
         ) : (
@@ -97,7 +97,7 @@ export default async function StoreLocatorPage({
             {stores.map((store) => (
               <article
                 key={store.id}
-                className="rounded-lg border border-neutral-100 bg-white p-6"
+                className="rounded-xl border border-neutral-100 bg-white p-6"
               >
                 <h2 className="font-serif text-2xl text-neutral-900">{store.name}</h2>
                 <p className="mt-1 text-sm font-medium text-[#8b2e2e]">{store.city}</p>

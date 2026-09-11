@@ -104,7 +104,7 @@ export function ImageUpload({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={cn(
-            "relative flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 transition-colors",
+            "relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-colors",
             isDragging
               ? "border-primary bg-primary/5"
               : "border-muted-foreground/25 hover:border-primary/50",
@@ -150,7 +150,7 @@ export function ImageUpload({
           {value.map((url, index) => (
             <div
               key={url}
-              className="group relative aspect-square overflow-hidden rounded-lg border bg-muted"
+              className="group relative aspect-square overflow-hidden rounded-xl border bg-muted"
             >
               <Image
                 src={url}
@@ -181,7 +181,7 @@ export function ImageUpload({
       )}
 
       {value.length === 0 && !canUploadMore && (
-        <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-8 text-muted-foreground">
+        <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 text-muted-foreground">
           <ImageIcon className="mb-4 size-10" />
           <p className="text-sm">No images uploaded</p>
         </div>

@@ -23,7 +23,7 @@ export function GiftPackagingOption({
         className,
       )}
     >
-      <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-neutral-200 bg-white sm:size-16">
+      <div className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-neutral-200 bg-white sm:size-16">
         <Image
           src="/brand/gift-bag.png"
           alt="Gift packaging bag"
@@ -49,7 +49,7 @@ export function GiftPackagingOption({
         type="button"
         onClick={() => onChange(!selected)}
         className={cn(
-          "shrink-0 rounded-lg border px-3 py-1.5 text-sm font-semibold transition sm:px-4",
+          "shrink-0 rounded-xl border px-3 py-1.5 text-sm font-semibold transition sm:px-4",
           selected
             ? "border-primary bg-primary text-primary-foreground"
             : "border-primary bg-white text-primary hover:bg-neutral-50",

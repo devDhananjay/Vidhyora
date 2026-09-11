@@ -257,12 +257,12 @@ export function MegaMenuEditor({
       </Dialog>
 
       {message ? (
-        <p className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
+        <p className="rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
           {message}
         </p>
       ) : null}
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+        <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
           {error}
         </p>
       ) : null}
@@ -279,7 +279,7 @@ export function MegaMenuEditor({
                 <div
                   key={item.id}
                   className={cn(
-                    "rounded-lg border p-2",
+                    "rounded-xl border p-2",
                     active ? "border-[#8b2e2e] bg-[#8b2e2e]/5" : "border-border",
                   )}
                 >
@@ -370,7 +370,7 @@ export function MegaMenuEditor({
                     }
                   />
                 </div>
-                <div className="flex items-center justify-between rounded-lg border px-3 py-2 sm:col-span-2">
+                <div className="flex items-center justify-between rounded-xl border px-3 py-2 sm:col-span-2">
                   <div>
                     <p className="text-sm font-medium">Show on storefront</p>
                     <p className="text-xs text-muted-foreground">
@@ -511,7 +511,7 @@ export function MegaMenuEditor({
                   <div
                     key={`${selected.id}-link-${index}`}
                     className={cn(
-                      "space-y-3 rounded-lg border p-3",
+                      "space-y-3 rounded-xl border p-3",
                       link.isActive === false && "opacity-70",
                     )}
                   >

@@ -150,7 +150,7 @@ export function ReviewForm({
         </div>
 
         {submitError ? (
-          <p className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+          <p className="rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
             {submitError}
           </p>
         ) : null}

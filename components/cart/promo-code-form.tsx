@@ -108,7 +108,7 @@ export function PromoCodeForm({
 
       {isApplied && !open ? (
         <div className="border-t border-neutral-100 px-4 pb-4">
-          <div className="flex items-center justify-between gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5">
+          <div className="flex items-center justify-between gap-2 rounded-xl border border-green-200 bg-green-50 px-3 py-2.5">
             <div className="min-w-0">
               <div className="flex items-center gap-2 text-sm font-medium text-green-800">
                 <Tag className="size-3.5 shrink-0" />
@@ -136,7 +136,7 @@ export function PromoCodeForm({
       {open ? (
         <div className="space-y-3 border-t border-neutral-100 px-4 pb-4 pt-3">
           {isApplied ? (
-            <div className="flex items-center justify-between gap-2 rounded-lg border border-green-200 bg-green-50 px-3 py-2.5">
+            <div className="flex items-center justify-between gap-2 rounded-xl border border-green-200 bg-green-50 px-3 py-2.5">
               <div className="min-w-0">
                 <div className="flex items-center gap-2 text-sm font-medium text-green-800">
                   <Tag className="size-3.5 shrink-0" />
@@ -169,7 +169,7 @@ export function PromoCodeForm({
                     if (error) setError(null);
                   }}
                   placeholder="Enter coupon code"
-                  className="h-11 w-full rounded-lg border border-neutral-200 bg-white py-2 pr-24 pl-3 font-mono text-sm uppercase tracking-wide text-neutral-900 placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder:text-neutral-400 focus:border-[#8b2e2e]/60 focus:outline-none focus:ring-2 focus:ring-[#8b2e2e]/20 disabled:opacity-50"
+                  className="h-11 w-full rounded-xl border border-neutral-200 bg-white py-2 pr-24 pl-3 font-mono text-sm uppercase tracking-wide text-neutral-900 placeholder:font-sans placeholder:normal-case placeholder:tracking-normal placeholder:text-neutral-400 focus:border-[#8b2e2e]/60 focus:outline-none focus:ring-2 focus:ring-[#8b2e2e]/20 disabled:opacity-50"
                   disabled={isPending}
                   autoComplete="off"
                 />
@@ -201,7 +201,7 @@ export function PromoCodeForm({
                 return (
                   <div
                     key={promo.id}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 px-3 py-3"
+                    className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 px-3 py-3"
                   >
                     <div className="min-w-0">
                       <p className="font-serif text-base font-semibold tracking-wide text-neutral-900 uppercase">

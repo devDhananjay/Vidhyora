@@ -3,7 +3,7 @@ import { RotateCcw, ShieldCheck, Clock } from "lucide-react";
 
 export function ProductPolicy({ policy }: { policy: PolicyType }) {
   return (
-    <div className="rounded-lg border p-6">
+    <div className="rounded-xl border p-6">
       <h2 className="mb-4 text-xl font-bold">Return & Warranty Policy</h2>
       <div className="grid gap-4 sm:grid-cols-3">
         {policy.returnAllowed && (

@@ -73,7 +73,7 @@ export default async function HelpPage({
         ) : null}
 
         {articles.length === 0 ? (
-          <div className="mt-10 rounded-lg border bg-white p-10 text-center text-neutral-500">
+          <div className="mt-10 rounded-xl border bg-white p-10 text-center text-neutral-500">
             No matching help articles. Try another search or category.
           </div>
         ) : (
@@ -81,7 +81,7 @@ export default async function HelpPage({
             {Object.entries(grouped).map(([group, items]) => (
               <section key={group}>
                 <h2 className="font-serif text-2xl text-neutral-900">{group}</h2>
-                <div className="mt-4 divide-y rounded-lg border bg-white">
+                <div className="mt-4 divide-y rounded-xl border bg-white">
                   {items.map((article) => (
                     <details key={article.id} className="group px-5 py-4">
                       <summary className="cursor-pointer list-none font-medium text-neutral-900 marker:content-none">
@@ -101,7 +101,7 @@ export default async function HelpPage({
           </div>
         )}
 
-        <div className="mt-12 rounded-lg border border-[#8b2e2e]/15 bg-white p-6">
+        <div className="mt-12 rounded-xl border border-[#8b2e2e]/15 bg-white p-6">
           <h2 className="font-serif text-2xl">Still need help?</h2>
           <p className="mt-2 text-sm text-neutral-600">
             Our jewellery advisors are available on call and email.

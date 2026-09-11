@@ -194,7 +194,7 @@ export function CouponForm({ coupon }: CouponFormProps) {
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-lg border p-4">
+          <div className="flex items-center justify-between rounded-xl border p-4">
             <div>
               <Label htmlFor="isActive" className="cursor-pointer">Active Status</Label>
               <p className="text-sm text-muted-foreground">

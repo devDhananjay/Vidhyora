@@ -158,7 +158,7 @@ export default async function AdminInventoryPage() {
                       {product.variants.map((variant) => (
                         <div
                           key={variant.id}
-                          className="flex flex-wrap items-center justify-between gap-3 rounded-lg border px-3 py-2"
+                          className="flex flex-wrap items-center justify-between gap-3 rounded-xl border px-3 py-2"
                         >
                           <div className="text-sm">
                             <div className="font-medium">{variant.sku}</div>

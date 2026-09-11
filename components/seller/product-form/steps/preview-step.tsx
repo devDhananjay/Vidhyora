@@ -67,7 +67,7 @@ export function PreviewStep({ watch, categories }: PreviewStepProps) {
             {formData.images?.map((img: any, index: number) => (
               <div
                 key={index}
-                className="relative aspect-square overflow-hidden rounded-lg border"
+                className="relative aspect-square overflow-hidden rounded-xl border"
               >
                 <Image src={img.url} alt={img.altText || "Product"} fill className="object-cover" />
                 {index === 0 && (
@@ -114,7 +114,7 @@ export function PreviewStep({ watch, categories }: PreviewStepProps) {
 
           <div className="space-y-2">
             {formData.variants?.map((variant: any, index: number) => (
-              <div key={index} className="flex items-center justify-between rounded-lg border p-3">
+              <div key={index} className="flex items-center justify-between rounded-xl border p-3">
                 <div>
                   <div className="font-medium">
                     {variant.attributes?.name || variant.sku || `Variant ${index + 1}`}
@@ -187,7 +187,7 @@ export function PreviewStep({ watch, categories }: PreviewStepProps) {
         </CardContent>
       </Card>
 
-      <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900 dark:bg-yellow-900/10">
+      <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900 dark:bg-yellow-900/10">
         <h4 className="font-medium text-yellow-900 dark:text-yellow-100">
           ⚠️ Before Submitting
         </h4>

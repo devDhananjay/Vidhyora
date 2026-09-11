@@ -43,7 +43,7 @@ export async function ProductFilters({
     params.maxPrice;
 
   return (
-    <div className="space-y-6 rounded-lg border bg-card p-4">
+    <div className="space-y-6 rounded-xl border bg-card p-4">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold">Filters</h3>
         {hasFilters && (
@@ -121,14 +121,14 @@ export async function ProductFilters({
               name="minPrice"
               placeholder="Min"
               defaultValue={params.minPrice}
-              className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+              className="h-9 w-full rounded-xl border bg-background px-3 text-sm"
             />
             <input
               type="number"
               name="maxPrice"
               placeholder="Max"
               defaultValue={params.maxPrice}
-              className="h-9 w-full rounded-md border bg-background px-3 text-sm"
+              className="h-9 w-full rounded-xl border bg-background px-3 text-sm"
             />
           </div>
           <Button type="submit" size="sm" className="w-full">

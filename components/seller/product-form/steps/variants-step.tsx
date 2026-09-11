@@ -108,7 +108,7 @@ export function VariantsStep({
         Add Another Variant
       </Button>
 
-      <div className="rounded-lg border bg-muted/50 p-4">
+      <div className="rounded-xl border bg-muted/50 p-4">
         <h4 className="mb-2 font-medium">When to use variants?</h4>
         <ul className="space-y-1 text-sm text-muted-foreground">
           <li>• Same product in different sizes (S, M, L, XL)</li>

@@ -195,7 +195,7 @@ export default async function AdminProductDetailPage({
               {product.variants.map((variant) => (
                 <div
                   key={variant.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-3"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3"
                 >
                   <div>
                     <div className="font-medium">{variant.sku}</div>

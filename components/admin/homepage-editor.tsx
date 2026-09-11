@@ -96,7 +96,7 @@ function VisibilityScheduleControls({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between rounded-lg border px-3 py-2">
+      <div className="flex items-center justify-between rounded-xl border px-3 py-2">
         <div>
           <p className="text-sm font-medium">Show on storefront</p>
           <p className="text-xs text-muted-foreground">
@@ -112,7 +112,7 @@ function VisibilityScheduleControls({
 
       {shown ? (
         <>
-          <div className="flex items-center justify-between rounded-lg border px-3 py-2">
+          <div className="flex items-center justify-between rounded-xl border px-3 py-2">
             <div>
               <p className="text-sm font-medium">Schedule a date range?</p>
               <p className="text-xs text-muted-foreground">
@@ -128,7 +128,7 @@ function VisibilityScheduleControls({
           </div>
 
           {scheduleOpen ? (
-            <div className="grid gap-3 rounded-lg border bg-muted/20 p-3 sm:grid-cols-2">
+            <div className="grid gap-3 rounded-xl border bg-muted/20 p-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor={`${idPrefix}-from`}>Show from</Label>
                 <Input
@@ -355,12 +355,12 @@ export function HomepageEditor({
       </div>
 
       {message ? (
-        <p className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
+        <p className="rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
           {message}
         </p>
       ) : null}
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+        <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
           {error}
         </p>
       ) : null}
@@ -386,7 +386,7 @@ export function HomepageEditor({
                 <div
                   key={id}
                   className={cn(
-                    "rounded-lg border p-2",
+                    "rounded-xl border p-2",
                     active
                       ? "border-[#8b2e2e] bg-[#8b2e2e]/5"
                       : "border-border",
@@ -453,7 +453,7 @@ export function HomepageEditor({
 
         <div className="min-w-0 space-y-4">
           {visibility[section] === false ? (
-            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
               This section is hidden on the storefront. Turn on “Show on
               storefront” below to show it again.
             </p>
@@ -612,7 +612,7 @@ function CollectionsForm({ data, setData }: FormProps) {
           />
         </div>
         {section.cards.map((card, index) => (
-          <div key={card.id} className="space-y-3 rounded-lg border p-4">
+          <div key={card.id} className="space-y-3 rounded-xl border p-4">
             <p className="text-sm font-medium">
               Card · {card.id}
               {card.span === "tall" ? " (tall)" : ""}
@@ -720,7 +720,7 @@ function CategoriesForm({ data, setData }: FormProps) {
             }
           />
         </div>
-        <div className="grid gap-3 rounded-lg border p-4 sm:grid-cols-3">
+        <div className="grid gap-3 rounded-xl border p-4 sm:grid-cols-3">
           <Field
             label="View all count"
             value={section.viewAll.countLabel}
@@ -762,7 +762,7 @@ function CategoriesForm({ data, setData }: FormProps) {
           />
         </div>
         {section.items.map((item, index) => (
-          <div key={`${item.name}-${index}`} className="space-y-3 rounded-lg border p-4">
+          <div key={`${item.name}-${index}`} className="space-y-3 rounded-xl border p-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <Field
                 label="Name"
@@ -850,7 +850,7 @@ function TrendingForm({ data, setData }: FormProps) {
           />
         </div>
         {section.items.map((item, index) => (
-          <div key={`${item.title}-${index}`} className="space-y-3 rounded-lg border p-4">
+          <div key={`${item.title}-${index}`} className="space-y-3 rounded-xl border p-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <Field
                 label="Title"
@@ -937,7 +937,7 @@ function WorldForm({ data, setData }: FormProps) {
           />
         </div>
 
-        <div className="space-y-3 rounded-lg border p-4">
+        <div className="space-y-3 rounded-xl border p-4">
           <p className="text-sm font-medium">Wedding</p>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field
@@ -997,7 +997,7 @@ function WorldForm({ data, setData }: FormProps) {
           </div>
         </div>
 
-        <div className="space-y-3 rounded-lg border p-4">
+        <div className="space-y-3 rounded-xl border p-4">
           <p className="text-sm font-medium">Diamond</p>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field
@@ -1043,7 +1043,7 @@ function WorldForm({ data, setData }: FormProps) {
           </div>
         </div>
 
-        <div className="space-y-3 rounded-lg border p-4">
+        <div className="space-y-3 rounded-xl border p-4">
           <p className="text-sm font-medium">Gold</p>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field
@@ -1268,7 +1268,7 @@ function HeroForm({ data, setData }: FormProps) {
       </CardHeader>
       <CardContent className="space-y-6">
         {data.hero.slides.map((slide, index) => (
-          <div key={slide.id} className="space-y-3 rounded-lg border p-4">
+          <div key={slide.id} className="space-y-3 rounded-xl border p-4">
             <div className="flex items-center justify-between gap-2">
               <p className="text-sm font-medium">Slide · {slide.id}</p>
               {slide.isActive === false ? (
@@ -1544,7 +1544,7 @@ function ChooseLookForm({ data, setData }: FormProps) {
           }
         />
         {section.looks.map((look, index) => (
-          <div key={look.id} className="space-y-3 rounded-lg border p-4">
+          <div key={look.id} className="space-y-3 rounded-xl border p-4">
             <p className="text-sm font-medium">Look · {look.id}</p>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field
@@ -1648,7 +1648,7 @@ function StyleStoriesForm({ data, setData }: FormProps) {
         </div>
 
         {section.stories.map((story, index) => (
-          <div key={story.id} className="space-y-3 rounded-lg border p-4">
+          <div key={story.id} className="space-y-3 rounded-xl border p-4">
             <p className="text-sm font-medium">
               Card {index + 1} · {story.id}
             </p>
@@ -1759,7 +1759,7 @@ function ExploreTraditionsForm({ data, setData }: FormProps) {
           }
         />
         {section.items.map((item, index) => (
-          <div key={item.id} className="space-y-3 rounded-lg border p-4">
+          <div key={item.id} className="space-y-3 rounded-xl border p-4">
             <p className="text-sm font-medium">
               Tradition {index + 1} · {item.id}
             </p>
@@ -1961,7 +1961,7 @@ function WeddingMoodboardForm({ data, setData }: FormProps) {
         <div className="space-y-4">
           <p className="text-sm font-medium">Polaroids</p>
           {section.polaroids.map((item, index) => (
-            <div key={`${item.caption}-${index}`} className="space-y-3 rounded-lg border p-4">
+            <div key={`${item.caption}-${index}`} className="space-y-3 rounded-xl border p-4">
               <p className="text-sm font-medium">Polaroid {index + 1}</p>
               <Field
                 label="Caption"
@@ -2000,7 +2000,7 @@ function WeddingMoodboardForm({ data, setData }: FormProps) {
         <div className="space-y-4">
           <p className="text-sm font-medium">Notes</p>
           {section.notes.map((note, index) => (
-            <div key={`${note.label}-${index}`} className="grid gap-3 rounded-lg border p-4 sm:grid-cols-2">
+            <div key={`${note.label}-${index}`} className="grid gap-3 rounded-xl border p-4 sm:grid-cols-2">
               <Field
                 label="Label"
                 value={note.label ?? ""}

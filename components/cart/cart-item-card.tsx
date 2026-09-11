@@ -74,7 +74,7 @@ export function CartItemCard({ item }: CartItemCardProps) {
   const attributes = item.variant.attributes as Record<string, string> | null;
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row">
+    <div className="flex flex-col gap-4 rounded-xl border p-4 sm:flex-row">
       {/* Product Image */}
       <Link
         href={`/products/${item.product.slug}`}

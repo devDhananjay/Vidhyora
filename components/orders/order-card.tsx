@@ -20,7 +20,7 @@ export function OrderCard({ order }: OrderCardProps) {
   return (
     <Link
       href={`/orders/${order.id}`}
-      className="block rounded-lg border p-4 transition-colors hover:border-primary sm:p-6"
+      className="block rounded-xl border p-4 transition-colors hover:border-primary sm:p-6"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">

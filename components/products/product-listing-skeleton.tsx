@@ -4,7 +4,7 @@ export function ProductListingSkeleton() {
       {Array.from({ length: 12 }).map((_, i) => (
         <div
           key={i}
-          className="flex flex-col overflow-hidden rounded-lg border bg-card"
+          className="flex flex-col overflow-hidden rounded-xl border bg-card"
         >
           <div className="aspect-square animate-pulse bg-muted" />
           <div className="space-y-3 p-4">

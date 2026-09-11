@@ -49,7 +49,7 @@ export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
         )}
       </div>
 
-      <div className="rounded-lg border bg-muted/50 p-4">
+      <div className="rounded-xl border bg-muted/50 p-4">
         <h4 className="mb-2 font-medium">Image Guidelines</h4>
         <ul className="space-y-1 text-sm text-muted-foreground">
           <li>• Use high-resolution images (at least 1000x1000px)</li>

@@ -69,7 +69,7 @@ export default async function CartPage() {
       </div>
 
       {activeItems.length === 0 ? (
-        <div className="mb-8 rounded-lg border border-orange-200 bg-orange-50 p-6 text-center">
+        <div className="mb-8 rounded-xl border border-orange-200 bg-orange-50 p-6 text-center">
           <p className="text-orange-700">
             Your cart is empty. Move items from &quot;Saved for Later&quot; to
             continue shopping.

@@ -211,7 +211,7 @@ export default async function AdminOrderDetailPage({
             {order.payments.map((payment) => (
               <div
                 key={payment.id}
-                className="flex items-center justify-between rounded-lg border p-3 text-sm"
+                className="flex items-center justify-between rounded-xl border p-3 text-sm"
               >
                 <div>
                   <div className="font-medium">{payment.provider}</div>
@@ -245,7 +245,7 @@ export default async function AdminOrderDetailPage({
             {order.shipments.map((shipment) => (
               <div
                 key={shipment.id}
-                className="rounded-lg border p-3 text-sm"
+                className="rounded-xl border p-3 text-sm"
               >
                 <div className="font-medium">
                   {shipment.courier || "Courier"} ·{" "}

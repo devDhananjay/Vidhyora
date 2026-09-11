@@ -126,7 +126,7 @@ export default async function AdminDashboardPage() {
             <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
               {stats.pendingSellers > 0 && (
                 <Link href="/admin/sellers">
-                  <div className="rounded-lg border bg-background p-4 hover:bg-muted">
+                  <div className="rounded-xl border bg-background p-4 hover:bg-muted">
                     <div className="text-2xl font-bold text-orange-600">
                       {stats.pendingSellers}
                     </div>
@@ -138,7 +138,7 @@ export default async function AdminDashboardPage() {
               )}
               {stats.pendingProducts > 0 && (
                 <Link href="/admin/products">
-                  <div className="rounded-lg border bg-background p-4 hover:bg-muted">
+                  <div className="rounded-xl border bg-background p-4 hover:bg-muted">
                     <div className="text-2xl font-bold text-orange-600">
                       {stats.pendingProducts}
                     </div>
@@ -150,7 +150,7 @@ export default async function AdminDashboardPage() {
               )}
               {stats.pendingReviews > 0 && (
                 <Link href="/admin/reviews">
-                  <div className="rounded-lg border bg-background p-4 hover:bg-muted">
+                  <div className="rounded-xl border bg-background p-4 hover:bg-muted">
                     <div className="text-2xl font-bold text-orange-600">
                       {stats.pendingReviews}
                     </div>
@@ -162,7 +162,7 @@ export default async function AdminDashboardPage() {
               )}
               {stats.pendingReturns > 0 && (
                 <Link href="/admin/returns">
-                  <div className="rounded-lg border bg-background p-4 hover:bg-muted">
+                  <div className="rounded-xl border bg-background p-4 hover:bg-muted">
                     <div className="text-2xl font-bold text-orange-600">
                       {stats.pendingReturns}
                     </div>

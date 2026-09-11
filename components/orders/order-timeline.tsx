@@ -26,7 +26,7 @@ export async function OrderTimeline({ orderId, currentStatus }: OrderTimelinePro
   const currentIndex = statusFlow.indexOf(currentStatus);
 
   return (
-    <div className="rounded-lg border p-6">
+    <div className="rounded-xl border p-6">
       <h2 className="mb-6 text-lg font-semibold">Order Timeline</h2>
 
       <div className="relative space-y-6">

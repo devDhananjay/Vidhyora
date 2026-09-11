@@ -82,7 +82,7 @@ function Note({ note }: { note: HomepageMoodboardNote }) {
         transform: `rotate(${note.rotate}deg)`,
       }}
     >
-      <div className="border border-[#e8dccb] bg-[#fffaf3] px-3 py-2.5 shadow-[0_8px_18px_rgba(55,35,20,0.1)]">
+      <div className="rounded-xl border border-[#e8dccb] bg-[#fffaf3] px-3 py-2.5 shadow-[0_8px_18px_rgba(55,35,20,0.1)]">
         {note.label ? (
           <p className="text-[9px] tracking-[0.18em] text-neutral-400 uppercase">
             {note.label}
@@ -182,7 +182,7 @@ export function WeddingMoodboard({
             {boardNotes.map((note) => (
               <div
                 key={note.label ?? note.text}
-                className="border border-[#e8dccb] bg-[#fffaf3] px-2.5 py-2 shadow-sm"
+                className="rounded-xl border border-[#e8dccb] bg-[#fffaf3] px-2.5 py-2 shadow-sm"
               >
                 {note.label ? (
                   <p className="text-[8px] tracking-[0.14em] text-neutral-400 uppercase">

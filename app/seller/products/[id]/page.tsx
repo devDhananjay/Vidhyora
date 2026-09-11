@@ -140,7 +140,7 @@ export default async function ProductDetailPage({
               {product.variants.map((variant) => (
                 <div
                   key={variant.id}
-                  className="flex items-center justify-between rounded-lg border p-3"
+                  className="flex items-center justify-between rounded-xl border p-3"
                 >
                   <div>
                     <div className="font-medium">{variant.sku}</div>

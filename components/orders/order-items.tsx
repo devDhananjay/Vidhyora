@@ -29,7 +29,7 @@ export function OrderItems({ items, orderStatus }: OrderItemsProps) {
   const canReview = orderStatus === "DELIVERED";
 
   return (
-    <div className="rounded-lg border p-4 sm:p-6">
+    <div className="rounded-xl border p-4 sm:p-6">
       <h2 className="mb-4 text-lg font-semibold">
         Order Items ({items.length})
       </h2>
@@ -100,7 +100,7 @@ export function OrderItems({ items, orderStatus }: OrderItemsProps) {
                   </div>
 
                   {latestReturn ? (
-                    <div className="mt-2 rounded-lg border border-neutral-200 bg-[#faf8f6] px-3 py-2 text-sm">
+                    <div className="mt-2 rounded-xl border border-neutral-200 bg-[#faf8f6] px-3 py-2 text-sm">
                       <p className="font-medium text-neutral-900">
                         {returnStatusLabel(latestReturn.status)}
                         {latestReturn.type === "REPLACEMENT"

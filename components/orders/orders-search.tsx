@@ -37,7 +37,7 @@ export function OrdersSearch<T>({
         />
       </div>
       {filtered.length === 0 ? (
-        <p className="rounded-lg border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
+        <p className="rounded-xl border border-dashed px-4 py-8 text-center text-sm text-muted-foreground">
           No orders match “{query.trim()}”.
         </p>
       ) : (

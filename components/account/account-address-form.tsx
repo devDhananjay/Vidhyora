@@ -505,7 +505,7 @@ export function AccountAddressForm({
       <Field id="addr-label" label="Address (Home / Work / Other)" required>
         <select
           id="addr-label"
-          className="flex h-10 w-full rounded-md border border-input bg-white px-3 text-sm outline-none focus:border-[#8b2e2e]"
+          className="flex h-10 w-full rounded-xl border border-input bg-white px-3 text-sm outline-none focus:border-[#8b2e2e]"
           value={values.label}
           onChange={(e) =>
             setField(
@@ -523,7 +523,7 @@ export function AccountAddressForm({
       <Field id="addr-type" label="Shipping / billing use" required>
         <select
           id="addr-type"
-          className="flex h-10 w-full rounded-md border border-input bg-white px-3 text-sm outline-none focus:border-[#8b2e2e]"
+          className="flex h-10 w-full rounded-xl border border-input bg-white px-3 text-sm outline-none focus:border-[#8b2e2e]"
           value={values.type}
           onChange={(e) =>
             setField(

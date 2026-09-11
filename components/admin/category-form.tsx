@@ -215,7 +215,7 @@ export function CategoryForm({ category, categories }: CategoryFormProps) {
           </div>
 
           {/* Active Status */}
-          <div className="flex items-center justify-between rounded-lg border p-4">
+          <div className="flex items-center justify-between rounded-xl border p-4">
             <div>
               <Label htmlFor="isActive" className="cursor-pointer">
                 Active Status

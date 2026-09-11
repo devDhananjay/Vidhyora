@@ -15,7 +15,7 @@ export function OrderSummaryCard({ order }: OrderSummaryCardProps) {
   return (
     <div className="space-y-6">
       {/* Price Details */}
-      <div className="rounded-lg border p-6">
+      <div className="rounded-xl border p-6">
         <h3 className="mb-4 font-semibold">Price Details</h3>
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
@@ -61,7 +61,7 @@ export function OrderSummaryCard({ order }: OrderSummaryCardProps) {
       </div>
 
       {order.occasionNote || order.giftMessage ? (
-        <div className="rounded-lg border p-6">
+        <div className="rounded-xl border p-6">
           <h3 className="mb-4 font-semibold">Gift details</h3>
           <div className="space-y-3 text-sm">
             {order.occasionNote ? (
@@ -85,7 +85,7 @@ export function OrderSummaryCard({ order }: OrderSummaryCardProps) {
       ) : null}
 
       {/* Delivery Address */}
-      <div className="rounded-lg border p-6">
+      <div className="rounded-xl border p-6">
         <div className="mb-4 flex items-center gap-2 font-semibold">
           <MapPin className="size-5" />
           <h3>Delivery Address</h3>
@@ -107,7 +107,7 @@ export function OrderSummaryCard({ order }: OrderSummaryCardProps) {
       </div>
 
       {/* Payment Method */}
-      <div className="rounded-lg border p-6">
+      <div className="rounded-xl border p-6">
         <div className="mb-4 flex items-center gap-2 font-semibold">
           <CreditCard className="size-5" />
           <h3>Payment</h3>

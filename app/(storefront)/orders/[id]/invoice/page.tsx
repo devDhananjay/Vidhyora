@@ -138,7 +138,7 @@ export default async function OrderInvoicePage({
 
         <div className="print-invoice-sheet box-border rounded-2xl border border-neutral-200 bg-white p-5 sm:p-7 print:rounded-none print:border-0 print:p-0">
           {hidePrices ? (
-            <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 print:border print:bg-white">
+            <p className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 print:border print:bg-white">
               Gift invoice — prices are hidden on this copy.
             </p>
           ) : null}

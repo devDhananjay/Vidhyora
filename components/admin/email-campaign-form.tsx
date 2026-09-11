@@ -145,7 +145,7 @@ export function EmailCampaignForm({
               <Label htmlFor="festival">Occasion</Label>
               <select
                 id="festival"
-                className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm"
                 value={festival}
                 onChange={(event) => {
                   setFestival(event.target.value);
@@ -263,7 +263,7 @@ export function EmailCampaignForm({
             <Label htmlFor="audience">Send to</Label>
             <select
               id="audience"
-              className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm"
               value={audience}
               onChange={(event) => {
                 setAudience(event.target.value as Audience);

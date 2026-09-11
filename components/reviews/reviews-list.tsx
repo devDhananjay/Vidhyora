@@ -55,7 +55,7 @@ export function ReviewsList({ initialReviews, productId }: ReviewsListProps) {
           Loading reviews...
         </div>
       ) : reviews.length === 0 ? (
-        <div className="rounded-lg border border-dashed py-10 text-center">
+        <div className="rounded-xl border border-dashed py-10 text-center">
           <p className="text-muted-foreground">
             {hasActiveFilters
               ? "No reviews match these filters"

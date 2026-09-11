@@ -19,7 +19,7 @@ export function AddressCard({
   return (
     <div
       className={cn(
-        "relative w-full rounded-lg border p-4 text-left transition-colors",
+        "relative w-full rounded-xl border p-4 text-left transition-colors",
         isSelected ? "border-primary bg-primary/5" : "hover:border-primary/60",
       )}
     >

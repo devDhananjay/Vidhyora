@@ -336,7 +336,7 @@ export default async function HomePage() {
         <div className="mt-12 text-center">
           <Link
             href={featured.viewAllHref}
-            className="inline-flex items-center border border-[#2b1a16] px-8 py-3 text-xs tracking-[0.2em] uppercase transition hover:bg-[#2b1a16] hover:text-white"
+            className="inline-flex items-center rounded-full border border-[#2b1a16] px-8 py-3 text-xs tracking-[0.2em] uppercase transition hover:bg-[#2b1a16] hover:text-white"
           >
             View All
             <ArrowRight className="ml-2 size-4" />

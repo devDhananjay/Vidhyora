@@ -18,7 +18,7 @@ export function CartSummary({
   availablePromos = [],
 }: CartSummaryProps) {
   return (
-    <div className="rounded-lg border p-6">
+    <div className="rounded-xl border p-6">
       <h2 className="mb-4 text-lg font-semibold">Order Summary</h2>
 
       <div className="mb-4">

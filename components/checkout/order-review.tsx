@@ -10,7 +10,7 @@ type OrderReviewProps = {
 
 export function OrderReview({ items }: OrderReviewProps) {
   return (
-    <div className="rounded-lg border p-4 sm:p-6">
+    <div className="rounded-xl border p-4 sm:p-6">
       <div className="mb-4 flex items-center gap-2">
         <Package className="size-5 shrink-0 text-primary" />
         <h2 className="text-lg font-semibold">Review Items</h2>

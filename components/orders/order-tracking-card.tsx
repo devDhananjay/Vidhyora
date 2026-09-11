@@ -25,7 +25,7 @@ export function OrderTrackingCard({
   }
 
   return (
-    <div className="rounded-lg border p-6">
+    <div className="rounded-xl border p-6">
       <div className="mb-4 flex items-center gap-2">
         <Package className="size-5 text-[#8b2e2e]" strokeWidth={1.6} />
         <h3 className="font-semibold">Shipment tracking</h3>

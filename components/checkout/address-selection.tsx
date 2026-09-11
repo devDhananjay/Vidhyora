@@ -54,7 +54,7 @@ export function AddressSelection({
   }
 
   return (
-    <div className="rounded-lg border p-4 sm:p-6">
+    <div className="rounded-xl border p-4 sm:p-6">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <MapPin className="size-5 shrink-0 text-primary" />
@@ -72,7 +72,7 @@ export function AddressSelection({
       </div>
 
       {addresses.length === 0 ? (
-        <div className="rounded-lg border border-dashed px-4 py-8 text-center">
+        <div className="rounded-xl border border-dashed px-4 py-8 text-center">
           <p className="text-sm text-muted-foreground">
             Add a delivery address to continue checkout.
           </p>

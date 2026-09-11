@@ -40,7 +40,7 @@ export default async function OrderDetailPage({
         {/* Sidebar */}
         <div className="lg:col-span-1 space-y-6">
           <OrderSummaryCard order={order} />
-          <div className="rounded-lg border p-6">
+          <div className="rounded-xl border p-6">
             <h3 className="mb-4 font-semibold">Documents</h3>
             <Link
               href={`/orders/${order.id}/invoice`}

@@ -87,7 +87,7 @@ export default async function SellerInventoryPage() {
 
       {/* Low Stock Alert */}
       {lowStockProducts.length > 0 && (
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900 dark:bg-yellow-900/10">
+        <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900 dark:bg-yellow-900/10">
           <div className="flex items-start gap-3">
             <AlertTriangle className="size-5 text-yellow-600 dark:text-yellow-500" />
             <div className="flex-1">

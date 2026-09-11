@@ -54,7 +54,7 @@ export function OrderActions({ order }: OrderActionsProps) {
   }
 
   return (
-    <div className="rounded-lg border p-6">
+    <div className="rounded-xl border p-6">
       <h3 className="mb-4 font-semibold">Order Actions</h3>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

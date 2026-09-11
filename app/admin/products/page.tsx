@@ -86,7 +86,7 @@ export default async function AdminProductsPage({
             name="search"
             defaultValue={search ?? ""}
             placeholder="Search name or SKU"
-            className="h-9 w-full rounded-md border border-neutral-200 px-3 text-sm sm:w-64"
+            className="h-9 w-full rounded-xl border border-neutral-200 px-3 text-sm sm:w-64"
           />
           <button
             type="submit"

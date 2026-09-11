@@ -63,7 +63,7 @@ export function VariantSelector({ variants }: VariantSelectorProps) {
                     key={variant.id}
                     onClick={() => setSelectedVariantId(variant.id)}
                     disabled={!inStock}
-                    className={`relative flex min-w-[80px] items-center justify-center rounded-md border px-4 py-2 text-sm transition-colors ${
+                    className={`relative flex min-w-[80px] items-center justify-center rounded-xl border px-4 py-2 text-sm transition-colors ${
                       isSelected
                         ? "border-primary bg-primary/10 font-medium text-primary"
                         : inStock

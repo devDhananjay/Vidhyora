@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Bodoni_Moda, Caveat, Montserrat } from "next/font/google";
 import "./globals.css";
 import { FirebaseAnalytics } from "@/components/firebase/firebase-analytics";
+// Dark / light mode — on hold for now
+// import { ThemeProvider } from "@/components/theme/theme-provider";
 import { APP_NAME, APP_DESCRIPTION, APP_TAGLINE, BRAND_LOGO_SRC } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -65,10 +67,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${montserrat.variable} ${bodoni.variable} ${caveat.variable} font-sans antialiased`}
       >
+        {/* Dark / light mode — on hold for now
+        <ThemeProvider>
+          {children}
+          <FirebaseAnalytics />
+        </ThemeProvider>
+        */}
         {children}
         <FirebaseAnalytics />
       </body>

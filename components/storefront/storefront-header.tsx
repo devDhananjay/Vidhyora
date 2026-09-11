@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Handshake, Heart, MapPin, Search, User } from "lucide-react";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { MegaNav } from "@/components/storefront/mega-nav";
+// Dark / light mode — on hold for now
+// import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import type { SessionUser } from "@/types/user";
@@ -44,8 +46,8 @@ export function StorefrontHeader({
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 overflow-visible border-b border-neutral-100 bg-white/95 backdrop-blur-sm transition-[box-shadow] duration-300 print:hidden",
-        compact && "shadow-[0_4px_18px_rgba(43,26,22,0.08)]",
+        "sticky top-0 z-50 overflow-visible border-b border-border bg-background/95 backdrop-blur-sm transition-[box-shadow] duration-300 print:hidden",
+        compact && "shadow-[0_4px_18px_rgba(43,26,22,0.08)] dark:shadow-[0_4px_18px_rgba(0,0,0,0.35)]",
       )}
     >
       <div className="mx-auto flex max-w-7xl items-center gap-3 px-3 py-1 sm:gap-6 sm:px-4 md:py-1.5">
@@ -69,14 +71,14 @@ export function StorefrontHeader({
               name="q"
               placeholder="Search for gold necklace, diamond jewellery"
               className={cn(
-                "w-full rounded-full border border-neutral-200 bg-white px-5 pr-11 text-sm text-neutral-700 outline-none placeholder:text-neutral-400 transition-[height] duration-300 focus:border-neutral-400",
+                "w-full rounded-full border border-border bg-card px-5 pr-11 text-sm text-foreground outline-none placeholder:text-muted-foreground transition-[height] duration-300 focus:border-brand",
                 compact ? "h-9" : "h-10",
               )}
               aria-label="Search jewellery"
             />
             <button
               type="submit"
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-500"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
               aria-label="Search"
             >
               <Search className="size-4" />
@@ -90,23 +92,26 @@ export function StorefrontHeader({
             type="search"
             name="q"
             placeholder="Search jewellery"
-            className="h-9 w-full rounded-full border border-neutral-200 bg-white px-3 pr-9 text-sm text-neutral-700 outline-none placeholder:text-neutral-400 focus:border-neutral-400"
+            className="h-9 w-full rounded-full border border-border bg-card px-3 pr-9 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-brand"
             aria-label="Search jewellery"
           />
           <button
             type="submit"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
             aria-label="Search"
           >
             <Search className="size-4" />
           </button>
         </form>
 
-        <nav className="ml-auto flex items-center gap-1 text-[#8b2e2e]">
+        <nav className="ml-auto flex items-center gap-1 text-brand">
+          {/* Dark / light mode — on hold for now
+          <ThemeToggle />
+          */}
           <Link
             href={ROUTES.partner}
             className={cn(
-              "relative z-20 mr-1 hidden items-center gap-1.5 rounded-full border border-[#8b2e2e]/20 bg-[#8b2e2e]/5 font-medium text-[#8b2e2e] transition hover:bg-[#8b2e2e] hover:text-white sm:inline-flex",
+              "relative z-20 mr-1 hidden items-center gap-1.5 rounded-full border border-brand/20 bg-brand/5 font-medium text-brand transition hover:bg-brand hover:text-primary-foreground sm:inline-flex",
               compact ? "px-2.5 py-1 text-[11px]" : "px-3 py-1.5 text-[12px]",
             )}
           >
@@ -115,7 +120,7 @@ export function StorefrontHeader({
           </Link>
           <Link
             href={ROUTES.storeLocator}
-            className="rounded-full p-2 text-[#8b2e2e] hover:bg-[#8b2e2e]/5"
+            className="rounded-full p-2 text-brand hover:bg-brand/5"
             aria-label="Store locator"
           >
             <MapPin className="size-5" strokeWidth={1.5} />
@@ -124,7 +129,7 @@ export function StorefrontHeader({
             <>
               <Link
                 href={ROUTES.wishlist}
-                className="rounded-full p-2 text-[#8b2e2e] hover:bg-[#8b2e2e]/5"
+                className="rounded-full p-2 text-brand hover:bg-brand/5"
                 aria-label="Wishlist"
               >
                 <Heart className="size-5" strokeWidth={1.5} />
@@ -136,7 +141,7 @@ export function StorefrontHeader({
             <>
               <Link
                 href="/login"
-                className="rounded-full p-2 text-[#8b2e2e] hover:bg-[#8b2e2e]/5"
+                className="rounded-full p-2 text-brand hover:bg-brand/5"
                 aria-label="Login"
               >
                 <User className="size-5" strokeWidth={1.5} />

@@ -172,7 +172,7 @@ export function MegaNav({
       </div>
 
       {mobileActive ? (
-        <div className="border-t border-neutral-100 bg-white px-3 pb-4 pt-2">
+        <div className="border-t border-border bg-background px-3 pb-4 pt-2">
           <div className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {mobileActive.sidebar.map((tab) => {
               const selected = mobileSidebar === tab;
@@ -222,7 +222,7 @@ export function MegaNav({
             onMouseEnter={() => open(active.id)}
             onMouseLeave={scheduleClose}
           >
-            <div className="border-t border-neutral-100 bg-white shadow-[0_18px_40px_rgba(0,0,0,0.12)]">
+            <div className="border-t border-border bg-background shadow-[0_18px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
               <MegaPanel
                 item={active}
                 sidebar={sidebar}

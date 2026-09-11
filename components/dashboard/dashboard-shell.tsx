@@ -32,6 +32,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "@/components/brand/brand-logo";
+// Dark / light mode — on hold for now
+// import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 const ADMIN_NAV = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -119,13 +121,13 @@ export function DashboardShell({
   }, [mobileOpen]);
 
   return (
-    <div className="min-h-screen bg-[#faf8f6] text-[#2b1a16]">
-      <header className="sticky top-0 z-50 border-b border-neutral-100 bg-white">
+    <div className="min-h-screen bg-surface text-foreground">
+      <header className="sticky top-0 z-50 border-b border-border bg-background">
         <div className="flex h-14 items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
               type="button"
-              className="inline-flex size-10 items-center justify-center rounded-full text-[#8b2e2e] hover:bg-[#8b2e2e]/5 lg:hidden"
+              className="inline-flex size-10 items-center justify-center rounded-full text-brand hover:bg-brand/5 lg:hidden"
               aria-label={mobileOpen ? "Close menu" : "Open menu"}
               aria-expanded={mobileOpen}
               onClick={() => setMobileOpen((open) => !open)}
@@ -135,22 +137,25 @@ export function DashboardShell({
             <Link href="/" className="shrink-0" aria-label="VIDYORA home">
               <BrandLogo size="sm" priority className="h-10 w-10 sm:h-12 sm:w-12" />
             </Link>
-            <span className="truncate rounded-full bg-[#8b2e2e]/10 px-2.5 py-1 text-[10px] font-medium tracking-[0.16em] text-[#8b2e2e] uppercase">
+            <span className="truncate rounded-full bg-brand/10 px-2.5 py-1 text-[10px] font-medium tracking-[0.16em] text-brand uppercase">
               {badge}
             </span>
           </div>
-          <div className="flex items-center gap-3 text-sm text-neutral-500 sm:gap-5">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground sm:gap-4">
+            {/* Dark / light mode — on hold for now
+            <ThemeToggle />
+            */}
             {extraLinks?.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="hidden hover:text-[#8b2e2e] sm:inline"
+                className="hidden hover:text-brand sm:inline"
               >
                 {link.label}
               </Link>
             ))}
             {userName ? (
-              <span className="hidden max-w-[140px] truncate text-neutral-800 md:inline">
+              <span className="hidden max-w-[140px] truncate text-foreground md:inline">
                 {userName}
               </span>
             ) : null}
@@ -158,7 +163,7 @@ export function DashboardShell({
         </div>
 
         {/* Mobile quick links strip */}
-        <div className="border-t border-neutral-100 lg:hidden">
+        <div className="border-t border-border lg:hidden">
           <div className="flex gap-1 overflow-x-auto px-3 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {items.slice(0, 6).map((item) => (
               <NavLink key={item.href} item={item} compact />
@@ -176,17 +181,17 @@ export function DashboardShell({
             aria-label="Close menu backdrop"
             onClick={() => setMobileOpen(false)}
           />
-          <aside className="absolute inset-y-0 left-0 flex w-[min(86vw,20rem)] flex-col bg-white shadow-xl">
-            <div className="flex items-center justify-between border-b border-neutral-100 px-4 py-3">
+          <aside className="absolute inset-y-0 left-0 flex w-[min(86vw,20rem)] flex-col bg-background shadow-xl">
+            <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <div>
-                <p className="text-sm font-medium text-neutral-900">{badge}</p>
+                <p className="text-sm font-medium text-foreground">{badge}</p>
                 {userName ? (
-                  <p className="text-xs text-neutral-500">{userName}</p>
+                  <p className="text-xs text-muted-foreground">{userName}</p>
                 ) : null}
               </div>
               <button
                 type="button"
-                className="rounded-full p-2 text-neutral-600 hover:bg-neutral-100"
+                className="rounded-full p-2 text-muted-foreground hover:bg-muted"
                 aria-label="Close menu"
                 onClick={() => setMobileOpen(false)}
               >
@@ -199,13 +204,13 @@ export function DashboardShell({
               ))}
             </nav>
             {extraLinks?.length ? (
-              <div className="space-y-1 border-t border-neutral-100 p-3">
+              <div className="space-y-1 border-t border-border p-3">
                 {extraLinks.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileOpen(false)}
-                    className="block rounded-lg px-3 py-2.5 text-sm text-neutral-600 hover:bg-[#faf7f5] hover:text-[#8b2e2e]"
+                    className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-brand"
                   >
                     {link.label}
                   </Link>
@@ -217,7 +222,7 @@ export function DashboardShell({
       ) : null}
 
       <div className="flex">
-        <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-64 border-r border-neutral-100 bg-white lg:block">
+        <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-64 border-r border-border bg-background lg:block">
           <nav className="space-y-1 p-4">
             {items.map((item) => (
               <NavLink key={item.href} item={item} />
@@ -260,8 +265,8 @@ function NavLink({
         className={cn(
           "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] whitespace-nowrap transition",
           active
-            ? "bg-[#8b2e2e] text-white"
-            : "bg-[#f6ebe8] text-[#8b2e2e]",
+            ? "bg-brand text-primary-foreground"
+            : "bg-accent text-brand",
         )}
       >
         <Icon className="size-3.5" strokeWidth={1.75} />
@@ -277,8 +282,8 @@ function NavLink({
       className={cn(
         "flex items-center gap-3 rounded-r-lg px-3 py-2.5 text-sm transition",
         active
-          ? "bg-[#f6ebe8] font-medium text-[#8b2e2e] shadow-[inset_3px_0_0_#8b2e2e]"
-          : "text-neutral-600 hover:bg-[#faf7f5] hover:text-[#8b2e2e]",
+          ? "bg-accent font-medium text-brand shadow-[inset_3px_0_0_var(--brand)]"
+          : "text-muted-foreground hover:bg-muted hover:text-brand",
       )}
     >
       <Icon className="size-4" strokeWidth={1.5} />

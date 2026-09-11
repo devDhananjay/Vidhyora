@@ -34,36 +34,36 @@ export default async function StorefrontLayout({
   const tel = phoneTelHref(supportPhone);
 
   return (
-    <div className="flex min-h-screen flex-col bg-white">
-      <div className="hidden border-b border-neutral-100 bg-[#f7f4f0] print:hidden md:block">
-        <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 text-[12px] text-neutral-600">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <div className="hidden border-b border-border bg-surface print:hidden md:block">
+        <div className="mx-auto flex h-9 max-w-7xl items-center justify-between px-4 text-[12px] text-muted-foreground">
           <div className="flex items-center">
             <a
               href={tel}
-              className="flex items-center gap-1.5 pr-4 hover:text-[#8b2e2e]"
+              className="flex items-center gap-1.5 pr-4 hover:text-brand"
             >
               <Phone className="size-3" strokeWidth={1.6} />
               <span>{supportPhone}</span>
             </a>
-            <span className="h-3 w-px bg-neutral-300" />
+            <span className="h-3 w-px bg-border" />
             <a
               href={`mailto:${supportEmail}`}
-              className="flex items-center gap-1.5 px-4 hover:text-[#8b2e2e]"
+              className="flex items-center gap-1.5 px-4 hover:text-brand"
             >
               <Mail className="size-3" strokeWidth={1.6} />
               <span>{supportEmail}</span>
             </a>
           </div>
           <div className="flex items-center">
-            <Link href={ROUTES.orders} className="px-3 hover:text-[#8b2e2e]">
+            <Link href={ROUTES.orders} className="px-3 hover:text-brand">
               Track Order
             </Link>
-            <span className="h-3 w-px bg-neutral-300" />
-            <Link href={ROUTES.storeLocator} className="px-3 hover:text-[#8b2e2e]">
+            <span className="h-3 w-px bg-border" />
+            <Link href={ROUTES.storeLocator} className="px-3 hover:text-brand">
               Store Locator
             </Link>
-            <span className="h-3 w-px bg-neutral-300" />
-            <Link href={ROUTES.help} className="pl-3 hover:text-[#8b2e2e]">
+            <span className="h-3 w-px bg-border" />
+            <Link href={ROUTES.help} className="pl-3 hover:text-brand">
               Help
             </Link>
           </div>

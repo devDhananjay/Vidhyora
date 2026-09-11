@@ -2,35 +2,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --font-sans: var(--font-montserrat);
-  --font-serif: var(--font-bodoni);
-  --font-script: var(--font-caveat);
-}
-
 :root {
   --radius: 0.75rem;
   --background: #ffffff;
@@ -52,28 +23,69 @@
   --border: #ead9c4;
   --input: #ead9c4;
   --ring: #8b2e2e;
+  --surface: #faf8f6;
+  --surface-elevated: #ffffff;
+  --brand: #8b2e2e;
+  color-scheme: light;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
+  /* Warm jewellery dark — not cold grey / purple */
+  --background: #140e0c;
+  --foreground: #f4ece6;
+  --card: #1c1512;
+  --card-foreground: #f4ece6;
+  --popover: #1c1512;
+  --popover-foreground: #f4ece6;
   --primary: #c45c5c;
   --primary-foreground: #1a0c0c;
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
+  --secondary: #261c18;
+  --secondary-foreground: #f4ece6;
+  --muted: #241a16;
+  --muted-foreground: #b8a99c;
+  --accent: #2a1a18;
+  --accent-foreground: #e8b4b4;
+  --destructive: #e06b5c;
   --destructive-foreground: #fffaf6;
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
+  --border: #3a2c26;
+  --input: #3a2c26;
   --ring: #c45c5c;
+  --surface: #1a1210;
+  --surface-elevated: #221914;
+  --brand: #c45c5c;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-brand: var(--brand);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: var(--font-montserrat);
+  --font-serif: var(--font-bodoni);
+  --font-script: var(--font-caveat);
 }
 
 @layer base {
@@ -87,6 +99,39 @@
     scroll-behavior: smooth;
   }
 }
+
+/* Soft remaps for frequent hardcoded surfaces in dark mode
+ * Dark / light mode — on hold for now (re-enable with ThemeProvider)
+.dark .bg-\[\#faf8f6\],
+.dark .bg-\[\#f7f4f0\],
+.dark .bg-\[\#faf7f5\] {
+  background-color: var(--surface) !important;
+}
+
+.dark .bg-white:not([class*="bg-white/"]) {
+  background-color: var(--card) !important;
+}
+
+.dark .text-neutral-900,
+.dark .text-\[\#2b1a16\] {
+  color: var(--foreground) !important;
+}
+
+.dark .text-neutral-600,
+.dark .text-neutral-500,
+.dark .text-muted-foreground {
+  color: var(--muted-foreground) !important;
+}
+
+.dark .border-neutral-100,
+.dark .border-neutral-200 {
+  border-color: var(--border) !important;
+}
+
+.dark .text-\[\#8b2e2e\] {
+  color: var(--brand) !important;
+}
+*/
 
 @keyframes vidyora-float {
   0%,

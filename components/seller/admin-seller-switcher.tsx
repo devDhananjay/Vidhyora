@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { usePathname } from "next/navigation";
 import { setViewAsSeller } from "@/actions/seller/view-as-seller";
+import { NativeSelect } from "@/components/ui/native-select";
 
 type SellerOption = {
   sellerId: string;
@@ -41,18 +42,19 @@ export function AdminSellerSwitcher({
       </p>
       <label className="flex items-center gap-2">
         <span className="text-neutral-600">Viewing</span>
-        <select
+        <NativeSelect
           value={currentSellerId}
           disabled={isPending}
           onChange={(event) => switchTo(event.target.value)}
-          className="max-w-[min(100%,20rem)] rounded-full border border-[#ead9c4] bg-white px-3 py-1.5 text-sm text-neutral-900 disabled:cursor-wait disabled:opacity-60"
+          wrapperClassName="w-auto max-w-[min(100%,20rem)]"
+          className="h-9 border-[#ead9c4] py-1.5"
         >
           {sellers.map((seller) => (
             <option key={seller.sellerId} value={seller.sellerId}>
               {seller.businessName} ({seller.seller.email})
             </option>
           ))}
-        </select>
+        </NativeSelect>
       </label>
     </div>
   );

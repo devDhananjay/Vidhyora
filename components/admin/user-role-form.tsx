@@ -6,6 +6,7 @@ import type { UserRole } from "@prisma/client";
 import { updateUserRole } from "@/actions/admin/manage-users";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { roleLabel } from "@/lib/roles";
 
 const ROLE_OPTIONS: UserRole[] = [
@@ -57,18 +58,17 @@ export function UserRoleForm({
 
       <div className="space-y-2">
         <Label htmlFor="admin-user-role">Role</Label>
-        <select
+        <NativeSelect
           id="admin-user-role"
           value={role}
           onChange={(e) => setRole(e.target.value as UserRole)}
-          className="h-10 w-full appearance-none rounded-full border border-neutral-200 bg-white px-4 pr-9 text-sm outline-none focus:border-[#8b2e2e]"
         >
           {options.map((item) => (
             <option key={item} value={item}>
               {roleLabel(item)}
             </option>
           ))}
-        </select>
+        </NativeSelect>
         <p className="text-xs text-muted-foreground">
           Changing role updates dashboard access immediately after next login.
         </p>

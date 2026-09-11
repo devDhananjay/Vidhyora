@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ImageUpload } from "@/components/shared/image-upload";
@@ -153,10 +154,10 @@ export function ReturnRequestForm({ orderItem, order, eligibility }: ReturnReque
         <CardContent className="space-y-4">
           <div>
             <Label htmlFor="reason">Select Reason *</Label>
-            <select
+            <NativeSelect
               id="reason"
+              wrapperClassName="mt-2"
               {...register("reason")}
-              className="mt-2 w-full rounded-xl border p-2"
             >
               <option value="">Choose a reason...</option>
               <option value="Defective or damaged">Defective or damaged</option>
@@ -165,7 +166,7 @@ export function ReturnRequestForm({ orderItem, order, eligibility }: ReturnReque
               <option value="Size/fit issues">Size/fit issues</option>
               <option value="Changed mind">Changed mind</option>
               <option value="Other">Other</option>
-            </select>
+            </NativeSelect>
             {errors.reason && (
               <p className="mt-1 text-sm text-destructive">{errors.reason.message}</p>
             )}

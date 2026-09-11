@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export const metadata: Metadata = {
   title: "Users | Super Admin",
@@ -96,26 +97,18 @@ export default async function AdminUsersPage({
               defaultValue={q}
               placeholder="Search name, email or phone"
             />
-            <select
-              name="role"
-              defaultValue={role}
-              className="h-10 w-full appearance-none rounded-full border border-neutral-200 bg-white px-4 pr-9 text-sm outline-none focus:border-[#8b2e2e]"
-            >
+            <NativeSelect name="role" defaultValue={role}>
               <option value="ALL">All roles</option>
               <option value="CUSTOMER">Customer</option>
               <option value="SELLER">Seller Admin</option>
               <option value="ADMIN">Admin</option>
               <option value="SUPER_ADMIN">Super Admin</option>
-            </select>
-            <select
-              name="status"
-              defaultValue={status}
-              className="h-10 w-full appearance-none rounded-full border border-neutral-200 bg-white px-4 pr-9 text-sm outline-none focus:border-[#8b2e2e]"
-            >
+            </NativeSelect>
+            <NativeSelect name="status" defaultValue={status}>
               <option value="ALL">All status</option>
               <option value="ACTIVE">Active</option>
               <option value="INACTIVE">Disabled</option>
-            </select>
+            </NativeSelect>
             <Button type="submit" className="rounded-full">
               Apply
             </Button>

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import type {
   IntegrationsSettings,
   SiteSettingsData,
@@ -117,9 +118,8 @@ export function IntegrationsSettingsForm({
           <h3 className="text-sm font-semibold">SMS provider (Phone OTP)</h3>
           <div className="space-y-2">
             <Label htmlFor="smsProvider">Provider</Label>
-            <select
+            <NativeSelect
               id="smsProvider"
-              className="flex h-10 w-full rounded-xl border border-input bg-background px-3 text-sm"
               value={integrations.smsProvider}
               onChange={(e) =>
                 setField(
@@ -133,7 +133,7 @@ export function IntegrationsSettingsForm({
               <option value="twilio">Twilio only</option>
               <option value="console">Console log only (testing)</option>
               <option value="off">Off</option>
-            </select>
+            </NativeSelect>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">

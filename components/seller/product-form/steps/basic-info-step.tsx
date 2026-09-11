@@ -1,6 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 import {
   Select,
   SelectContent,
@@ -140,9 +141,8 @@ export function BasicInfoStep({
                     {attr.isRequired ? " *" : ""}
                   </Label>
                   {attr.type === "select" ? (
-                    <select
+                    <NativeSelect
                       id={`attr-${attr.slug}`}
-                      className="flex h-10 w-full rounded-full border border-input bg-background px-3 text-sm"
                       value={productAttributes[attr.slug] || ""}
                       onChange={(e) =>
                         setAttributeValue(attr.slug, e.target.value)
@@ -154,11 +154,10 @@ export function BasicInfoStep({
                           {opt}
                         </option>
                       ))}
-                    </select>
+                    </NativeSelect>
                   ) : attr.type === "boolean" ? (
-                    <select
+                    <NativeSelect
                       id={`attr-${attr.slug}`}
-                      className="flex h-10 w-full rounded-full border border-input bg-background px-3 text-sm"
                       value={productAttributes[attr.slug] || ""}
                       onChange={(e) =>
                         setAttributeValue(attr.slug, e.target.value)
@@ -167,7 +166,7 @@ export function BasicInfoStep({
                       <option value="">Select…</option>
                       <option value="true">Yes</option>
                       <option value="false">No</option>
-                    </select>
+                    </NativeSelect>
                   ) : (
                     <Input
                       id={`attr-${attr.slug}`}

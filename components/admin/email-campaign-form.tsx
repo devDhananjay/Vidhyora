@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { NativeSelect } from "@/components/ui/native-select";
 import { cn } from "@/lib/utils";
 
 type Audience = typeof campaignAudienceSchema._type;
@@ -143,9 +144,8 @@ export function EmailCampaignForm({
           {type === "FESTIVAL" ? (
             <div className="space-y-2">
               <Label htmlFor="festival">Occasion</Label>
-              <select
+              <NativeSelect
                 id="festival"
-                className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm"
                 value={festival}
                 onChange={(event) => {
                   setFestival(event.target.value);
@@ -157,7 +157,7 @@ export function EmailCampaignForm({
                     {value.label}
                   </option>
                 ))}
-              </select>
+              </NativeSelect>
             </div>
           ) : null}
 
@@ -261,9 +261,8 @@ export function EmailCampaignForm({
 
           <div className="space-y-2">
             <Label htmlFor="audience">Send to</Label>
-            <select
+            <NativeSelect
               id="audience"
-              className="h-10 w-full rounded-xl border border-input bg-background px-3 text-sm"
               value={audience}
               onChange={(event) => {
                 setAudience(event.target.value as Audience);
@@ -275,7 +274,7 @@ export function EmailCampaignForm({
                   {item.label}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
             {audienceHint ? (
               <p className="text-xs text-muted-foreground">{audienceHint}</p>
             ) : null}

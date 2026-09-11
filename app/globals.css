@@ -101,9 +101,16 @@
     scroll-behavior: smooth;
   }
 
-  /* Native selects / dropdowns get soft corners unless explicitly squared */
-  select:not([class*="rounded-none"]) {
-    border-radius: var(--radius-lg);
+  /*
+   * Native <select> ignores border-radius until OS chrome is disabled.
+   * appearance-none + soft radius for every dropdown site-wide.
+   */
+  select {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  select:not([class*="rounded-none"]):not([class*="rounded-full"]) {
+    border-radius: var(--radius-xl);
   }
 
   /* Soften bordered content boxes that never set a radius utility */

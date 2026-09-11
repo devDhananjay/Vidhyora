@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { NativeSelect } from "@/components/ui/native-select";
 import {
   createHelpArticle,
   updateHelpArticle,
@@ -53,18 +54,17 @@ export function HelpArticleForm({ article, onSaved }: HelpArticleFormProps) {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="category">Category</Label>
-          <select
+          <NativeSelect
             id="category"
             name="category"
             defaultValue={article?.category ?? "Orders"}
-            className="flex h-10 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
           >
             {HELP_CATEGORIES.map((category) => (
               <option key={category} value={category}>
                 {category}
               </option>
             ))}
-          </select>
+          </NativeSelect>
         </div>
         <div className="space-y-2">
           <Label htmlFor="sortOrder">Sort order</Label>

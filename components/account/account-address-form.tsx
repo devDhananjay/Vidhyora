@@ -20,6 +20,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/native-select";
 
 type AccountAddressFormProps = {
   address?: Address | null;
@@ -503,9 +504,8 @@ export function AccountAddressForm({
       </Field>
 
       <Field id="addr-label" label="Address (Home / Work / Other)" required>
-        <select
+        <NativeSelect
           id="addr-label"
-          className="flex h-10 w-full rounded-xl border border-input bg-white px-3 text-sm outline-none focus:border-[#8b2e2e]"
           value={values.label}
           onChange={(e) =>
             setField(
@@ -517,13 +517,12 @@ export function AccountAddressForm({
           <option value="HOME">Home</option>
           <option value="WORK">Work</option>
           <option value="OTHER">Other</option>
-        </select>
+        </NativeSelect>
       </Field>
 
       <Field id="addr-type" label="Shipping / billing use" required>
-        <select
+        <NativeSelect
           id="addr-type"
-          className="flex h-10 w-full rounded-xl border border-input bg-white px-3 text-sm outline-none focus:border-[#8b2e2e]"
           value={values.type}
           onChange={(e) =>
             setField(
@@ -535,7 +534,7 @@ export function AccountAddressForm({
           <option value="SHIPPING">Shipping</option>
           <option value="BILLING">Billing</option>
           <option value="BOTH">Shipping & billing</option>
-        </select>
+        </NativeSelect>
       </Field>
 
       <div className="flex items-start gap-2 rounded-xl bg-[#faf8f6] px-3 py-3">

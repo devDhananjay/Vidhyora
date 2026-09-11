@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { NativeSelect } from "@/components/ui/native-select";
 import { slugify } from "@/lib/utils";
 import type { CategoryAttributeInput } from "@/lib/validations/category";
 
@@ -217,9 +218,8 @@ export function CategoryAttributesForm({
             </div>
             <div className="space-y-2">
               <Label htmlFor="attr-type">Type</Label>
-              <select
+              <NativeSelect
                 id="attr-type"
-                className="flex h-10 w-full rounded-full border border-input bg-background px-3 text-sm"
                 value={form.type}
                 onChange={(e) =>
                   setForm((f) => ({
@@ -232,7 +232,7 @@ export function CategoryAttributesForm({
                 <option value="number">Number</option>
                 <option value="select">Select</option>
                 <option value="boolean">Boolean</option>
-              </select>
+              </NativeSelect>
             </div>
             <div className="space-y-2">
               <Label htmlFor="attr-sort">Sort order</Label>

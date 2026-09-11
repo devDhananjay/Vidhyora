@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronRight, ListFilter, Plus, X } from "lucide-react";
 import { splitCsv, toggleCsv } from "@/lib/products/product-query";
+import { NativeSelect } from "@/components/ui/native-select";
 
 type FilterBarProps = {
   brands: string[];
@@ -280,8 +281,8 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
           </button>
         </div>
 
-        <div className="relative w-full lg:w-auto lg:shrink-0">
-          <select
+        <div className="w-full lg:w-auto lg:min-w-[220px] lg:shrink-0">
+          <NativeSelect
             value={current.sort}
             onChange={(event) =>
               pushParams(
@@ -292,19 +293,14 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
                 ["sort"],
               )
             }
-            className="h-11 w-full cursor-pointer appearance-none rounded-full border border-neutral-200 bg-white py-2 pl-4 pr-10 text-sm text-neutral-800 outline-none transition hover:border-neutral-300 focus-visible:ring-2 focus-visible:ring-[#8b2e2e]/25 lg:min-w-[220px]"
+            className="h-11 border-neutral-200"
           >
             <option value="default">Sort By: Best Matches</option>
             <option value="price-low">Sort By: Price Low to High</option>
             <option value="price-high">Sort By: Price High to Low</option>
             <option value="newest">Sort By: Newest First</option>
             <option value="name">Sort By: Name A to Z</option>
-          </select>
-          <ChevronDown
-            className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-neutral-500"
-            strokeWidth={1.8}
-            aria-hidden
-          />
+          </NativeSelect>
         </div>
       </div>
 

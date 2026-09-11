@@ -71,6 +71,7 @@ export async function POST(request: Request) {
           hidePriceOnInvoice: notes.hidePriceOnInvoice === "1",
           giftMessage: notes.giftMessage || null,
           occasionNote: notes.occasionNote || null,
+          fastDelivery: notes.fastDelivery === "1",
         });
 
         if (result.created) {

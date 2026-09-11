@@ -10,6 +10,21 @@ type OrderItemsProps = {
   orderStatus?: string;
 };
 
+function returnStatusLabel(status: string) {
+  switch (status) {
+    case "PENDING":
+      return "Return pending";
+    case "APPROVED":
+      return "Return approved";
+    case "REJECTED":
+      return "Return rejected";
+    case "COMPLETED":
+      return "Return completed";
+    default:
+      return status;
+  }
+}
+
 export function OrderItems({ items, orderStatus }: OrderItemsProps) {
   const canReview = orderStatus === "DELIVERED";
 
@@ -25,6 +40,11 @@ export function OrderItems({ items, orderStatus }: OrderItemsProps) {
             string,
             string
           > | null;
+          const latestReturn = item.returnRequests?.[0];
+          const hasOpenReturn =
+            latestReturn &&
+            (latestReturn.status === "PENDING" ||
+              latestReturn.status === "APPROVED");
 
           return (
             <div
@@ -79,7 +99,28 @@ export function OrderItems({ items, orderStatus }: OrderItemsProps) {
                     </span>
                   </div>
 
-                  {/* Write Review Button */}
+                  {latestReturn ? (
+                    <div className="mt-2 rounded-lg border border-neutral-200 bg-[#faf8f6] px-3 py-2 text-sm">
+                      <p className="font-medium text-neutral-900">
+                        {returnStatusLabel(latestReturn.status)}
+                        {latestReturn.type === "REPLACEMENT"
+                          ? " (Replacement)"
+                          : " (Return)"}
+                      </p>
+                      {latestReturn.status === "REJECTED" &&
+                      latestReturn.adminNote ? (
+                        <p className="mt-1 text-red-700">
+                          Reason for rejection: {latestReturn.adminNote}
+                        </p>
+                      ) : null}
+                      {latestReturn.status === "PENDING" ? (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Your request is under review.
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
+
                   {canReview && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       <WriteReviewButton
@@ -88,11 +129,15 @@ export function OrderItems({ items, orderStatus }: OrderItemsProps) {
                         orderItemId={item.id}
                         hasReview={item.reviews.length > 0}
                       />
-                      <Link href={`/orders/${item.orderId}/return?itemId=${item.id}`}>
-                        <Button variant="outline" size="sm">
-                          Return/Replace
-                        </Button>
-                      </Link>
+                      {!hasOpenReturn ? (
+                        <Link
+                          href={`/orders/${item.orderId}/return?itemId=${item.id}`}
+                        >
+                          <Button variant="outline" size="sm">
+                            Return/Replace
+                          </Button>
+                        </Link>
+                      ) : null}
                     </div>
                   )}
                 </div>
@@ -106,5 +151,6 @@ export function OrderItems({ items, orderStatus }: OrderItemsProps) {
           );
         })}
       </div>
-    </div>  );
+    </div>
+  );
 }

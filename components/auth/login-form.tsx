@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { z } from "zod";
 import { loginSchema, type LoginInput } from "@/lib/validations/auth";
 import { loginAction } from "@/actions/auth/login";
@@ -65,6 +66,7 @@ export function LoginForm({
   );
   const [isLoading, setIsLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
+  const [acceptSellerTerms, setAcceptSellerTerms] = useState(false);
 
   const {
     register,
@@ -88,6 +90,13 @@ export function LoginForm({
 
       if (!result.success) {
         setError(result.error);
+        return;
+      }
+
+      if (result.data.role === "SELLER" && !acceptSellerTerms) {
+        setError(
+          "Please accept the Seller Terms & Conditions before continuing.",
+        );
         return;
       }
 
@@ -226,6 +235,27 @@ export function LoginForm({
               <p className="text-sm text-destructive">{errors.password.message}</p>
             )}
           </div>
+
+          <label className="flex cursor-pointer items-start gap-2 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-3 text-sm">
+            <input
+              type="checkbox"
+              className="mt-0.5 size-4 accent-[#8b2e2e]"
+              checked={acceptSellerTerms}
+              onChange={(e) => setAcceptSellerTerms(e.target.checked)}
+              disabled={isLoading}
+            />
+            <span className="leading-5 text-neutral-700">
+              Sellers: I accept the{" "}
+              <Link
+                href="/terms-and-conditions"
+                target="_blank"
+                className="font-medium text-[#8b2e2e] underline"
+              >
+                Terms &amp; Conditions
+              </Link>{" "}
+              for selling on VIDYORA.
+            </span>
+          </label>
 
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading && <Loader2 className="mr-2 size-4 animate-spin" />}

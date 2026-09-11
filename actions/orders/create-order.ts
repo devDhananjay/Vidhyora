@@ -69,6 +69,7 @@ export async function createOrder(
       hidePriceOnInvoice: formData.get("hidePriceOnInvoice"),
       giftMessage: formData.get("giftMessage") || undefined,
       occasionNote: formData.get("occasionNote") || undefined,
+      fastDelivery: formData.get("fastDelivery"),
     });
 
     const commerce = await getCommerceSettings();
@@ -131,6 +132,10 @@ export async function createOrder(
     const commerceShipping = {
       freeShippingThreshold: commerce.freeShippingThreshold,
       shippingFee: commerce.shippingFee,
+      fastDeliveryFee:
+        commerce.fastDeliveryEnabled && validatedData.fastDelivery
+          ? commerce.fastDeliveryFee
+          : 0,
     };
     const totals = cartTotals(cart.items, {
       discount: couponOptions.discount,
@@ -164,6 +169,7 @@ export async function createOrder(
           hidePriceOnInvoice: hidePriceOnInvoice ? "1" : "0",
           giftMessage: giftMessage ?? "",
           occasionNote: occasionNote ?? "",
+          fastDelivery: commerceShipping.fastDeliveryFee > 0 ? "1" : "0",
         },
       });
 
@@ -258,6 +264,7 @@ export async function confirmRazorpayOrder(input: {
   hidePriceOnInvoice?: boolean;
   giftMessage?: string;
   occasionNote?: string;
+  fastDelivery?: boolean;
 }): Promise<ActionResult<{ orderId: string; orderNumber: string }>> {
   try {
     const session = await requireAuth();
@@ -280,6 +287,7 @@ export async function confirmRazorpayOrder(input: {
       hidePriceOnInvoice: Boolean(input.hidePriceOnInvoice),
       giftMessage: input.giftMessage,
       occasionNote: input.occasionNote,
+      fastDelivery: Boolean(input.fastDelivery),
     });
 
     if (result.created) {

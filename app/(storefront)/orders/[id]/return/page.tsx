@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { notFound } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import { requireAuth } from "@/lib/auth-helpers";
 import { getOrderById } from "@/actions/orders/get-orders";
 import { canRequestReturn } from "@/actions/orders/return-request";
@@ -42,15 +43,24 @@ export default async function ReturnRequestPage({
     notFound();
   }
 
-  // Check eligibility
   const eligibility = await canRequestReturn(itemId);
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mx-auto max-w-2xl">
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Request Return/Replacement</h1>
+        <Link
+          href={`/orders/${order.id}`}
+          className="mb-4 inline-flex items-center gap-2 text-sm text-[#8b2e2e] hover:underline"
+        >
+          <ArrowLeft className="size-4" />
+          Back to order
+        </Link>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+          Request Return/Replacement
+        </h1>
         <p className="mt-2 text-muted-foreground">
-          Fill out the form below to request a return or replacement for your order
+          Fill out the form below to request a return or replacement for your
+          order
         </p>
 
         <ReturnRequestForm

@@ -5,6 +5,10 @@ import { getActingSeller } from "@/lib/seller-context";
 import { revalidatePath } from "next/cache";
 import { createProductSchema, type CreateProductInput } from "@/lib/validations/product";
 import { getCommerceSettings } from "@/lib/content/commerce-settings";
+import {
+  replaceProductImages,
+  syncProductVariants,
+} from "@/lib/products/sync-product-variants";
 import type { ActionResult } from "@/lib/utils";
 
 export async function createProduct(
@@ -169,11 +173,9 @@ export async function updateProduct(
 
     // Update product (transaction to handle relations)
     const product = await prisma.$transaction(async (tx) => {
-      // Delete existing images and variants
-      await tx.productImage.deleteMany({ where: { productId: id } });
-      await tx.productVariant.deleteMany({ where: { productId: id } });
+      await replaceProductImages(tx, id, validated.images);
+      await syncProductVariants(tx, id, validated.variants);
 
-      // Update product with new data
       return await tx.product.update({
         where: { id },
         data: {
@@ -192,29 +194,6 @@ export async function updateProduct(
           attributes: validated.attributes ?? {},
           approvalStatus: needsApproval ? "PENDING_APPROVAL" : "APPROVED",
           status: needsApproval ? existingProduct.status : "ACTIVE",
-          
-          images: {
-            create: validated.images.map((img) => ({
-              url: img.url,
-              altText: img.altText,
-              sortOrder: img.sortOrder,
-            })),
-          },
-          
-          variants: {
-            create: validated.variants.map((variant) => ({
-              sku: variant.sku,
-              attributes: variant.attributes,
-              price: variant.price,
-              compareAtPrice: variant.compareAtPrice,
-              stock: variant.stock,
-              reservedStock: 0,
-              weight: variant.weight,
-              dimensions: variant.dimensions,
-              isActive: variant.isActive,
-            })),
-          },
-          
           policy: {
             update: {
               returnAllowed: validated.policy.returnAllowed,
@@ -420,22 +399,22 @@ export async function saveProductDraft(
       }
 
       const product = await prisma.$transaction(async (tx) => {
-        await tx.productImage.deleteMany({ where: { productId } });
-        await tx.productVariant.deleteMany({ where: { productId } });
+        await replaceProductImages(
+          tx,
+          productId,
+          images.map((image, index) => ({
+            url: image.url as string,
+            altText: image.altText,
+            sortOrder: image.sortOrder ?? index,
+          })),
+        );
+        await syncProductVariants(tx, productId, variantPayload);
 
         return tx.product.update({
           where: { id: productId },
           data: {
             ...productData,
             slug: existing.slug,
-            images: {
-              create: images.map((image, index) => ({
-                url: image.url as string,
-                altText: image.altText,
-                sortOrder: image.sortOrder ?? index,
-              })),
-            },
-            variants: { create: variantPayload },
             policy: {
               upsert: {
                 create: policy,

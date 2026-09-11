@@ -46,6 +46,13 @@ export function AddressCard({
           <div className="min-w-0 flex-1">
             <div className="mb-1 flex flex-wrap items-center gap-2">
               <span className="font-medium">{address.name}</span>
+              <span className="rounded bg-neutral-100 px-2 py-0.5 text-xs font-medium uppercase text-neutral-700">
+                {(address as { label?: string }).label === "WORK"
+                  ? "Work"
+                  : (address as { label?: string }).label === "OTHER"
+                    ? "Other"
+                    : "Home"}
+              </span>
               {address.isDefault && (
                 <span className="rounded bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
                   Default

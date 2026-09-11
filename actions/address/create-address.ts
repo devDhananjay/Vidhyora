@@ -23,6 +23,7 @@ export async function createAddress(
       postalCode: formData.get("postalCode"),
       landmark: String(formData.get("landmark") || ""),
       type: (formData.get("type") as "SHIPPING" | "BILLING" | "BOTH") || "SHIPPING",
+      label: (formData.get("label") as "HOME" | "WORK" | "OTHER") || "HOME",
       isDefault: formData.get("isDefault") === "true",
     };
 

@@ -19,6 +19,10 @@ export const createOrderSchema = z.object({
     .max(200, "Occasion note must be 200 characters or less")
     .optional()
     .transform((value) => (value ? value : undefined)),
+  fastDelivery: z
+    .union([z.boolean(), z.literal("true"), z.literal("false")])
+    .optional()
+    .transform((value) => value === true || value === "true"),
 });
 
 export const updateOrderStatusSchema = z.object({

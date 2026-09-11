@@ -12,6 +12,20 @@ export function calculateCartSubtotal(cart: CartWithItems): number {
   }, 0);
 }
 
+export function calculateCartMrpTotal(cart: CartWithItems): number {
+  const items = cart.items.filter((item) => !item.savedForLater);
+
+  return items.reduce((sum, item) => {
+    const selling = Number(item.variant.price);
+    const mrp = Number(
+      item.variant.compareAtPrice ??
+        item.product.compareAtPrice ??
+        selling,
+    );
+    return sum + Math.max(mrp, selling) * item.quantity;
+  }, 0);
+}
+
 export function calculateCartSummary(
   cart: CartWithItems,
   options?: {
@@ -19,6 +33,9 @@ export function calculateCartSummary(
     couponCode?: string | null;
     freeShippingThreshold?: number;
     shippingFee?: number;
+    fastDeliveryFee?: number;
+    fastDeliveryEnabled?: boolean;
+    useFastDelivery?: boolean;
     gstPercent?: number;
   },
 ): CartSummary {
@@ -28,10 +45,17 @@ export function calculateCartSummary(
     DEFAULT_COMMERCE_SETTINGS.freeShippingThreshold;
   const shippingFee =
     options?.shippingFee ?? DEFAULT_COMMERCE_SETTINGS.shippingFee;
+  const fastDeliveryFee =
+    options?.fastDeliveryFee ?? DEFAULT_COMMERCE_SETTINGS.fastDeliveryFee;
+  const fastDeliveryEnabled =
+    options?.fastDeliveryEnabled ??
+    DEFAULT_COMMERCE_SETTINGS.fastDeliveryEnabled;
   const gstPercent =
     options?.gstPercent ?? DEFAULT_COMMERCE_SETTINGS.gstPercent;
 
   const subtotal = calculateCartSubtotal(cart);
+  const mrpTotal = calculateCartMrpTotal(cart);
+  const productDiscount = Math.max(0, mrpTotal - subtotal);
   const discount = Math.min(Math.max(0, options?.discount ?? 0), subtotal);
   const taxable = Math.max(0, subtotal - discount);
   const tax = items.reduce((sum, item) => {
@@ -40,13 +64,22 @@ export function calculateCartSummary(
     const lineTaxable = Math.max(0, lineGross - discount * share);
     return sum + taxAmountFromGross(lineTaxable, Number(item.product.tax));
   }, 0);
-  const shipping = subtotal >= freeShippingThreshold ? 0 : shippingFee;
+
+  const baseShipping = subtotal >= freeShippingThreshold ? 0 : shippingFee;
+  const fastExtra =
+    fastDeliveryEnabled && options?.useFastDelivery ? fastDeliveryFee : 0;
+  const shipping = baseShipping + fastExtra;
   const giftPackaging = giftPackagingFeeForItems(items);
   const total = Math.max(0, taxable + tax + shipping + giftPackaging);
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const freeShippingSave =
+    baseShipping === 0 && subtotal >= freeShippingThreshold ? shippingFee : 0;
+  const youSave = productDiscount + discount + freeShippingSave;
 
   return {
     subtotal,
+    mrpTotal,
+    productDiscount,
     tax: Math.round((tax + Number.EPSILON) * 100) / 100,
     shipping,
     giftPackaging,
@@ -56,7 +89,10 @@ export function calculateCartSummary(
     itemCount,
     freeShippingThreshold,
     shippingFee,
+    fastDeliveryFee,
+    fastDeliveryEnabled,
     gstPercent,
+    youSave: Math.round((youSave + Number.EPSILON) * 100) / 100,
   };
 }
 

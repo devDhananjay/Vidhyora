@@ -12,6 +12,7 @@ import { getOrderStatusLabel } from "@/lib/orders/order-utils";
 import { format } from "date-fns";
 import { SellerFulfillmentActions } from "@/components/seller/seller-fulfillment-actions";
 import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
+import { OrdersSearch } from "@/components/orders/orders-search";
 
 export const metadata: Metadata = {
   title: "Orders | Seller Dashboard",
@@ -52,8 +53,23 @@ export default async function SellerOrdersPage() {
           </CardContent>
         </Card>
       ) : (
+        <OrdersSearch
+          items={orderItems}
+          placeholder="Search by order number, product or customer…"
+          getSearchText={(item) =>
+            [
+              item.order.orderNumber,
+              item.product.name,
+              item.order.user.name,
+              item.order.user.email,
+            ]
+              .filter(Boolean)
+              .join(" ")
+          }
+        >
+          {(filtered) => (
         <div className="grid gap-4">
-          {orderItems.map((item) => {
+          {filtered.map((item) => {
             const attributes = item.variant.attributes as Record<
               string,
               string
@@ -164,6 +180,8 @@ export default async function SellerOrdersPage() {
             );
           })}
         </div>
+          )}
+        </OrdersSearch>
       )}
     </div>
   );

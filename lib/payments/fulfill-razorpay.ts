@@ -17,6 +17,7 @@ type FulfillInput = {
   hidePriceOnInvoice?: boolean;
   giftMessage?: string | null;
   occasionNote?: string | null;
+  fastDelivery?: boolean;
 };
 
 /**
@@ -72,6 +73,10 @@ export async function fulfillRazorpayCheckout(input: FulfillInput): Promise<{
   const commerceShipping = {
     freeShippingThreshold: commerce.freeShippingThreshold,
     shippingFee: commerce.shippingFee,
+    fastDeliveryFee:
+      commerce.fastDeliveryEnabled && input.fastDelivery
+        ? commerce.fastDeliveryFee
+        : 0,
   };
 
   const lineSubtotal = cart.items.reduce(

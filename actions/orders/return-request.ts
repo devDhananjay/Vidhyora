@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-helpers";
 import { revalidatePath } from "next/cache";
+import { getCommerceSettings } from "@/lib/content/commerce-settings";
 import { returnRequestSchema, type ReturnRequestInput } from "@/lib/validations/return";
 import type { ActionResult } from "@/lib/utils";
 
@@ -92,6 +93,25 @@ export async function createReturnRequest(
         success: false,
         error: "A return/replacement request already exists for this item",
       };
+    }
+
+    const commerce = await getCommerceSettings();
+    const maxReturns = commerce.maxReturnsBeforeBlock || 0;
+    if (maxReturns > 0) {
+      const returnCount = await prisma.returnRequest.count({
+        where: { userId: session.user.id },
+      });
+      if (returnCount >= maxReturns) {
+        await prisma.user.update({
+          where: { id: session.user.id },
+          data: { isActive: false },
+        });
+        return {
+          success: false,
+          error:
+            "Your account has been blocked due to too many return requests. Please contact support.",
+        };
+      }
     }
 
     // Create return request

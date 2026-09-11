@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import type { CartSummary } from "@/types/cart";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Zap } from "lucide-react";
 import {
   confirmRazorpayOrder,
   createOrder,
@@ -14,6 +14,8 @@ import {
   codUnavailableMessage,
   isCodAvailableForPincode,
 } from "@/lib/shipping/cod";
+import { calculateCartSummary } from "@/lib/cart/cart-utils";
+import type { CartWithItems } from "@/types/cart";
 
 type AddressLite = {
   id: string;
@@ -22,6 +24,7 @@ type AddressLite = {
 
 type CheckoutSummaryProps = {
   summary: CartSummary;
+  cart?: CartWithItems;
   itemCount: number;
   selectedAddressId?: string;
   addresses?: AddressLite[];
@@ -66,7 +69,8 @@ function loadRazorpayScript(): Promise<void> {
 }
 
 export function CheckoutSummary({
-  summary,
+  summary: initialSummary,
+  cart,
   itemCount,
   selectedAddressId,
   addresses = [],
@@ -81,6 +85,21 @@ export function CheckoutSummary({
   const [hidePriceOnInvoice, setHidePriceOnInvoice] = useState(false);
   const [giftMessage, setGiftMessage] = useState("");
   const [occasionNote, setOccasionNote] = useState("");
+  const [fastDelivery, setFastDelivery] = useState(false);
+
+  const summary = useMemo(() => {
+    if (!cart) return initialSummary;
+    return calculateCartSummary(cart, {
+      discount: initialSummary.discount,
+      couponCode: initialSummary.couponCode,
+      freeShippingThreshold: initialSummary.freeShippingThreshold,
+      shippingFee: initialSummary.shippingFee,
+      fastDeliveryFee: initialSummary.fastDeliveryFee,
+      fastDeliveryEnabled: initialSummary.fastDeliveryEnabled,
+      useFastDelivery: fastDelivery,
+      gstPercent: initialSummary.gstPercent,
+    });
+  }, [cart, initialSummary, fastDelivery]);
 
   const selectedAddress = useMemo(
     () => addresses.find((address) => address.id === selectedAddressId),
@@ -113,6 +132,7 @@ export function CheckoutSummary({
         "hidePriceOnInvoice",
         hidePriceOnInvoice ? "true" : "false",
       );
+      formData.append("fastDelivery", fastDelivery ? "true" : "false");
       if (giftMessage.trim()) {
         formData.append("giftMessage", giftMessage.trim());
       }
@@ -172,6 +192,7 @@ export function CheckoutSummary({
             hidePriceOnInvoice,
             giftMessage: giftMessage.trim() || undefined,
             occasionNote: occasionNote.trim() || undefined,
+            fastDelivery,
           });
           if (confirmed.success) {
             router.push(`/orders/${confirmed.data.orderId}?success=true`);
@@ -200,21 +221,47 @@ export function CheckoutSummary({
     });
   };
 
+  const standardShipping =
+    summary.subtotal >= summary.freeShippingThreshold ? 0 : summary.shippingFee;
+
   return (
     <div className="rounded-lg border p-6">
       <h2 className="mb-4 text-lg font-semibold">Price Summary</h2>
 
       <div className="space-y-3 text-sm">
+        {summary.mrpTotal > summary.subtotal ? (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">MRP</span>
+            <span className="text-muted-foreground line-through">
+              {formatCurrency(summary.mrpTotal)}
+            </span>
+          </div>
+        ) : null}
+
         <div className="flex justify-between">
           <span className="text-muted-foreground">
-            Subtotal ({itemCount} items)
+            Selling price ({itemCount} items)
           </span>
           <span>{formatCurrency(summary.subtotal)}</span>
         </div>
 
+        {summary.productDiscount > 0 ? (
+          <div className="flex justify-between text-green-700">
+            <span>Discount on MRP</span>
+            <span>-{formatCurrency(summary.productDiscount)}</span>
+          </div>
+        ) : null}
+
         {summary.discount > 0 ? (
           <div className="flex justify-between text-green-700">
-            <span>Discount</span>
+            <span>
+              Coupon
+              {summary.couponCode ? (
+                <span className="ml-1 font-mono text-xs">
+                  ({summary.couponCode})
+                </span>
+              ) : null}
+            </span>
             <span>-{formatCurrency(summary.discount)}</span>
           </div>
         ) : null}
@@ -222,15 +269,20 @@ export function CheckoutSummary({
         <div className="flex justify-between">
           <span className="text-muted-foreground">Shipping</span>
           <span>
-            {summary.shipping === 0 ? (
-              <span className="text-green-600 line-through">
-                {formatCurrency(summary.shippingFee)}
-              </span>
+            {standardShipping === 0 ? (
+              <span className="text-green-600">FREE</span>
             ) : (
-              formatCurrency(summary.shipping)
+              formatCurrency(standardShipping)
             )}
           </span>
         </div>
+
+        {fastDelivery && summary.fastDeliveryEnabled ? (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">Fast delivery</span>
+            <span>{formatCurrency(summary.fastDeliveryFee)}</span>
+          </div>
+        ) : null}
 
         {summary.giftPackaging > 0 ? (
           <div className="flex justify-between">
@@ -251,15 +303,36 @@ export function CheckoutSummary({
             <span>Total Amount</span>
             <span>{formatCurrency(summary.total)}</span>
           </div>
-          {summary.shipping === 0 && (
-            <p className="text-xs text-green-600">
-              You saved {formatCurrency(summary.shippingFee)} on delivery!
+          {summary.youSave > 0 ? (
+            <p className="rounded-md bg-emerald-50 px-2 py-1.5 text-xs font-medium text-emerald-800">
+              You will save {formatCurrency(summary.youSave)} on this order
             </p>
-          )}
+          ) : null}
         </div>
       </div>
 
-      <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 px-3 py-3">
+      {summary.fastDeliveryEnabled ? (
+        <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border border-[#8b2e2e]/25 bg-[#8b2e2e]/5 px-3 py-3">
+          <input
+            type="checkbox"
+            className="mt-1 size-4 accent-[#8b2e2e]"
+            checked={fastDelivery}
+            onChange={(event) => setFastDelivery(event.target.checked)}
+          />
+          <span className="text-sm leading-5">
+            <span className="inline-flex items-center gap-1.5 font-medium text-neutral-900">
+              <Zap className="size-3.5 text-[#8b2e2e]" />
+              Fast delivery
+            </span>
+            <span className="mt-0.5 block text-xs text-muted-foreground">
+              Priority shipping for{" "}
+              {formatCurrency(summary.fastDeliveryFee)} extra — faster dispatch.
+            </span>
+          </span>
+        </label>
+      ) : null}
+
+      <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 px-3 py-3">
         <input
           type="checkbox"
           className="mt-1 size-4"
@@ -277,45 +350,42 @@ export function CheckoutSummary({
       </label>
 
       {giftNotesEnabled ? (
-      <div className="mt-4 space-y-3">
-        <div>
-          <label
-            htmlFor="occasionNote"
-            className="text-sm font-medium text-neutral-900"
-          >
-            Occasion
-          </label>
-          <input
-            id="occasionNote"
-            type="text"
-            value={occasionNote}
-            onChange={(event) => setOccasionNote(event.target.value)}
-            maxLength={200}
-            placeholder="Birthday, anniversary, wedding…"
-            className="mt-1.5 h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-400"
-          />
+        <div className="mt-4 space-y-3">
+          <div>
+            <label
+              htmlFor="occasionNote"
+              className="text-sm font-medium text-neutral-900"
+            >
+              Occasion
+            </label>
+            <input
+              id="occasionNote"
+              type="text"
+              value={occasionNote}
+              onChange={(event) => setOccasionNote(event.target.value)}
+              maxLength={200}
+              placeholder="Birthday, anniversary, wedding…"
+              className="mt-1.5 h-10 w-full rounded-lg border border-neutral-200 bg-white px-3 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-400"
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="giftMessage"
+              className="text-sm font-medium text-neutral-900"
+            >
+              Gift message
+            </label>
+            <textarea
+              id="giftMessage"
+              value={giftMessage}
+              onChange={(event) => setGiftMessage(event.target.value)}
+              maxLength={500}
+              rows={3}
+              placeholder="Optional note for the recipient"
+              className="mt-1.5 w-full resize-y rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-400"
+            />
+          </div>
         </div>
-        <div>
-          <label
-            htmlFor="giftMessage"
-            className="text-sm font-medium text-neutral-900"
-          >
-            Gift message
-          </label>
-          <textarea
-            id="giftMessage"
-            value={giftMessage}
-            onChange={(event) => setGiftMessage(event.target.value)}
-            maxLength={500}
-            rows={3}
-            placeholder="Optional note for the recipient"
-            className="mt-1.5 w-full resize-y rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm outline-none placeholder:text-neutral-400 focus:border-neutral-400"
-          />
-          <p className="mt-1 text-xs text-muted-foreground">
-            Shown on the order and invoice when provided.
-          </p>
-        </div>
-      </div>
       ) : null}
 
       <div className="my-6 space-y-3">

@@ -5,15 +5,20 @@ import type {
   Payment,
   Product,
   ProductVariant,
+  ReturnRequest,
   Review,
   Shipment,
 } from "@prisma/client";
 
 export type OrderWithDetails = Order & {
   items: (OrderItem & {
-    product: Product;
-    variant: ProductVariant;
-    reviews: Review[];
+    product: Pick<Product, "id" | "name" | "slug" | "thumbnail"> | Product;
+    variant: Pick<ProductVariant, "id" | "sku" | "attributes" | "price"> | ProductVariant;
+    reviews: Pick<Review, "id">[] | Review[];
+    returnRequests?: Pick<
+      ReturnRequest,
+      "id" | "status" | "type" | "reason" | "adminNote" | "rejectedAt"
+    >[];
   })[];
   shippingAddress: Address;
   billingAddress: Address | null;
@@ -22,9 +27,13 @@ export type OrderWithDetails = Order & {
 };
 
 export type OrderItemWithDetails = OrderItem & {
-  product: Product;
-  variant: ProductVariant;
-  reviews: Review[];
+  product: Pick<Product, "id" | "name" | "slug" | "thumbnail"> | Product;
+  variant: Pick<ProductVariant, "id" | "sku" | "attributes" | "price"> | ProductVariant;
+  reviews: Pick<Review, "id">[] | Review[];
+  returnRequests?: Pick<
+    ReturnRequest,
+    "id" | "status" | "type" | "reason" | "adminNote" | "rejectedAt"
+  >[];
 };
 
 export type OrderSummary = {

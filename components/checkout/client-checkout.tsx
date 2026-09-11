@@ -48,6 +48,7 @@ export function ClientCheckout({
         <div className="sticky top-24">
           <CheckoutSummary
             summary={summary}
+            cart={cart}
             itemCount={activeItems.length}
             selectedAddressId={selectedAddressId}
             addresses={addresses.map((address) => ({

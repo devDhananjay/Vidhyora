@@ -31,6 +31,7 @@ export function addressSnapshot(address: Address) {
     country: address.country,
     postalCode: address.postalCode,
     landmark: address.landmark,
+    label: (address as Address & { label?: string }).label ?? "HOME",
   };
 }
 
@@ -41,6 +42,7 @@ export function cartTotals(
     distanceKm?: number;
     freeShippingThreshold?: number;
     shippingFee?: number;
+    fastDeliveryFee?: number;
   },
 ) {
   return calculateOrderTotals(
@@ -85,7 +87,7 @@ export async function createShopOrder(
     occasionNote?: string | null;
     commerce?: Pick<
       CommerceSettings,
-      "freeShippingThreshold" | "shippingFee"
+      "freeShippingThreshold" | "shippingFee" | "fastDeliveryFee"
     >;
   },
 ) {
@@ -95,6 +97,7 @@ export async function createShopOrder(
       DEFAULT_COMMERCE_SETTINGS.freeShippingThreshold,
     shippingFee:
       options.commerce?.shippingFee ?? DEFAULT_COMMERCE_SETTINGS.shippingFee,
+    fastDeliveryFee: options.commerce?.fastDeliveryFee ?? 0,
   };
   const totals = cartTotals(options.items, {
     discount: options.discount,
@@ -116,6 +119,10 @@ export async function createShopOrder(
     }
   }
 
+  const fastNote =
+    commerce.fastDeliveryFee > 0 ? "Fast delivery selected." : null;
+  const notes = [options.notes, fastNote].filter(Boolean).join(" ") || null;
+
   const order = await tx.order.create({
     data: {
       orderNumber,
@@ -127,7 +134,7 @@ export async function createShopOrder(
       tax: totals.tax,
       total: totals.total,
       couponCode: options.couponCode ?? null,
-      notes: options.notes ?? null,
+      notes: notes,
       giftMessage: options.giftMessage?.trim() || null,
       occasionNote: options.occasionNote?.trim() || null,
       hidePriceOnInvoice: Boolean(options.hidePriceOnInvoice),

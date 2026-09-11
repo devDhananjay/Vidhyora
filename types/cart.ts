@@ -14,6 +14,8 @@ export type CartItemWithDetails = CartItem & {
 
 export type CartSummary = {
   subtotal: number;
+  mrpTotal: number;
+  productDiscount: number;
   tax: number;
   shipping: number;
   giftPackaging: number;
@@ -23,5 +25,8 @@ export type CartSummary = {
   itemCount: number;
   freeShippingThreshold: number;
   shippingFee: number;
+  fastDeliveryFee: number;
+  fastDeliveryEnabled: boolean;
   gstPercent: number;
+  youSave: number;
 };

@@ -43,6 +43,8 @@ export default async function CheckoutPage() {
     couponCode: applied?.code ?? null,
     freeShippingThreshold: commerce.freeShippingThreshold,
     shippingFee: commerce.shippingFee,
+    fastDeliveryFee: commerce.fastDeliveryFee,
+    fastDeliveryEnabled: commerce.fastDeliveryEnabled,
     gstPercent: commerce.gstPercent,
   });
 

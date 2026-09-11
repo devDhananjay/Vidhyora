@@ -31,12 +31,28 @@ export function CartSummary({
       </div>
 
       <div className="space-y-3 text-sm">
+        {summary.mrpTotal > summary.subtotal ? (
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">MRP</span>
+            <span className="text-muted-foreground line-through">
+              {formatCurrency(summary.mrpTotal)}
+            </span>
+          </div>
+        ) : null}
+
         <div className="flex justify-between">
           <span className="text-muted-foreground">
-            Subtotal ({summary.itemCount} items)
+            Selling price ({summary.itemCount} items)
           </span>
           <span>{formatCurrency(summary.subtotal)}</span>
         </div>
+
+        {summary.productDiscount > 0 ? (
+          <div className="flex justify-between text-green-700">
+            <span>Discount on MRP</span>
+            <span>-{formatCurrency(summary.productDiscount)}</span>
+          </div>
+        ) : null}
 
         {summary.discount > 0 && (
           <div className="flex justify-between text-green-700">
@@ -91,6 +107,11 @@ export function CartSummary({
             <span>Total</span>
             <span>{formatCurrency(summary.total)}</span>
           </div>
+          {summary.youSave > 0 ? (
+            <p className="mt-2 rounded-md bg-emerald-50 px-2 py-1.5 text-xs font-medium text-emerald-800">
+              You will save {formatCurrency(summary.youSave)} on this order
+            </p>
+          ) : null}
         </div>
       </div>
 

@@ -43,6 +43,8 @@ export default async function CartPage() {
     couponCode: applied?.code ?? null,
     freeShippingThreshold: commerce.freeShippingThreshold,
     shippingFee: commerce.shippingFee,
+    fastDeliveryFee: commerce.fastDeliveryFee,
+    fastDeliveryEnabled: commerce.fastDeliveryEnabled,
     gstPercent: commerce.gstPercent,
   });
   const availablePromos = offers.map((offer) => ({

@@ -15,16 +15,27 @@ export function calculateShippingFee(
   commerce?: {
     freeShippingThreshold?: number;
     shippingFee?: number;
+    fastDeliveryFee?: number;
   },
 ): number {
   const freeShippingThreshold =
     commerce?.freeShippingThreshold ??
     DEFAULT_COMMERCE_SETTINGS.freeShippingThreshold;
   const baseFee = commerce?.shippingFee ?? DEFAULT_COMMERCE_SETTINGS.shippingFee;
-  if (subtotal >= freeShippingThreshold) return 0;
-  if (distanceKm == null) return baseFee;
-  if (distanceKm <= 50) return 0;
-  return Math.min(150, baseFee + Math.ceil((distanceKm - 50) / 10) * 10);
+  const fastFee = Math.max(0, commerce?.fastDeliveryFee ?? 0);
+
+  let standard = 0;
+  if (subtotal < freeShippingThreshold) {
+    if (distanceKm == null) standard = baseFee;
+    else if (distanceKm <= 50) standard = 0;
+    else
+      standard = Math.min(
+        150,
+        baseFee + Math.ceil((distanceKm - 50) / 10) * 10,
+      );
+  }
+
+  return standard + fastFee;
 }
 
 export function calculateOrderTotals(
@@ -35,6 +46,7 @@ export function calculateOrderTotals(
     giftPackagingFee?: number;
     freeShippingThreshold?: number;
     shippingFee?: number;
+    fastDeliveryFee?: number;
   },
 ) {
   const subtotal = items.reduce(
@@ -46,13 +58,13 @@ export function calculateOrderTotals(
     const lineGross = item.price * item.quantity;
     const share = subtotal > 0 ? lineGross / subtotal : 0;
     const lineTaxable = Math.max(0, lineGross - discount * share);
-    // item.tax is GST % from product (e.g. 3)
     return sum + taxAmountFromGross(lineTaxable, item.tax);
   }, 0);
 
   const shippingFee = calculateShippingFee(subtotal, options?.distanceKm, {
     freeShippingThreshold: options?.freeShippingThreshold,
     shippingFee: options?.shippingFee,
+    fastDeliveryFee: options?.fastDeliveryFee,
   });
   const giftPackagingFee = Math.max(0, options?.giftPackagingFee ?? 0);
   const total = Math.max(

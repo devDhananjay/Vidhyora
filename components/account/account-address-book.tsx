@@ -115,6 +115,13 @@ export function AccountAddressBook({
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="font-medium text-neutral-900">{address.name}</p>
+                    <span className="rounded-full bg-neutral-200/80 px-2.5 py-0.5 text-xs font-medium uppercase text-neutral-700">
+                      {(address as { label?: string }).label === "WORK"
+                        ? "Work"
+                        : (address as { label?: string }).label === "OTHER"
+                          ? "Other"
+                          : "Home"}
+                    </span>
                     {address.isDefault ? (
                       <span className="rounded-full bg-[#8b2e2e]/10 px-2.5 py-0.5 text-xs font-medium text-[#8b2e2e]">
                         Default

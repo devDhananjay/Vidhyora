@@ -111,6 +111,17 @@ export function CommerceSettingsForm({ initialData }: CommerceSettingsFormProps)
             />
           </div>
           <div className="space-y-2">
+            <Label htmlFor="fastDeliveryFee">Fast delivery fee (₹)</Label>
+            <Input
+              id="fastDeliveryFee"
+              type="number"
+              value={commerce.fastDeliveryFee}
+              onChange={(e) =>
+                setField("fastDeliveryFee", Number(e.target.value))
+              }
+            />
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="returnWindowDays">Return window (days)</Label>
             <Input
               id="returnWindowDays"
@@ -118,6 +129,19 @@ export function CommerceSettingsForm({ initialData }: CommerceSettingsFormProps)
               value={commerce.returnWindowDays}
               onChange={(e) =>
                 setField("returnWindowDays", Number(e.target.value))
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="maxReturnsBeforeBlock">
+              Max returns before account block
+            </Label>
+            <Input
+              id="maxReturnsBeforeBlock"
+              type="number"
+              value={commerce.maxReturnsBeforeBlock}
+              onChange={(e) =>
+                setField("maxReturnsBeforeBlock", Number(e.target.value))
               }
             />
           </div>
@@ -141,6 +165,7 @@ export function CommerceSettingsForm({ initialData }: CommerceSettingsFormProps)
             [
               ["codEnabled", "Cash on delivery"],
               ["razorpayEnabled", "Razorpay online pay"],
+              ["fastDeliveryEnabled", "Fast delivery option"],
               ["productApprovalRequired", "Product approval required"],
               ["reviewModeration", "Review moderation"],
               ["internationalShippingEnabled", "International shipping (enquire)"],

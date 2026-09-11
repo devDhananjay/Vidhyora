@@ -34,6 +34,7 @@ export const addressFormSchema = z.object({
     .regex(/^\d{6}$/, "Enter a valid 6-digit PIN code"),
   landmark: z.string().trim().max(120, "Landmark is too long"),
   type: z.enum(["SHIPPING", "BILLING", "BOTH"]),
+  label: z.enum(["HOME", "WORK", "OTHER"]),
   isDefault: z.boolean(),
 });
 

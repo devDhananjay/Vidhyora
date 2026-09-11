@@ -148,7 +148,7 @@ export function CartItemCard({ item }: CartItemCardProps) {
               if (!result.success) alert(result.error);
             })
           }
-          className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition ${
+          className={`inline-flex w-fit max-w-full items-center gap-1.5 self-start rounded-full border px-2.5 py-1 text-xs font-medium transition ${
             item.giftPackaging
               ? "border-[#2f6b4f] bg-[#f3faf6] text-[#2f6b4f]"
               : "border-neutral-200 text-neutral-600 hover:border-[#2f6b4f]/40"

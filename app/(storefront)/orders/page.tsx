@@ -1,9 +1,8 @@
 import type { Metadata } from "next";
 import { getUserOrders } from "@/actions/orders/get-orders";
 import { AccountBackLink } from "@/components/account/account-back-link";
-import { OrderCard } from "@/components/orders/order-card";
 import { EmptyOrders } from "@/components/orders/empty-orders";
-import { OrdersSearch } from "@/components/orders/orders-search";
+import { BuyerOrdersPanel } from "@/components/orders/buyer-orders-panel";
 import { ShoppingBag } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -41,24 +40,7 @@ export default async function OrdersPage() {
           </div>
         </div>
 
-        <OrdersSearch
-          items={orders}
-          placeholder="Search by order number or product…"
-          getSearchText={(order) =>
-            [
-              order.orderNumber,
-              ...order.items.map((item) => item.productName),
-            ].join(" ")
-          }
-        >
-          {(filtered) => (
-            <div className="space-y-4">
-              {filtered.map((order) => (
-                <OrderCard key={order.id} order={order} />
-              ))}
-            </div>
-          )}
-        </OrdersSearch>
+        <BuyerOrdersPanel orders={orders} />
       </div>
     </div>
   );

@@ -4,17 +4,23 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
-type OrdersSearchProps<T> = {
+type Searchable = {
+  searchText: string;
+};
+
+type OrdersSearchProps<T extends Searchable> = {
   items: T[];
   placeholder?: string;
-  getSearchText: (item: T) => string;
   children: (filtered: T[]) => React.ReactNode;
 };
 
-export function OrdersSearch<T>({
+/**
+ * Client-only search wrapper. Must be used from a Client Component parent
+ * (do not pass function props across the RSC → client boundary).
+ */
+export function OrdersSearch<T extends Searchable>({
   items,
   placeholder = "Search orders…",
-  getSearchText,
   children,
 }: OrdersSearchProps<T>) {
   const [query, setQuery] = useState("");
@@ -22,8 +28,10 @@ export function OrdersSearch<T>({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return items;
-    return items.filter((item) => getSearchText(item).toLowerCase().includes(q));
-  }, [items, query, getSearchText]);
+    return items.filter((item) =>
+      item.searchText.toLowerCase().includes(q),
+    );
+  }, [items, query]);
 
   return (
     <div className="space-y-4">

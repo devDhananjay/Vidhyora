@@ -44,10 +44,12 @@ export default async function SellerOrderDetailPage({
     : null;
   const preferredCourier = profile?.preferredCourier || "";
 
-  const attributes = orderItem.variant.attributes as Record<
-    string,
-    string
-  > | null;
+  const attributes =
+    orderItem.variant.attributes &&
+    typeof orderItem.variant.attributes === "object" &&
+    !Array.isArray(orderItem.variant.attributes)
+      ? (orderItem.variant.attributes as Record<string, string>)
+      : null;
   const shipping = (orderItem.order.shippingAddress ?? {}) as {
     name?: string;
     phone?: string;
@@ -115,7 +117,7 @@ export default async function SellerOrderDetailPage({
                     {orderItem.product.name}
                   </Link>
 
-                  {attributes && (
+                  {attributes ? (
                     <div className="mt-2 text-sm text-muted-foreground">
                       {Object.entries(attributes).map(([key, value]) => (
                         <div key={key}>
@@ -123,7 +125,7 @@ export default async function SellerOrderDetailPage({
                         </div>
                       ))}
                     </div>
-                  )}
+                  ) : null}
 
                   <div className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 sm:gap-4">
                     <div>
@@ -154,18 +156,22 @@ export default async function SellerOrderDetailPage({
             <CardContent className="space-y-4">
               <div>
                 <div className="text-sm text-muted-foreground">Name</div>
-                <div className="font-medium">{orderItem.order.user.name}</div>
+                <div className="font-medium">
+                  {orderItem.order.user?.name || "—"}
+                </div>
               </div>
               <div>
                 <div className="text-sm text-muted-foreground">Email</div>
-                <div className="font-medium">{orderItem.order.user.email}</div>
+                <div className="font-medium">
+                  {orderItem.order.user?.email || "—"}
+                </div>
               </div>
-              {orderItem.order.user.phone && (
+              {orderItem.order.user?.phone ? (
                 <div>
                   <div className="text-sm text-muted-foreground">Phone</div>
                   <div className="font-medium">{orderItem.order.user.phone}</div>
                 </div>
-              )}
+              ) : null}
             </CardContent>
           </Card>
 

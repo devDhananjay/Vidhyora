@@ -60,6 +60,8 @@ type GuideStepId =
   | "karatage"
   | "colour"
   | "weight"
+  | "returns"
+  | "replace"
   | "done";
 
 const GUIDE_ORDER: GuideStepId[] = [
@@ -72,7 +74,17 @@ const GUIDE_ORDER: GuideStepId[] = [
   "karatage",
   "colour",
   "weight",
+  "returns",
+  "replace",
   "done",
+];
+
+const POLICY_WINDOW_OPTIONS = [
+  { value: "", label: "Not offered" },
+  { value: "7", label: "7 days" },
+  { value: "10", label: "10 days" },
+  { value: "15", label: "15 days" },
+  { value: "30", label: "30 days" },
 ];
 
 type AiProductPanelProps = {
@@ -91,6 +103,10 @@ function draftToFormValues(
     typeof draft.suggestedPrice === "number" && draft.suggestedPrice >= 0
       ? draft.suggestedPrice
       : 0;
+  const compareAt =
+    typeof draft.compareAtPrice === "number" && draft.compareAtPrice > 0
+      ? draft.compareAtPrice
+      : undefined;
   const stock =
     typeof draft.stock === "number" && draft.stock >= 0 ? draft.stock : 0;
   const sku = (
@@ -122,6 +138,9 @@ function draftToFormValues(
     sortOrder: index,
   }));
 
+  const returnAllowed = Boolean(draft.returnAllowed);
+  const replacementAllowed = Boolean(draft.replacementAllowed);
+
   return {
     name,
     slug: slugify(name),
@@ -136,19 +155,30 @@ function draftToFormValues(
         sku,
         attributes: variantAttributes,
         price,
-        compareAtPrice:
-          typeof draft.compareAtPrice === "number" && draft.compareAtPrice > 0
-            ? draft.compareAtPrice
-            : undefined,
+        compareAtPrice: compareAt,
         stock,
         isActive: true,
       },
     ],
     basePrice: price,
+    compareAtPrice: compareAt,
     hsn: draft.hsn || "711319",
     certificateNumber: draft.certificateNumber || "",
     tax: 3,
     attributes,
+    policy: {
+      returnAllowed,
+      returnWindowDays:
+        returnAllowed && draft.returnWindowDays != null
+          ? draft.returnWindowDays
+          : undefined,
+      replacementAllowed,
+      replacementWindowDays:
+        replacementAllowed && draft.replacementWindowDays != null
+          ? draft.replacementWindowDays
+          : undefined,
+      warrantyAvailable: false,
+    },
   };
 }
 
@@ -162,7 +192,7 @@ function stepMeta(id: GuideStepId): { title: string; hint: string } {
     case "category":
       return {
         title: "Category",
-        hint: "Pick the closest jewellery type.",
+        hint: "Pick the jewellery type (Rings, Earrings, Necklaces…) — not the metal.",
       };
     case "price":
       return {
@@ -172,7 +202,7 @@ function stepMeta(id: GuideStepId): { title: string; hint: string } {
     case "compareAt":
       return {
         title: "Compare at / MRP (₹)",
-        hint: "Optional — shows as crossed-out price for discounts.",
+        hint: "Optional — shows as struck-through MRP when higher than selling price.",
       };
     case "stock":
       return {
@@ -199,12 +229,30 @@ function stepMeta(id: GuideStepId): { title: string; hint: string } {
         title: "Gross weight",
         hint: "Optional — e.g. 4.25g. Helps with price breakup.",
       };
+    case "returns":
+      return {
+        title: "Return policy",
+        hint: "Can buyers return this item? Pick a window or skip.",
+      };
+    case "replace":
+      return {
+        title: "Replacement policy",
+        hint: "Can buyers request a replacement? Pick a window or skip.",
+      };
     default:
       return {
         title: "Ready to apply",
         hint: "Review the draft, then add it to your product form.",
       };
   }
+}
+
+function policyWindowValue(
+  allowed: boolean | null | undefined,
+  days: number | null | undefined,
+): string {
+  if (!allowed || days == null || days <= 0) return "";
+  return String(days);
 }
 
 export function AiProductPanel({
@@ -243,6 +291,7 @@ export function AiProductPanel({
       : guideStep === "done"
         ? 100
         : 0;
+  const isGuiding = Boolean(guideStep && guideStep !== "done");
 
   useEffect(() => {
     if (!open) return;
@@ -332,6 +381,22 @@ export function AiProductPanel({
             "",
         );
         break;
+      case "returns":
+        setAnswer(
+          policyWindowValue(
+            nextDraft.returnAllowed,
+            nextDraft.returnWindowDays,
+          ),
+        );
+        break;
+      case "replace":
+        setAnswer(
+          policyWindowValue(
+            nextDraft.replacementAllowed,
+            nextDraft.replacementWindowDays,
+          ),
+        );
+        break;
       default:
         setAnswer("");
     }
@@ -387,6 +452,8 @@ export function AiProductPanel({
             if (Number.isFinite(n) && n >= 0) {
               updated = { ...updated, compareAtPrice: n };
             }
+          } else {
+            updated = { ...updated, compareAtPrice: null };
           }
           break;
         }
@@ -433,6 +500,40 @@ export function AiProductPanel({
             },
           };
           break;
+        case "returns": {
+          if (trimmed) {
+            const days = Number.parseInt(trimmed, 10);
+            updated = {
+              ...updated,
+              returnAllowed: true,
+              returnWindowDays: Number.isFinite(days) ? days : 7,
+            };
+          } else {
+            updated = {
+              ...updated,
+              returnAllowed: false,
+              returnWindowDays: null,
+            };
+          }
+          break;
+        }
+        case "replace": {
+          if (trimmed) {
+            const days = Number.parseInt(trimmed, 10);
+            updated = {
+              ...updated,
+              replacementAllowed: true,
+              replacementWindowDays: Number.isFinite(days) ? days : 7,
+            };
+          } else {
+            updated = {
+              ...updated,
+              replacementAllowed: false,
+              replacementWindowDays: null,
+            };
+          }
+          break;
+        }
       }
     }
 
@@ -444,7 +545,15 @@ export function AiProductPanel({
         role: "user",
         content: skipped
           ? `Skipped ${stepMeta(guideStep).title}`
-          : `Set ${stepMeta(guideStep).title}: ${answer.trim() || "—"}`,
+          : `Set ${stepMeta(guideStep).title}: ${
+              guideStep === "category"
+                ? categories.find((c) => c.id === answer)?.name || answer || "—"
+                : guideStep === "returns" || guideStep === "replace"
+                  ? answer
+                    ? `${answer} days`
+                    : "Not offered"
+                  : answer.trim() || "—"
+            }`,
       },
     ]);
     goNextStep(guideStep, updated);
@@ -591,6 +700,10 @@ export function AiProductPanel({
   const busy = isUploading || isPending;
   const canAddMore = imageUrls.length < MAX_AI_IMAGES;
   const meta = guideStep ? stepMeta(guideStep) : null;
+  const resolvedCategoryName =
+    draft?.categoryName ||
+    categories.find((c) => c.id === draft?.categoryId)?.name ||
+    "Category pending";
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -710,12 +823,13 @@ export function AiProductPanel({
                 </p>
                 <p className="mt-2 font-medium text-neutral-900">{draft.name}</p>
                 <p className="mt-1 text-muted-foreground">
-                  {draft.categoryName ||
-                    categories.find((c) => c.id === draft.categoryId)?.name ||
-                    "Category pending"}
+                  {resolvedCategoryName}
                   {draft.suggestedPrice != null
                     ? ` · ₹${draft.suggestedPrice.toLocaleString("en-IN")}`
                     : " · Price pending"}
+                  {draft.compareAtPrice != null && draft.compareAtPrice > 0
+                    ? ` · MRP ₹${draft.compareAtPrice.toLocaleString("en-IN")}`
+                    : ""}
                   {draft.stock != null ? ` · Stock ${draft.stock}` : ""}
                 </p>
                 <p className="mt-2 line-clamp-2 text-neutral-700">
@@ -814,6 +928,18 @@ export function AiProductPanel({
                           <option value="Two Tone">Two Tone</option>
                           <option value="Tri Color">Tri Color</option>
                         </NativeSelect>
+                      ) : guideStep === "returns" || guideStep === "replace" ? (
+                        <NativeSelect
+                          value={answer}
+                          onChange={(e) => setAnswer(e.target.value)}
+                          disabled={busy}
+                        >
+                          {POLICY_WINDOW_OPTIONS.map((opt) => (
+                            <option key={opt.value || "none"} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </NativeSelect>
                       ) : (
                         <Input
                           value={answer}
@@ -826,11 +952,15 @@ export function AiProductPanel({
                               ? "number"
                               : "text"
                           }
+                          min={0}
+                          step={
+                            guideStep === "stock" ? "1" : "0.01"
+                          }
                           placeholder={
                             guideStep === "price"
                               ? "e.g. 24999"
                               : guideStep === "compareAt"
-                                ? "e.g. 29999 (optional)"
+                                ? "e.g. 29999 (optional MRP)"
                                 : guideStep === "stock"
                                   ? "e.g. 10"
                                   : guideStep === "weight"
@@ -846,28 +976,9 @@ export function AiProductPanel({
                         />
                       )}
                     </div>
-
-                    <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="sm:flex-1"
-                        disabled={busy}
-                        onClick={() => applyGuideAnswer(true)}
-                      >
-                        <SkipForward className="mr-1.5 size-4" />
-                        Skip
-                      </Button>
-                      <Button
-                        type="button"
-                        className="bg-[#8b2e2e] hover:bg-[#742626] sm:flex-1"
-                        disabled={busy}
-                        onClick={() => applyGuideAnswer(false)}
-                      >
-                        Continue
-                        <ChevronRight className="ml-1.5 size-4" />
-                      </Button>
-                    </div>
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      Use Skip or Continue at the bottom of this panel.
+                    </p>
                   </>
                 ) : (
                   <div className="space-y-3 text-center">
@@ -878,8 +989,8 @@ export function AiProductPanel({
                       Listing looks ready
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      Apply to the form, then review Pricing / Policies before
-                      submit.
+                      Apply to the form from the bottom — pricing, compare-at,
+                      and return/replace are included.
                     </p>
                     <Button
                       type="button"
@@ -927,55 +1038,81 @@ export function AiProductPanel({
           </div>
 
           <div className="shrink-0 space-y-3 border-t border-neutral-100 bg-white px-5 py-4 sm:px-6">
-            <div className="flex gap-2">
-              <Textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={
-                  draft
-                    ? "Optional: ask AI to tweak copy, e.g. “make title shorter”…"
-                    : "Upload photos to start"
-                }
-                disabled={!draft || busy}
-                rows={2}
-                className="min-h-[64px] resize-none"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSend();
+            {!isGuiding && (
+              <div className="flex gap-2">
+                <Textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={
+                    draft
+                      ? "Optional: ask AI to tweak copy, e.g. “make title shorter”…"
+                      : "Upload photos to start"
                   }
-                }}
-              />
-              <Button
-                type="button"
-                size="icon"
-                className="mt-auto size-10 shrink-0 bg-[#8b2e2e] hover:bg-[#742626]"
-                disabled={!draft || !input.trim() || busy}
-                onClick={handleSend}
-              >
-                <Send className="size-4" />
-              </Button>
-            </div>
+                  disabled={!draft || busy}
+                  rows={2}
+                  className="min-h-[64px] resize-none"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleSend();
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  size="icon"
+                  className="mt-auto size-10 shrink-0 bg-[#8b2e2e] hover:bg-[#742626]"
+                  disabled={!draft || !input.trim() || busy}
+                  onClick={handleSend}
+                >
+                  <Send className="size-4" />
+                </Button>
+              </div>
+            )}
 
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Button
-                type="button"
-                variant="outline"
-                className="sm:flex-1"
-                disabled={busy}
-                onClick={() => handleOpenChange(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                className="bg-[#8b2e2e] hover:bg-[#742626] sm:flex-1"
-                disabled={!draft || imageUrls.length === 0 || busy}
-                onClick={handleApply}
-              >
-                Apply to form
-              </Button>
-            </div>
+            {isGuiding ? (
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="sm:flex-1"
+                  disabled={busy}
+                  onClick={() => applyGuideAnswer(true)}
+                >
+                  <SkipForward className="mr-1.5 size-4" />
+                  Skip
+                </Button>
+                <Button
+                  type="button"
+                  className="bg-[#8b2e2e] hover:bg-[#742626] sm:flex-1"
+                  disabled={busy}
+                  onClick={() => applyGuideAnswer(false)}
+                >
+                  Continue
+                  <ChevronRight className="ml-1.5 size-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="sm:flex-1"
+                  disabled={busy}
+                  onClick={() => handleOpenChange(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  className="bg-[#8b2e2e] hover:bg-[#742626] sm:flex-1"
+                  disabled={!draft || imageUrls.length === 0 || busy}
+                  onClick={handleApply}
+                >
+                  Apply to form
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>

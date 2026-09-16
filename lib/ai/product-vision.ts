@@ -62,11 +62,14 @@ Rules:
 - shortDescription: 20–500 characters, one concise marketing line.
 - description: 50–5000 characters, 2–4 short paragraphs of product details.
 - Pick categoryId ONLY from this list (use the exact id). If unsure, pick the closest and set confidence lower, and add a question.
+- CRITICAL: Choose the product TYPE category (Earrings, Necklaces, Finger Rings, Bangles, Pendants, Jhumkas, Chains, Bracelets, Anklets, Mangalsutra, Nose Pins, Jewellery Sets, Gold Coins, etc.).
+- Do NOT pick metal/material categories like Gold, Diamond, Ruby, Emerald, or Gemstone just because the piece is gold/diamond — put that in attributes.metal / attributes.stone instead.
+- Only use Gold / Diamond / Gemstone categories when the listing is clearly that collection (e.g. gold coin → Gold Coins).
 Categories:
 ${categoryLines || "(none provided)"}
 
 For jewellery attributes object, also try to fill when visible in the photo:
-- metal: Gold | Silver | Platinum | Diamond | Other
+- metal: Gold Finish | Yellow Gold Finish | White Gold Finish | Rose Gold Finish | Silver Finish | Platinum Finish | Diamond Finish | Oxidised Finish | Other Finish
 - karatage / purity: e.g. 22K, 18K
 - colour / materialColour: Yellow | White | Rose
 - weight / grossWeight: e.g. 4.25g
@@ -122,30 +125,124 @@ function coerceAttributes(
   return out;
 }
 
+/** Metal/material collection categories — avoid when a jewellery type is clear. */
+const MATERIAL_CATEGORY_KEYS = new Set([
+  "gold",
+  "silver",
+  "diamond",
+  "emerald",
+  "ruby",
+  "gemstone",
+  "platinum",
+  "jewelry",
+  "jewellery",
+  "electronic",
+  "accessories",
+]);
+
+const TYPE_KEYWORD_RULES: Array<{ keys: string[]; prefer: string[] }> = [
+  { keys: ["jhumka", "jhumkas"], prefer: ["jhumkas"] },
+  { keys: ["hoop"], prefer: ["hoops", "hoop earrings"] },
+  { keys: ["stud"], prefer: ["studs", "stud earrings"] },
+  { keys: ["drop earring", "drops"], prefer: ["drops", "drop earrings"] },
+  { keys: ["earring", "earrings"], prefer: ["earrings"] },
+  { keys: ["mangalsutra", "mangal sutra"], prefer: ["mangalsutra"] },
+  { keys: ["necklace", "necklaces", "haar"], prefer: ["necklaces"] },
+  { keys: ["pendant", "locket"], prefer: ["pendants"] },
+  { keys: ["bangle", "bangles"], prefer: ["bangles"] },
+  { keys: ["bracelet"], prefer: ["bracelets"] },
+  { keys: ["chain", "chains"], prefer: ["chains"] },
+  { keys: ["choker"], prefer: ["choker", "chokers"] },
+  { keys: ["anklet", "payal", "pajeb"], prefer: ["anklets"] },
+  { keys: ["nose pin", "nosepin", "nath", "nose ring"], prefer: ["nosepin", "nose pins"] },
+  { keys: ["kada", "kadas"], prefer: ["kadas"] },
+  { keys: ["finger ring", "rings", "ring"], prefer: ["rings", "finger rings"] },
+  { keys: ["jewellery set", "jewelry set", "bridal set", "set"], prefer: ["sets", "jewellery sets"] },
+  { keys: ["gold coin", "coin"], prefer: ["coins", "gold coins"] },
+];
+
+function isMaterialCategory(c: CategoryOption): boolean {
+  const slug = (c.slug || "").toLowerCase().trim();
+  const name = c.name.toLowerCase().trim();
+  return MATERIAL_CATEGORY_KEYS.has(slug) || MATERIAL_CATEGORY_KEYS.has(name);
+}
+
+function findCategoryByPrefer(
+  categories: CategoryOption[],
+  prefer: string[],
+): CategoryOption | null {
+  for (const p of prefer) {
+    const key = p.toLowerCase();
+    const hit = categories.find((c) => {
+      const slug = (c.slug || "").toLowerCase();
+      const name = c.name.toLowerCase();
+      return slug === key || name === key || name.includes(key) || slug.includes(key);
+    });
+    if (hit) return hit;
+  }
+  return null;
+}
+
+function findCategoryByTypeKeywords(
+  text: string,
+  categories: CategoryOption[],
+): CategoryOption | null {
+  const t = text.toLowerCase();
+  for (const rule of TYPE_KEYWORD_RULES) {
+    if (!rule.keys.some((k) => t.includes(k))) continue;
+    const hit = findCategoryByPrefer(categories, rule.prefer);
+    if (hit) return hit;
+  }
+  return null;
+}
+
 function resolveCategoryId(
   obj: Record<string, unknown>,
   categories: CategoryOption[],
 ): string | null {
   const categoryIds = new Set(categories.map((c) => c.id));
+  const haystack = [
+    obj.name,
+    obj.categoryName,
+    obj.shortDescription,
+    obj.description,
+  ]
+    .map((v) => String(v || ""))
+    .join(" ");
+
+  const byType = findCategoryByTypeKeywords(haystack, categories);
+
   let categoryId =
     typeof obj.categoryId === "string" ? obj.categoryId.trim() : null;
-  if (categoryId && categoryIds.has(categoryId)) return categoryId;
+  if (categoryId && categoryIds.has(categoryId)) {
+    const chosen = categories.find((c) => c.id === categoryId)!;
+    // AI often picks "Gold" because the metal is gold — prefer jewellery type.
+    if (isMaterialCategory(chosen) && byType) return byType.id;
+    return categoryId;
+  }
+
+  if (byType) return byType.id;
 
   const label = String(obj.categoryName || "").toLowerCase().trim();
-  if (label) {
+  if (label && !MATERIAL_CATEGORY_KEYS.has(label)) {
     const exact = categories.find((c) => c.name.toLowerCase() === label);
-    if (exact) return exact.id;
-    const fuzzy = categories.find(
-      (c) =>
-        c.name.toLowerCase().includes(label) ||
-        label.includes(c.name.toLowerCase()) ||
-        (c.slug && label.includes(c.slug.toLowerCase())),
-    );
+    if (exact && !isMaterialCategory(exact)) return exact.id;
+    const fuzzy = categories.find((c) => {
+      if (isMaterialCategory(c)) return false;
+      const name = c.name.toLowerCase();
+      const slug = (c.slug || "").toLowerCase();
+      return (
+        name.includes(label) ||
+        label.includes(name) ||
+        (slug && (label.includes(slug) || slug.includes(label)))
+      );
+    });
     if (fuzzy) return fuzzy.id;
   }
 
   const name = String(obj.name || "").toLowerCase();
   const byProductName = categories.find((c) => {
+    if (isMaterialCategory(c)) return false;
     const n = c.name.toLowerCase();
     return n.length >= 4 && name.includes(n.replace(/s$/, ""));
   });
@@ -176,10 +273,16 @@ function parseDraft(
       : null;
   if (sku && sku.length < 3) sku = null;
 
+  const categoryId = resolveCategoryId(obj, categories);
+  const categoryName =
+    categories.find((c) => c.id === categoryId)?.name ||
+    (typeof obj.categoryName === "string" ? obj.categoryName : null);
+
   const draft = aiProductDraftSchema.parse({
     ...obj,
     name,
-    categoryId: resolveCategoryId(obj, categories),
+    categoryId,
+    categoryName,
     brand:
       typeof obj.brand === "string" && obj.brand.trim().length >= 2
         ? obj.brand.trim()

@@ -20,16 +20,41 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import type { Resolver } from "react-hook-form";
 
 type CategoryFormProps = {
-  category?: any; // Existing category for edit mode
-  categories: any[]; // All categories for parent selection
+  category?: {
+    id: string;
+    name: string;
+    slug: string;
+    description?: string | null;
+    image?: string | null;
+    parentId?: string | null;
+    isActive: boolean;
+    sortOrder: number;
+    commissionPercentage?: number | null;
+  };
+  categories: Array<{
+    id: string;
+    name: string;
+    slug: string;
+    parentId?: string | null;
+  }>;
 };
 
 export function CategoryForm({ category, categories }: CategoryFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [images, setImages] = useState<string[]>(category?.image ? [category.image] : []);
+  const [images, setImages] = useState<string[]>(
+    category?.image ? [category.image] : [],
+  );
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const defaultCommission =
+    category?.commissionPercentage === null ||
+    category?.commissionPercentage === undefined
+      ? null
+      : Number(category.commissionPercentage);
 
   const {
     register,
@@ -38,17 +63,19 @@ export function CategoryForm({ category, categories }: CategoryFormProps) {
     setValue,
     watch,
   } = useForm<CategoryInput>({
-    resolver: zodResolver(categorySchema),
+    resolver: zodResolver(categorySchema) as Resolver<CategoryInput>,
     defaultValues: category
       ? {
           name: category.name,
           slug: category.slug,
-          description: category.description || "",
-          image: category.image || "",
+          description: category.description || undefined,
+          image: category.image || undefined,
           parentId: category.parentId || null,
-          isActive: category.isActive,
-          sortOrder: category.sortOrder,
-          commissionPercentage: category.commissionPercentage ?? null,
+          isActive: Boolean(category.isActive),
+          sortOrder: Number(category.sortOrder ?? 0),
+          commissionPercentage: Number.isFinite(defaultCommission as number)
+            ? defaultCommission
+            : null,
         }
       : {
           isActive: true,
@@ -62,7 +89,7 @@ export function CategoryForm({ category, categories }: CategoryFormProps) {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const name = e.target.value;
     setValue("name", name);
-    
+
     if (!category) {
       // Only auto-generate slug for new categories
       const slug = name
@@ -76,20 +103,27 @@ export function CategoryForm({ category, categories }: CategoryFormProps) {
   // Handle image upload
   const handleImagesChange = (urls: string[]) => {
     setImages(urls);
-    setValue("image", urls[0] || "");
+    setValue("image", urls[0] || undefined, { shouldValidate: true });
   };
 
   const onSubmit = async (data: CategoryInput) => {
+    setFormError(null);
     startTransition(async () => {
+      const payload: CategoryInput = {
+        ...data,
+        description: data.description?.trim() || undefined,
+        image: data.image?.trim() || undefined,
+        parentId: data.parentId || null,
+      };
       const result = category
-        ? await updateCategory(category.id, data)
-        : await createCategory(data);
+        ? await updateCategory(category.id, payload)
+        : await createCategory(payload);
 
       if (result.success) {
         router.push("/admin/categories");
         router.refresh();
       } else {
-        alert(result.error);
+        setFormError(result.error);
       }
     });
   };
@@ -246,6 +280,12 @@ export function CategoryForm({ category, categories }: CategoryFormProps) {
           />
         </CardContent>
       </Card>
+
+      {formError ? (
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {formError}
+        </p>
+      ) : null}
 
       {/* Actions */}
       <div className="flex justify-end gap-4">

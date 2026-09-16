@@ -48,6 +48,19 @@ export async function createCategory(
     };
   } catch (error) {
     console.error("Create category error:", error);
+    if (
+      error &&
+      typeof error === "object" &&
+      "name" in error &&
+      (error as { name: string }).name === "ZodError"
+    ) {
+      const issues = (error as { issues?: Array<{ message: string }> }).issues;
+      return {
+        success: false,
+        error:
+          issues?.map((i) => i.message).join(". ") || "Invalid category data",
+      };
+    }
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to create category",
@@ -99,6 +112,13 @@ export async function updateCategory(
     };
   } catch (error) {
     console.error("Update category error:", error);
+    if (error && typeof error === "object" && "name" in error && (error as { name: string }).name === "ZodError") {
+      const issues = (error as { issues?: Array<{ message: string }> }).issues;
+      return {
+        success: false,
+        error: issues?.map((i) => i.message).join(". ") || "Invalid category data",
+      };
+    }
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to update category",

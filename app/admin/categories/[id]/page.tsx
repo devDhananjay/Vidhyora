@@ -33,8 +33,29 @@ export default async function EditCategoryPage({
       </div>
 
       <CategoryForm
-        category={category}
-        categories={allCategories.filter((c) => c.id !== id)} // Exclude self from parent options
+        category={{
+          id: category.id,
+          name: category.name,
+          slug: category.slug,
+          description: category.description,
+          image: category.image,
+          parentId: category.parentId,
+          isActive: category.isActive,
+          sortOrder: category.sortOrder,
+          commissionPercentage:
+            category.commissionPercentage === null ||
+            category.commissionPercentage === undefined
+              ? null
+              : Number(category.commissionPercentage),
+        }}
+        categories={allCategories
+          .filter((c) => c.id !== id)
+          .map((c) => ({
+            id: c.id,
+            name: c.name,
+            slug: c.slug,
+            parentId: c.parentId,
+          }))}
       />
 
       <CategoryAttributesForm

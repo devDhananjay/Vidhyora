@@ -838,177 +838,6 @@ export function AiProductPanel({
               </div>
             )}
 
-            {guideStep && meta && draft && (
-              <div className="rounded-2xl border border-[#e8d5d0] bg-gradient-to-b from-[#faf6f4] to-white p-4 shadow-sm">
-                {guideStep !== "done" ? (
-                  <>
-                    <div className="mb-3 flex items-center justify-between gap-2">
-                      <p className="text-xs font-medium tracking-wide text-[#8b2e2e] uppercase">
-                        Question {guideIndex + 1} of {GUIDE_ORDER.length - 1}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {guideProgress}%
-                      </p>
-                    </div>
-                    <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-neutral-100">
-                      <div
-                        className="h-full rounded-full bg-[#8b2e2e] transition-all"
-                        style={{ width: `${guideProgress}%` }}
-                      />
-                    </div>
-                    <p className="font-medium text-neutral-900">{meta.title}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {meta.hint}
-                    </p>
-
-                    <div className="mt-4">
-                      {guideStep === "category" ? (
-                        <NativeSelect
-                          value={answer}
-                          onChange={(e) => setAnswer(e.target.value)}
-                          disabled={busy}
-                        >
-                          <option value="">Select category…</option>
-                          {categories.map((c) => (
-                            <option key={c.id} value={c.id}>
-                              {c.name}
-                            </option>
-                          ))}
-                        </NativeSelect>
-                      ) : guideStep === "metal" ? (
-                        <NativeSelect
-                          value={answer}
-                          onChange={(e) => setAnswer(e.target.value)}
-                          disabled={busy}
-                        >
-                          <option value="">Select metal finish…</option>
-                          <option value="Gold Finish">Gold Finish</option>
-                          <option value="Yellow Gold Finish">
-                            Yellow Gold Finish
-                          </option>
-                          <option value="White Gold Finish">
-                            White Gold Finish
-                          </option>
-                          <option value="Rose Gold Finish">
-                            Rose Gold Finish
-                          </option>
-                          <option value="Silver Finish">Silver Finish</option>
-                          <option value="Platinum Finish">
-                            Platinum Finish
-                          </option>
-                          <option value="Diamond Finish">Diamond Finish</option>
-                          <option value="Oxidised Finish">
-                            Oxidised Finish
-                          </option>
-                          <option value="Other Finish">Other Finish</option>
-                        </NativeSelect>
-                      ) : guideStep === "karatage" ? (
-                        <NativeSelect
-                          value={answer}
-                          onChange={(e) => setAnswer(e.target.value)}
-                          disabled={busy}
-                        >
-                          <option value="">Select karatage…</option>
-                          <option value="24K">24K</option>
-                          <option value="22K">22K</option>
-                          <option value="18K">18K</option>
-                          <option value="14K">14K</option>
-                          <option value="9K">9K</option>
-                        </NativeSelect>
-                      ) : guideStep === "colour" ? (
-                        <NativeSelect
-                          value={answer}
-                          onChange={(e) => setAnswer(e.target.value)}
-                          disabled={busy}
-                        >
-                          <option value="">Select colour…</option>
-                          <option value="Yellow">Yellow</option>
-                          <option value="White">White</option>
-                          <option value="Rose">Rose</option>
-                          <option value="Two Tone">Two Tone</option>
-                          <option value="Tri Color">Tri Color</option>
-                        </NativeSelect>
-                      ) : guideStep === "returns" || guideStep === "replace" ? (
-                        <NativeSelect
-                          value={answer}
-                          onChange={(e) => setAnswer(e.target.value)}
-                          disabled={busy}
-                        >
-                          {POLICY_WINDOW_OPTIONS.map((opt) => (
-                            <option key={opt.value || "none"} value={opt.value}>
-                              {opt.label}
-                            </option>
-                          ))}
-                        </NativeSelect>
-                      ) : (
-                        <Input
-                          value={answer}
-                          onChange={(e) => setAnswer(e.target.value)}
-                          disabled={busy}
-                          type={
-                            guideStep === "price" ||
-                            guideStep === "compareAt" ||
-                            guideStep === "stock"
-                              ? "number"
-                              : "text"
-                          }
-                          min={0}
-                          step={
-                            guideStep === "stock" ? "1" : "0.01"
-                          }
-                          placeholder={
-                            guideStep === "price"
-                              ? "e.g. 24999"
-                              : guideStep === "compareAt"
-                                ? "e.g. 29999 (optional MRP)"
-                                : guideStep === "stock"
-                                  ? "e.g. 10"
-                                  : guideStep === "weight"
-                                    ? "e.g. 4.25g"
-                                    : "Type here…"
-                          }
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              applyGuideAnswer(false);
-                            }
-                          }}
-                        />
-                      )}
-                    </div>
-                    <p className="mt-3 text-xs text-muted-foreground">
-                      Use Skip or Continue at the bottom of this panel.
-                    </p>
-                  </>
-                ) : (
-                  <div className="space-y-3 text-center">
-                    <div className="mx-auto flex size-10 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">
-                      <Check className="size-5" />
-                    </div>
-                    <p className="font-medium text-neutral-900">
-                      Listing looks ready
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Apply to the form from the bottom — pricing, compare-at,
-                      and return/replace are included.
-                    </p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        const first = GUIDE_ORDER[0];
-                        setGuideStep(first);
-                        seedAnswerForStep(first, draft);
-                      }}
-                    >
-                      Review answers again
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )}
-
             <div className="space-y-3">
               {messages.map((msg) => (
                 <div
@@ -1038,7 +867,161 @@ export function AiProductPanel({
           </div>
 
           <div className="shrink-0 space-y-3 border-t border-neutral-100 bg-white px-5 py-4 sm:px-6">
-            {!isGuiding && (
+            {guideStep && meta && draft && guideStep !== "done" && (
+              <div className="rounded-2xl border border-[#e8d5d0] bg-gradient-to-b from-[#faf6f4] to-white p-4 shadow-sm">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <p className="text-xs font-medium tracking-wide text-[#8b2e2e] uppercase">
+                    Question {guideIndex + 1} of {GUIDE_ORDER.length - 1}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{guideProgress}%</p>
+                </div>
+                <div className="mb-3 h-1.5 overflow-hidden rounded-full bg-neutral-100">
+                  <div
+                    className="h-full rounded-full bg-[#8b2e2e] transition-all"
+                    style={{ width: `${guideProgress}%` }}
+                  />
+                </div>
+                <p className="font-medium text-neutral-900">{meta.title}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{meta.hint}</p>
+
+                <div className="mt-3">
+                  {guideStep === "category" ? (
+                    <NativeSelect
+                      value={answer}
+                      onChange={(e) => setAnswer(e.target.value)}
+                      disabled={busy}
+                    >
+                      <option value="">Select category…</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  ) : guideStep === "metal" ? (
+                    <NativeSelect
+                      value={answer}
+                      onChange={(e) => setAnswer(e.target.value)}
+                      disabled={busy}
+                    >
+                      <option value="">Select metal finish…</option>
+                      <option value="Gold Finish">Gold Finish</option>
+                      <option value="Yellow Gold Finish">
+                        Yellow Gold Finish
+                      </option>
+                      <option value="White Gold Finish">
+                        White Gold Finish
+                      </option>
+                      <option value="Rose Gold Finish">Rose Gold Finish</option>
+                      <option value="Silver Finish">Silver Finish</option>
+                      <option value="Platinum Finish">Platinum Finish</option>
+                      <option value="Diamond Finish">Diamond Finish</option>
+                      <option value="Oxidised Finish">Oxidised Finish</option>
+                      <option value="Other Finish">Other Finish</option>
+                    </NativeSelect>
+                  ) : guideStep === "karatage" ? (
+                    <NativeSelect
+                      value={answer}
+                      onChange={(e) => setAnswer(e.target.value)}
+                      disabled={busy}
+                    >
+                      <option value="">Select karatage…</option>
+                      <option value="24K">24K</option>
+                      <option value="22K">22K</option>
+                      <option value="18K">18K</option>
+                      <option value="14K">14K</option>
+                      <option value="9K">9K</option>
+                    </NativeSelect>
+                  ) : guideStep === "colour" ? (
+                    <NativeSelect
+                      value={answer}
+                      onChange={(e) => setAnswer(e.target.value)}
+                      disabled={busy}
+                    >
+                      <option value="">Select colour…</option>
+                      <option value="Yellow">Yellow</option>
+                      <option value="White">White</option>
+                      <option value="Rose">Rose</option>
+                      <option value="Two Tone">Two Tone</option>
+                      <option value="Tri Color">Tri Color</option>
+                    </NativeSelect>
+                  ) : guideStep === "returns" || guideStep === "replace" ? (
+                    <NativeSelect
+                      value={answer}
+                      onChange={(e) => setAnswer(e.target.value)}
+                      disabled={busy}
+                    >
+                      {POLICY_WINDOW_OPTIONS.map((opt) => (
+                        <option key={opt.value || "none"} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  ) : (
+                    <Input
+                      value={answer}
+                      onChange={(e) => setAnswer(e.target.value)}
+                      disabled={busy}
+                      type={
+                        guideStep === "price" ||
+                        guideStep === "compareAt" ||
+                        guideStep === "stock"
+                          ? "number"
+                          : "text"
+                      }
+                      min={0}
+                      step={guideStep === "stock" ? "1" : "0.01"}
+                      placeholder={
+                        guideStep === "price"
+                          ? "e.g. 24999"
+                          : guideStep === "compareAt"
+                            ? "e.g. 29999 (optional MRP)"
+                            : guideStep === "stock"
+                              ? "e.g. 10"
+                              : guideStep === "weight"
+                                ? "e.g. 4.25g"
+                                : "Type here…"
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          applyGuideAnswer(false);
+                        }
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {guideStep === "done" && draft && (
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 text-center">
+                <div className="mx-auto flex size-10 items-center justify-center rounded-full bg-white text-emerald-700">
+                  <Check className="size-5" />
+                </div>
+                <p className="mt-2 font-medium text-neutral-900">
+                  Listing looks ready
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Apply below — pricing, MRP, and return/replace are included.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                  onClick={() => {
+                    const first = GUIDE_ORDER[0];
+                    setGuideStep(first);
+                    seedAnswerForStep(first, draft);
+                  }}
+                >
+                  Review answers again
+                </Button>
+              </div>
+            )}
+
+            {!isGuiding && guideStep !== "done" && (
               <div className="flex gap-2">
                 <Textarea
                   value={input}

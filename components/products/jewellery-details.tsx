@@ -61,8 +61,10 @@ function detectMetalLabel(metal: string) {
   if (!metal) return "Gold";
   if (/platinum/i.test(metal)) return "Platinum";
   if (/silver/i.test(metal)) return "Silver";
+  if (/oxidised|oxidized/i.test(metal)) return "Oxidised";
+  if (/diamond/i.test(metal)) return "Diamond";
   if (/gold/i.test(metal)) return "Gold";
-  return metal.split(" ")[0] || "Gold";
+  return metal.replace(/\s*finish\s*/i, "").trim().split(" ")[0] || "Gold";
 }
 
 function formatInr(amount: number) {

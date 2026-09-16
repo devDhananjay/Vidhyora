@@ -213,11 +213,15 @@ export function BasicInfoStep({
               onChange={(e) => setAttributeValue("metal", e.target.value)}
             >
               <option value="">Select metal…</option>
-              <option value="Gold">Gold</option>
-              <option value="Silver">Silver</option>
-              <option value="Platinum">Platinum</option>
-              <option value="Diamond">Diamond</option>
-              <option value="Other">Other</option>
+              <option value="Gold Finish">Gold Finish</option>
+              <option value="Yellow Gold Finish">Yellow Gold Finish</option>
+              <option value="White Gold Finish">White Gold Finish</option>
+              <option value="Rose Gold Finish">Rose Gold Finish</option>
+              <option value="Silver Finish">Silver Finish</option>
+              <option value="Platinum Finish">Platinum Finish</option>
+              <option value="Diamond Finish">Diamond Finish</option>
+              <option value="Oxidised Finish">Oxidised Finish</option>
+              <option value="Other Finish">Other Finish</option>
             </NativeSelect>
           </div>
 

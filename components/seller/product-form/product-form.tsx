@@ -402,6 +402,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
             register={register}
             errors={errors}
             watch={watch}
+            setValue={setValue}
             variants={variants}
           />
         );

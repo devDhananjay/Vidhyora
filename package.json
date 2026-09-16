@@ -14,6 +14,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:seed-demo": "tsx prisma/seed-admin-demo.ts",
     "db:seed-seller": "tsx prisma/seed-seller-demo.ts",
+    "db:seed-categories": "tsx prisma/seed-jewellery-categories.ts",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate"
   },

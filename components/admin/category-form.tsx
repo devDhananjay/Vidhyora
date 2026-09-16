@@ -276,8 +276,11 @@ export function CategoryForm({ category, categories }: CategoryFormProps) {
             value={images}
             onChange={handleImagesChange}
             maxFiles={1}
-            maxSize={2}
+            maxSize={5}
           />
+          <p className="mt-2 text-xs text-muted-foreground">
+            JPG, PNG or WEBP. Each image must be under 5 MB.
+          </p>
         </CardContent>
       </Card>
 

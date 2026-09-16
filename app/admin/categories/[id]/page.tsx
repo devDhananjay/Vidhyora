@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CategoryForm } from "@/components/admin/category-form";
 import { CategoryAttributesForm } from "@/components/admin/category-attributes-form";
@@ -26,7 +27,15 @@ export default async function EditCategoryPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Edit Category</h1>
+        <Link
+          href="/admin/categories"
+          className="text-sm text-primary hover:underline"
+        >
+          ← Back to Categories
+        </Link>
+        <h1 className="mt-2 font-serif text-3xl text-neutral-900 sm:text-4xl">
+          Edit Category
+        </h1>
         <p className="mt-2 text-muted-foreground">
           Update category information
         </p>

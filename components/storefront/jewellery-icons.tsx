@@ -221,21 +221,35 @@ const BY_LABEL: Record<string, (props: IconProps) => ReactNode> = {
   "all gold": IconBangles,
   "all diamond jewellery": IconDiamond,
   earrings: IconEarrings,
+  jhumkas: IconEarrings,
+  studs: IconEarrings,
+  hoops: IconEarrings,
+  drops: IconEarrings,
   pendants: IconPendant,
   "finger rings": IconRing,
+  rings: IconRing,
   mangalsutra: IconMangalsutra,
   chains: IconChain,
   "nose pin": IconNosePin,
+  "nose pins": IconNosePin,
   necklaces: IconNecklace,
+  chokers: IconNecklace,
   "necklace set": IconNecklaceSet,
+  "jewellery sets": IconNecklaceSet,
   bangles: IconBangles,
   bracelets: IconBracelet,
+  anklets: IconBracelet,
   "pendants & earring set": IconPendantSet,
+  gemstone: IconDiamond,
+  emerald: IconDiamond,
+  ruby: IconDiamond,
+  accessories: IconGift,
   women: IconEarrings,
   men: IconPerson,
   kids: IconRing,
   unisex: IconDaily,
   "special coins": IconCoin,
+  "gold coins": IconCoin,
   "1 gram": IconCoin,
   "2 gram": IconCoin,
   "4 gram": IconCoin,
@@ -244,23 +258,38 @@ const BY_LABEL: Record<string, (props: IconProps) => ReactNode> = {
 };
 
 export function jewelleryIconFor(label: string) {
-  const key = label.toLowerCase();
+  const key = label.toLowerCase().trim();
   if (BY_LABEL[key]) return BY_LABEL[key];
   if (key.includes("pendant") && key.includes("earring")) return IconPendantSet;
-  if (key.includes("necklace set") || key.includes("sets")) return IconNecklaceSet;
+  if (key.includes("necklace set") || key.includes("jewellery set"))
+    return IconNecklaceSet;
   if (key.includes("mangalsutra")) return IconMangalsutra;
-  if (key.includes("earring")) return IconEarrings;
+  if (
+    key.includes("earring") ||
+    key.includes("jhumka") ||
+    key.includes("stud") ||
+    key.includes("hoop") ||
+    key.includes("drop")
+  )
+    return IconEarrings;
   if (key.includes("nose")) return IconNosePin;
   if (key.includes("chain")) return IconChain;
-  if (key.includes("necklace")) return IconNecklace;
+  if (key.includes("choker") || key.includes("necklace")) return IconNecklace;
   if (key.includes("pendant")) return IconPendant;
   if (key.includes("bangle")) return IconBangles;
-  if (key.includes("bracelet")) return IconBracelet;
+  if (key.includes("anklet") || key.includes("bracelet")) return IconBracelet;
   if (key.includes("kada")) return IconKada;
   if (key.includes("ring")) return IconRing;
   if (key.includes("coin")) return IconCoin;
-  if (key.includes("gift") || key.includes("gram")) return IconGift;
-  if (key.includes("diamond")) return IconDiamond;
+  if (
+    key.includes("gemstone") ||
+    key.includes("emerald") ||
+    key.includes("ruby") ||
+    key.includes("diamond")
+  )
+    return IconDiamond;
+  if (key.includes("accessor") || key.includes("gift") || key.includes("gram"))
+    return IconGift;
   if (key.includes("gold")) return IconBangles;
   return IconNecklace;
 }

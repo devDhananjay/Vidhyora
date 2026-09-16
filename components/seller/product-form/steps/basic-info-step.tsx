@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { JewelleryLineIcon } from "@/components/storefront/jewellery-icons";
 
 type BasicInfoStepProps = {
   register: any;
@@ -114,7 +115,13 @@ export function BasicInfoStep({
           <SelectContent>
             {categories.map((category) => (
               <SelectItem key={category.id} value={category.id}>
-                {category.name}
+                <span className="inline-flex items-center gap-2">
+                  <JewelleryLineIcon
+                    label={category.name}
+                    className="size-4 shrink-0 text-[#6b3f32]"
+                  />
+                  {category.name}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>

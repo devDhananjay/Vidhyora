@@ -13,7 +13,7 @@ import { createProduct, saveProductDraft, updateProduct } from "@/actions/seller
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Check, Save } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Save, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 import { BasicInfoStep } from "./steps/basic-info-step";
@@ -22,6 +22,7 @@ import { VariantsStep } from "./steps/variants-step";
 import { PricingStep } from "./steps/pricing-step";
 import { PolicyStep } from "./steps/policy-step";
 import { PreviewStep } from "./steps/preview-step";
+import { AiProductPanel } from "./ai-product-panel";
 
 const STEPS = [
   { id: 1, title: "Basic Info", description: "Product name, brand, category" },
@@ -91,6 +92,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
     product?.id,
   );
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [aiPanelOpen, setAiPanelOpen] = useState(false);
 
   const defaultValues: CreateProductInput = product
     ? normalizeProductFormValues(product)
@@ -315,6 +317,32 @@ export function ProductForm({ categories, product }: ProductFormProps) {
     await handleSubmit(onSubmit, onInvalid)();
   };
 
+  const applyAiDraft = (partial: Partial<CreateProductInput>) => {
+    const next: CreateProductInput = {
+      ...getValues(),
+      ...partial,
+      policy: {
+        ...getValues().policy,
+        ...(partial.policy || {}),
+      },
+      attributes: {
+        ...(getValues().attributes || {}),
+        ...(partial.attributes || {}),
+      },
+      images: partial.images?.length ? partial.images : getValues().images,
+      variants: partial.variants?.length
+        ? partial.variants
+        : getValues().variants,
+    };
+    reset(next);
+    setSavedSteps([]);
+    setCurrentStep(1);
+    setSaveMessage(
+      "AI draft applied. Review Basic Info, Pricing, and Policies, then submit.",
+    );
+    persistLocalDraft(1, []);
+  };
+
   const progress = (savedSteps.length / STEPS.length) * 100;
   const imageCount = watchedImages?.length ?? 0;
   const canSubmitChecklist = [
@@ -375,6 +403,36 @@ export function ProductForm({ categories, product }: ProductFormProps) {
 
   return (
     <div className="space-y-4 pb-28 sm:space-y-6 sm:pb-0">
+      {!isExisting && (
+        <div className="flex flex-col gap-3 rounded-2xl border border-[#e8d5d0] bg-gradient-to-r from-[#faf6f4] to-white p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="flex items-center gap-2 font-medium text-neutral-900">
+              <Sparkles className="size-4 text-[#8b2e2e]" />
+              Faster listing with AI
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Upload a product photo — AI drafts name, category, and copy. You
+              confirm price and stock in chat.
+            </p>
+          </div>
+          <Button
+            type="button"
+            onClick={() => setAiPanelOpen(true)}
+            className="shrink-0 bg-[#8b2e2e] hover:bg-[#742626]"
+          >
+            <Sparkles className="mr-2 size-4" />
+            Add with AI
+          </Button>
+        </div>
+      )}
+
+      <AiProductPanel
+        open={aiPanelOpen}
+        onOpenChange={setAiPanelOpen}
+        categories={categories}
+        onApply={applyAiDraft}
+      />
+
       <div className="space-y-2">
         <div className="flex justify-between text-sm">
           <span>

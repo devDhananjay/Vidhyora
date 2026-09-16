@@ -106,8 +106,10 @@ export function BasicInfoStep({
       <div>
         <Label htmlFor="categoryId">Category *</Label>
         <Select
-          onValueChange={(value) => setValue("categoryId", value)}
-          defaultValue={watch("categoryId")}
+          onValueChange={(value) =>
+            setValue("categoryId", value, { shouldValidate: true, shouldDirty: true })
+          }
+          value={categoryId || undefined}
         >
           <SelectTrigger className="mt-2">
             <SelectValue placeholder="Select a category" />

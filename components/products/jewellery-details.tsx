@@ -58,13 +58,21 @@ function detectColour(metal: string) {
 }
 
 function detectMetalLabel(metal: string) {
-  if (!metal) return "Gold";
-  if (/platinum/i.test(metal)) return "Platinum";
-  if (/silver/i.test(metal)) return "Silver";
-  if (/oxidised|oxidized/i.test(metal)) return "Oxidised";
-  if (/diamond/i.test(metal)) return "Diamond";
-  if (/gold/i.test(metal)) return "Gold";
-  return metal.replace(/\s*finish\s*/i, "").trim().split(" ")[0] || "Gold";
+  if (!metal) return "Gold Finish";
+  const raw = metal.trim();
+  if (/yellow\s*gold/i.test(raw)) return "Yellow Gold Finish";
+  if (/white\s*gold/i.test(raw)) return "White Gold Finish";
+  if (/rose\s*gold/i.test(raw)) return "Rose Gold Finish";
+  if (/platinum/i.test(raw)) return "Platinum Finish";
+  if (/silver/i.test(raw)) return "Silver Finish";
+  if (/oxidised|oxidized/i.test(raw)) return "Oxidised Finish";
+  if (/diamond/i.test(raw)) return "Diamond Finish";
+  if (/other/i.test(raw)) return "Other Finish";
+  if (/gold/i.test(raw)) return "Gold Finish";
+  if (/finish/i.test(raw)) {
+    return raw.replace(/\s+/g, " ").replace(/\bfinish\b/i, "Finish");
+  }
+  return `${raw} Finish`;
 }
 
 function formatInr(amount: number) {

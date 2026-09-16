@@ -52,8 +52,16 @@ export function MediaUrlField({
         return;
       }
       onChange(result.data.url);
-    } catch {
-      setError("Failed to upload media");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to upload media";
+      if (/Body exceeded|413|too large/i.test(message)) {
+        setError(
+          "File is too large for upload. Use an image ≤5 MB or video ≤40 MB.",
+        );
+      } else {
+        setError("Failed to upload media. Please try again.");
+      }
     } finally {
       setUploading(false);
     }

@@ -2,8 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
-  serverActions: {
-    bodySizeLimit: "50mb",
+  // Next 15.5 still reads bodySizeLimit from experimental.serverActions
+  // (top-level `serverActions` is ignored → default 1 MB, which breaks CMS uploads).
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "50mb",
+    },
   },
   allowedDevOrigins: [
     "127.0.0.1",
@@ -18,22 +22,22 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-    images: {
-      remotePatterns: [
-        {
-          protocol: "https",
-          hostname: "images.unsplash.com",
-        },
-        {
-          protocol: "https",
-          hostname: "placehold.co",
-        },
-        {
-          protocol: "https",
-          hostname: "lh3.googleusercontent.com",
-        },
-      ],
-    },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "placehold.co",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+    ],
+  },
   async redirects() {
     return [
       {

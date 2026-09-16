@@ -51,8 +51,9 @@ export function buildJewelleryBreakup(input: {
       : {};
 
   const metal = asString(attrs.metal);
-  const purity = asString(attrs.purity);
-  const weightStr = asString(attrs.weight);
+  const purity = asString(attrs.purity) || asString(attrs.karatage);
+  const weightStr =
+    asString(attrs.weight) || asString(attrs.grossWeight);
   const weightFromAttr = asNumber(attrs.weightGrams) || parseWeightGrams(weightStr);
   const makingPercentAttr = asNumber(
     attrs.makingChargePercent ?? attrs.makingPercent,

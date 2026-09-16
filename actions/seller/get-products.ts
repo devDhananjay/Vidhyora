@@ -16,6 +16,8 @@ export async function getSellerProducts(filters?: {
 
     const where: any = {
       sellerId: acting.sellerUserId,
+      // Soft-deleted / archived products stay out of the main list
+      status: { not: "ARCHIVED" },
     };
 
     if (filters?.status) {

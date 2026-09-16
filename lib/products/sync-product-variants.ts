@@ -17,6 +17,23 @@ type ImageInput = {
   sortOrder: number;
 };
 
+function variantWriteData(variant: VariantInput) {
+  const dims = variant.dimensions;
+  return {
+    sku: variant.sku.trim(),
+    attributes: variant.attributes ?? {},
+    price: variant.price,
+    compareAtPrice: variant.compareAtPrice ?? null,
+    stock: variant.stock,
+    weight: variant.weight ?? null,
+    // Schema has length/width/height — not a `dimensions` JSON field
+    length: dims?.length ?? dims?.l ?? null,
+    width: dims?.width ?? dims?.w ?? null,
+    height: dims?.height ?? dims?.h ?? null,
+    isActive: variant.isActive ?? true,
+  };
+}
+
 /**
  * Replace product images safely (images are not FK-locked by orders).
  */
@@ -67,16 +84,7 @@ export async function syncProductVariants(
   for (const variant of variants) {
     const skuKey = variant.sku.trim().toLowerCase();
     const match = bySku.get(skuKey);
-    const data = {
-      sku: variant.sku.trim(),
-      attributes: variant.attributes ?? {},
-      price: variant.price,
-      compareAtPrice: variant.compareAtPrice ?? null,
-      stock: variant.stock,
-      weight: variant.weight ?? null,
-      dimensions: variant.dimensions ?? undefined,
-      isActive: variant.isActive ?? true,
-    };
+    const data = variantWriteData(variant);
 
     if (match) {
       keptIds.add(match.id);

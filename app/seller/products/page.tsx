@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getSellerProducts } from "@/actions/seller/get-products";
+import { SellerProductDeleteButton } from "@/components/seller/seller-product-delete-button";
 import { formatCurrency } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -159,7 +160,7 @@ export default async function SellerProductsPage() {
                         </div>
                       </div>
 
-                      <div className="mt-2 flex gap-2">
+                      <div className="mt-2 flex flex-wrap gap-2">
                         <Link href={`/seller/products/${product.id}/edit`}>
                           <Button variant="outline" size="sm">
                             Edit
@@ -170,6 +171,10 @@ export default async function SellerProductsPage() {
                             View on Store
                           </Button>
                         </Link>
+                        <SellerProductDeleteButton
+                          productId={product.id}
+                          productName={product.name}
+                        />
                       </div>
                     </div>
                   </div>

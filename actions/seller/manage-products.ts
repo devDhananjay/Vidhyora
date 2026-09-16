@@ -81,7 +81,9 @@ export async function createProduct(
             stock: variant.stock,
             reservedStock: 0,
             weight: variant.weight,
-            dimensions: variant.dimensions,
+            length: variant.dimensions?.length ?? variant.dimensions?.l,
+            width: variant.dimensions?.width ?? variant.dimensions?.w,
+            height: variant.dimensions?.height ?? variant.dimensions?.h,
             isActive: variant.isActive,
           })),
         },
@@ -140,7 +142,7 @@ export async function updateProduct(
     // Check if product belongs to seller
     const existingProduct = await prisma.product.findUnique({
       where: { id },
-      include: { seller: true },
+      include: { seller: true, policy: true },
     });
 
     if (!existingProduct) {
@@ -150,7 +152,10 @@ export async function updateProduct(
       };
     }
 
-    if (existingProduct.seller.sellerId !== acting.sellerUserId) {
+    if (
+      existingProduct.sellerId !== acting.sellerUserId &&
+      existingProduct.seller.sellerId !== acting.sellerUserId
+    ) {
       return {
         success: false,
         error: "You don't have permission to edit this product",
@@ -170,6 +175,16 @@ export async function updateProduct(
         };
       }
     }
+
+    const policyData = {
+      returnAllowed: validated.policy.returnAllowed,
+      returnWindowDays,
+      replacementAllowed: validated.policy.replacementAllowed,
+      replacementWindowDays: validated.policy.replacementWindowDays || 0,
+      warrantyAvailable: validated.policy.warrantyAvailable,
+      warrantyMonths: validated.policy.warrantyMonths || 0,
+      policyDescription: validated.policy.policyDescription,
+    };
 
     // Update product (transaction to handle relations)
     const product = await prisma.$transaction(async (tx) => {
@@ -193,16 +208,17 @@ export async function updateProduct(
           certificateNumber: validated.certificateNumber || null,
           attributes: validated.attributes ?? {},
           approvalStatus: needsApproval ? "PENDING_APPROVAL" : "APPROVED",
-          status: needsApproval ? existingProduct.status : "ACTIVE",
+          status: needsApproval
+            ? existingProduct.status === "ARCHIVED"
+              ? "DRAFT"
+              : existingProduct.status === "ACTIVE"
+                ? "DRAFT"
+                : existingProduct.status
+            : "ACTIVE",
           policy: {
-            update: {
-              returnAllowed: validated.policy.returnAllowed,
-              returnWindowDays,
-              replacementAllowed: validated.policy.replacementAllowed,
-              replacementWindowDays: validated.policy.replacementWindowDays || 0,
-              warrantyAvailable: validated.policy.warrantyAvailable,
-              warrantyMonths: validated.policy.warrantyMonths || 0,
-              policyDescription: validated.policy.policyDescription,
+            upsert: {
+              create: policyData,
+              update: policyData,
             },
           },
         },
@@ -211,6 +227,8 @@ export async function updateProduct(
 
     revalidatePath("/seller/products");
     revalidatePath(`/seller/products/${id}`);
+    revalidatePath(`/seller/products/${id}/edit`);
+    revalidatePath(`/products/${product.slug}`);
     revalidatePath("/admin/products");
 
     return {
@@ -219,6 +237,17 @@ export async function updateProduct(
     };
   } catch (error) {
     console.error("Update product error:", error);
+    if (error && typeof error === "object" && "issues" in error) {
+      const issues = (error as { issues: Array<{ path: (string | number)[]; message: string }> })
+        .issues;
+      const first = issues?.[0];
+      return {
+        success: false,
+        error: first
+          ? `${first.path.join(".") || "form"}: ${first.message}`
+          : "Validation failed",
+      };
+    }
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to update product",
@@ -287,6 +316,8 @@ type DraftProductInput = {
   basePrice?: number;
   compareAtPrice?: number;
   tax?: number;
+  hsn?: string;
+  certificateNumber?: string;
   attributes?: Record<string, string>;
 };
 
@@ -378,9 +409,12 @@ export async function saveProductDraft(
       description,
       thumbnail: isPersistableImageUrl(data.thumbnail)
         ? data.thumbnail
-        : images[0]?.url,      basePrice: Number(data.basePrice) || variantPayload[0].price || 0,
+        : images[0]?.url,
+      basePrice: Number(data.basePrice) || variantPayload[0].price || 0,
       compareAtPrice: data.compareAtPrice || undefined,
       tax: Number(data.tax) || 0,
+      hsn: data.hsn?.trim() || null,
+      certificateNumber: data.certificateNumber?.trim() || null,
       attributes: data.attributes ?? {},
       status: "DRAFT" as const,
       approvalStatus: "DRAFT" as const,
@@ -458,6 +492,73 @@ export async function saveProductDraft(
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to save draft",
+    };
+  }
+}
+
+/**
+ * Seller deletes their own product.
+ * - No orders → permanent delete
+ * - Has orders → archive (keeps order history, hides from store + seller list)
+ */
+export async function deleteSellerProduct(
+  productId: string,
+): Promise<ActionResult<{ mode: "deleted" | "archived" }>> {
+  try {
+    const acting = await getActingSeller();
+    if (!acting) {
+      return { success: false, error: "Seller profile not found" };
+    }
+
+    const product = await prisma.product.findFirst({
+      where: {
+        id: productId,
+        sellerId: acting.sellerUserId,
+      },
+      select: {
+        id: true,
+        slug: true,
+        _count: { select: { orderItems: true } },
+      },
+    });
+
+    if (!product) {
+      return { success: false, error: "Product not found" };
+    }
+
+    if (product._count.orderItems > 0) {
+      await prisma.product.update({
+        where: { id: product.id },
+        data: {
+          status: "ARCHIVED",
+          approvalStatus: "SUSPENDED",
+        },
+      });
+    } else {
+      // Clear cart/wishlist refs via cascade; orderItems are 0 so delete is safe
+      await prisma.product.delete({
+        where: { id: product.id },
+      });
+    }
+
+    revalidatePath("/seller/products");
+    revalidatePath(`/seller/products/${product.id}`);
+    revalidatePath(`/products/${product.slug}`);
+    revalidatePath("/products");
+    revalidatePath("/seller/inventory");
+
+    return {
+      success: true,
+      data: {
+        mode: product._count.orderItems > 0 ? "archived" : "deleted",
+      },
+    };
+  } catch (error) {
+    console.error("Delete seller product error:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to delete product",
     };
   }
 }

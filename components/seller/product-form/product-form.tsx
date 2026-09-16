@@ -124,6 +124,15 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         hsn: "",
         certificateNumber: "",
         attributes: {
+          metal: "",
+          karatage: "",
+          purity: "",
+          colour: "",
+          materialColour: "",
+          weight: "",
+          grossWeight: "",
+          stone: "",
+          finish: "",
           makingChargePercent: "",
           metalRatePerGram: "",
         },
@@ -312,6 +321,17 @@ export function ProductForm({ categories, product }: ProductFormProps) {
     }
     if (!values.thumbnail && values.images?.[0]?.url) {
       setValue("thumbnail", values.images[0].url, { shouldValidate: false });
+    }
+    // Ensure slug stays in sync with name before submit
+    if (values.name && !values.slug) {
+      setValue(
+        "slug",
+        values.name
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, ""),
+        { shouldValidate: false },
+      );
     }
 
     await handleSubmit(onSubmit, onInvalid)();

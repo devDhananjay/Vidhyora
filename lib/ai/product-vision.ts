@@ -11,9 +11,22 @@ function getProvider(): "openai" | "gemini" {
   const forced = process.env.AI_PROVIDER?.trim().toLowerCase();
   if (forced === "openai" || forced === "gemini") return forced;
   if (process.env.OPENAI_API_KEY?.trim()) return "openai";
-  if (process.env.GEMINI_API_KEY?.trim()) return "gemini";
+  if (
+    process.env.GEMINI_BLOG_API_KEY?.trim() ||
+    process.env.GEMINI_API_KEY?.trim()
+  )
+    return "gemini";
   throw new Error(
-    "AI is not configured. Set OPENAI_API_KEY or GEMINI_API_KEY on the server.",
+    "AI is not configured. Set GEMINI_BLOG_API_KEY / GEMINI_API_KEY or OPENAI_API_KEY on the server.",
+  );
+}
+
+/** Prefer ContentVerse create-blog key when present. */
+function getGeminiApiKey(): string {
+  return (
+    process.env.GEMINI_BLOG_API_KEY?.trim() ||
+    process.env.GEMINI_API_KEY?.trim() ||
+    ""
   );
 }
 
@@ -51,6 +64,13 @@ Rules:
 - Pick categoryId ONLY from this list (use the exact id). If unsure, pick the closest and set confidence lower, and add a question.
 Categories:
 ${categoryLines || "(none provided)"}
+
+For jewellery attributes object, also try to fill when visible in the photo:
+- metal: Gold | Silver | Platinum | Diamond | Other
+- karatage / purity: e.g. 22K, 18K
+- colour / materialColour: Yellow | White | Rose
+- weight / grossWeight: e.g. 4.25g
+- stone, finish when obvious
 
 Always respond with ONE JSON object only (no markdown), matching this shape:
 {
@@ -185,7 +205,7 @@ function parseDraft(
 async function callOpenAI(params: {
   system: string;
   userText: string;
-  image?: ImagePayload;
+  images?: ImagePayload[];
   history?: AiChatMessage[];
 }): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY!.trim();
@@ -202,17 +222,18 @@ async function callOpenAI(params: {
     messages.push({ role: msg.role, content: msg.content });
   }
 
-  if (params.image) {
+  const images = params.images?.slice(0, 3) || [];
+  if (images.length > 0) {
     messages.push({
       role: "user",
       content: [
         { type: "text", text: params.userText },
-        {
+        ...images.map((image) => ({
           type: "image_url",
           image_url: {
-            url: `data:${params.image.mimeType};base64,${params.image.base64}`,
+            url: `data:${image.mimeType};base64,${image.base64}`,
           },
-        },
+        })),
       ],
     });
   } else {
@@ -288,10 +309,13 @@ function normalizeGeminiHistory(
 async function callGemini(params: {
   system: string;
   userText: string;
-  image?: ImagePayload;
+  images?: ImagePayload[];
   history?: AiChatMessage[];
 }): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY!.trim();
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) {
+    throw new Error("GEMINI_BLOG_API_KEY / GEMINI_API_KEY is not configured");
+  }
   const models = geminiTextModels();
   let lastError = "AI provider request failed. Please try again.";
 
@@ -299,12 +323,11 @@ async function callGemini(params: {
   const userParts: Array<Record<string, unknown>> = [
     { text: params.userText },
   ];
-  if (params.image) {
-    // ContentVerse / Gemini REST: camelCase inlineData
+  for (const image of (params.images || []).slice(0, 3)) {
     userParts.push({
       inlineData: {
-        mimeType: params.image.mimeType,
-        data: params.image.base64,
+        mimeType: image.mimeType,
+        data: image.base64,
       },
     });
   }
@@ -373,7 +396,7 @@ async function callGemini(params: {
 async function callModel(params: {
   system: string;
   userText: string;
-  image?: ImagePayload;
+  images?: ImagePayload[];
   history?: AiChatMessage[];
 }): Promise<string> {
   const provider = getProvider();
@@ -382,26 +405,39 @@ async function callModel(params: {
 }
 
 export async function analyzeJewelleryProduct(params: {
-  image: ImagePayload;
+  image?: ImagePayload;
+  images?: ImagePayload[];
   categories: CategoryOption[];
 }): Promise<{ draft: AiProductDraft; assistantMessage: string }> {
+  const images = (params.images?.length ? params.images : params.image ? [params.image] : []).slice(
+    0,
+    3,
+  );
+  if (images.length === 0) {
+    throw new Error("At least one product image is required");
+  }
   const system = buildSystemPrompt(params.categories);
-  const userText = `Analyze this jewellery product photo and create a complete listing draft JSON. Prefer matching the closest category from the list. Ask for selling price and stock if you cannot infer them.`;
+  const userText = `Analyze ${images.length > 1 ? `these ${images.length} jewellery product photos` : "this jewellery product photo"} and create a complete listing draft JSON. Prefer matching the closest category from the list. Ask for selling price and stock if you cannot infer them.`;
   const text = await callModel({
     system,
     userText,
-    image: params.image,
+    images,
   });
   return parseDraft(extractJsonObject(text), params.categories);
 }
 
 export async function refineJewelleryProductDraft(params: {
   image?: ImagePayload;
+  images?: ImagePayload[];
   draft: AiProductDraft;
   categories: CategoryOption[];
   history: AiChatMessage[];
   userMessage: string;
 }): Promise<{ draft: AiProductDraft; assistantMessage: string }> {
+  const images = (params.images?.length ? params.images : params.image ? [params.image] : []).slice(
+    0,
+    3,
+  );
   const system = buildSystemPrompt(params.categories);
   const userText = `Current draft JSON:
 ${JSON.stringify(params.draft)}
@@ -414,7 +450,7 @@ Update the draft JSON based on the seller's message. Keep unchanged fields unles
   const text = await callModel({
     system,
     userText,
-    image: params.image,
+    images: images.length ? images : undefined,
     history: params.history,
   });
   return parseDraft(extractJsonObject(text), params.categories);

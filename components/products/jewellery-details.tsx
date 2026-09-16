@@ -90,14 +90,18 @@ export function JewelleryDetails({
   const attrs = useMemo(() => {
     const source = attributes ?? {};
     const metal = asString(source.metal);
-    const purity = asString(source.purity);
+    const purity = asString(source.purity) || asString(source.karatage);
     const stone = asString(source.stone);
-    const weight = asString(source.weight);
+    const weight =
+      asString(source.weight) || asString(source.grossWeight);
     const length = asString(source.length);
     const finish = asString(source.finish);
     const style = asString(source.style);
     const quantity = asString(source.quantity);
     const diameter = asString(source.diameter);
+    const explicitColour =
+      asString(source.colour) || asString(source.materialColour);
+    const explicitKaratage = asString(source.karatage);
 
     return {
       metal,
@@ -109,8 +113,8 @@ export function JewelleryDetails({
       style,
       quantity,
       diameter,
-      karatage: detectKaratage(metal, purity),
-      colour: detectColour(metal),
+      karatage: explicitKaratage || detectKaratage(metal, purity),
+      colour: explicitColour || detectColour(metal),
       metalLabel: detectMetalLabel(metal),
       weightGrams: parseWeightGrams(weight),
     };

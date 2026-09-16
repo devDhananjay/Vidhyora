@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Image from "next/image";
-import { Loader2, Send, Sparkles, Upload } from "lucide-react";
+import { Loader2, Send, Sparkles, Upload, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,8 @@ import {
 } from "@/actions/seller/ai-product-assist";
 import type { AiChatMessage, AiProductDraft } from "@/lib/validations/ai-product-draft";
 import type { CreateProductInput } from "@/lib/validations/product";
+
+const MAX_AI_IMAGES = 3;
 
 type CategoryOption = {
   id: string;
@@ -43,7 +45,7 @@ type AiProductPanelProps = {
 
 function draftToFormValues(
   draft: AiProductDraft,
-  imageUrl: string,
+  imageUrls: string[],
 ): Partial<CreateProductInput> {
   const name = draft.name.trim();
   const price =
@@ -75,6 +77,12 @@ function draftToFormValues(
     variantAttributes.name = draft.variantLabel;
   }
 
+  const images = imageUrls.slice(0, MAX_AI_IMAGES).map((url, index) => ({
+    url,
+    altText: draft.imageAltText || name,
+    sortOrder: index,
+  }));
+
   return {
     name,
     slug: slugify(name),
@@ -82,14 +90,8 @@ function draftToFormValues(
     categoryId: draft.categoryId || "",
     shortDescription: draft.shortDescription.trim(),
     description: draft.description.trim(),
-    thumbnail: imageUrl,
-    images: [
-      {
-        url: imageUrl,
-        altText: draft.imageAltText || name,
-        sortOrder: 0,
-      },
-    ],
+    thumbnail: images[0]?.url || "",
+    images,
     variants: [
       {
         sku,
@@ -118,7 +120,7 @@ export function AiProductPanel({
   onApply,
 }: AiProductPanelProps) {
   const [configured, setConfigured] = useState<boolean | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [draft, setDraft] = useState<AiProductDraft | null>(null);
   const [messages, setMessages] = useState<ChatBubble[]>([]);
   const [input, setInput] = useState("");
@@ -151,7 +153,7 @@ export function AiProductPanel({
   }, [messages, draft, isPending]);
 
   const resetPanel = () => {
-    setImageUrl(null);
+    setImageUrls([]);
     setDraft(null);
     setMessages([]);
     setInput("");
@@ -175,18 +177,19 @@ export function AiProductPanel({
     ]);
   };
 
-  const runAnalyze = (url: string) => {
+  const runAnalyze = (urls: string[]) => {
+    if (urls.length === 0) return;
     setError(null);
     startTransition(async () => {
       const result = await analyzeProductImageForListing({
-        imageUrl: url,
+        imageUrls: urls,
         categories: categoryPayload,
       });
       if (!result.success) {
         setError(result.error);
         pushAssistant(
           result.error ||
-            "I couldn't analyze that image. Try another photo or fill the form manually.",
+            "I couldn't analyze those images. Try other photos or fill the form manually.",
         );
         return;
       }
@@ -200,27 +203,44 @@ export function AiProductPanel({
     });
   };
 
-  const handleFile = async (file: File | null) => {
-    if (!file) return;
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
     setError(null);
+
+    const remaining = MAX_AI_IMAGES - imageUrls.length;
+    if (remaining <= 0) {
+      setError(`You can upload up to ${MAX_AI_IMAGES} images`);
+      return;
+    }
+
+    const selected = Array.from(files).slice(0, remaining);
     setIsUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const uploaded = await uploadProductImage(formData);
-      if (!uploaded.success) {
-        throw new Error(uploaded.error || "Upload failed");
+      const uploaded: string[] = [];
+      for (const file of selected) {
+        const formData = new FormData();
+        formData.append("file", file);
+        const result = await uploadProductImage(formData);
+        if (!result.success) {
+          throw new Error(result.error || "Upload failed");
+        }
+        uploaded.push(result.data.url);
       }
-      setImageUrl(uploaded.data.url);
+
+      const nextUrls = [...imageUrls, ...uploaded].slice(0, MAX_AI_IMAGES);
+      setImageUrls(nextUrls);
       setDraft(null);
       setMessages([
         {
           id: `s-${Date.now()}`,
           role: "system",
-          content: "Photo uploaded. Analyzing jewellery details…",
+          content:
+            nextUrls.length > 1
+              ? `${nextUrls.length} photos uploaded. Analyzing jewellery details…`
+              : "Photo uploaded. Analyzing jewellery details…",
         },
       ]);
-      runAnalyze(uploaded.data.url);
+      runAnalyze(nextUrls);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
@@ -229,9 +249,27 @@ export function AiProductPanel({
     }
   };
 
+  const removeImage = (url: string) => {
+    const next = imageUrls.filter((u) => u !== url);
+    setImageUrls(next);
+    setDraft(null);
+    setMessages([]);
+    setError(null);
+    if (next.length > 0) {
+      setMessages([
+        {
+          id: `s-${Date.now()}`,
+          role: "system",
+          content: "Photo updated. Re-analyzing…",
+        },
+      ]);
+      runAnalyze(next);
+    }
+  };
+
   const handleSend = () => {
     const text = input.trim();
-    if (!text || !draft || !imageUrl || isPending) return;
+    if (!text || !draft || imageUrls.length === 0 || isPending) return;
 
     setInput("");
     setError(null);
@@ -249,7 +287,7 @@ export function AiProductPanel({
         }));
 
       const result = await refineProductListingDraft({
-        imageUrl,
+        imageUrls,
         draft,
         messages: history,
         userMessage: text,
@@ -268,12 +306,13 @@ export function AiProductPanel({
   };
 
   const handleApply = () => {
-    if (!draft || !imageUrl) return;
-    onApply(draftToFormValues(draft, imageUrl));
+    if (!draft || imageUrls.length === 0) return;
+    onApply(draftToFormValues(draft, imageUrls));
     handleOpenChange(false);
   };
 
   const busy = isUploading || isPending;
+  const canAddMore = imageUrls.length < MAX_AI_IMAGES;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -290,7 +329,7 @@ export function AiProductPanel({
             Add product with AI
           </DialogTitle>
           <DialogDescription>
-            Upload a jewellery photo. I&apos;ll draft name, category, and
+            Upload up to 3 jewellery photos. I&apos;ll draft name, category, and
             descriptions — then we can refine pricing in chat.
           </DialogDescription>
         </DialogHeader>
@@ -305,7 +344,7 @@ export function AiProductPanel({
           )}
 
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4 sm:px-6">
-            {!imageUrl ? (
+            {imageUrls.length === 0 ? (
               <button
                 type="button"
                 disabled={busy || configured === false}
@@ -319,44 +358,67 @@ export function AiProductPanel({
                 )}
                 <div>
                   <p className="font-medium text-neutral-900">
-                    {isUploading ? "Uploading…" : "Upload product photo"}
+                    {isUploading ? "Uploading…" : "Upload product photos"}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    JPG, PNG or WebP · up to 5MB
+                    Up to {MAX_AI_IMAGES} images · JPG, PNG or WebP · 5MB each
                   </p>
                 </div>
               </button>
             ) : (
-              <div className="overflow-hidden rounded-2xl border border-neutral-100 bg-neutral-50">
-                <div className="relative aspect-[4/3] w-full">
-                  <Image
-                    src={imageUrl}
-                    alt="Product for AI"
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 640px) 100vw, 512px"
-                    unoptimized
-                  />
+              <div className="space-y-3">
+                <div className="grid grid-cols-3 gap-2">
+                  {imageUrls.map((url, index) => (
+                    <div
+                      key={url}
+                      className="group relative aspect-square overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50"
+                    >
+                      <Image
+                        src={url}
+                        alt={`Product ${index + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="160px"
+                        unoptimized
+                      />
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => removeImage(url)}
+                        className="absolute right-1.5 top-1.5 rounded-full bg-black/60 p-1 text-white opacity-90 transition hover:bg-black/80 disabled:opacity-40"
+                        aria-label="Remove image"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                      {index === 0 && (
+                        <span className="absolute bottom-1.5 left-1.5 rounded bg-black/55 px-1.5 py-0.5 text-[10px] text-white">
+                          Main
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                  {canAddMore && (
+                    <button
+                      type="button"
+                      disabled={busy || configured === false}
+                      onClick={() => fileRef.current?.click()}
+                      className="flex aspect-square flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-neutral-300 bg-[#faf8f6] text-neutral-600 transition hover:border-[#8b2e2e]/40 hover:bg-[#f6ebe8] disabled:opacity-60"
+                    >
+                      {isUploading ? (
+                        <Loader2 className="size-5 animate-spin text-[#8b2e2e]" />
+                      ) : (
+                        <Upload className="size-5 text-[#8b2e2e]" />
+                      )}
+                      <span className="text-[11px] font-medium">
+                        Add ({imageUrls.length}/{MAX_AI_IMAGES})
+                      </span>
+                    </button>
+                  )}
                 </div>
-                <div className="flex items-center justify-between gap-2 px-3 py-2">
-                  <p className="truncate text-xs text-muted-foreground">
-                    Photo ready for AI
-                  </p>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    disabled={busy}
-                    onClick={() => {
-                      setImageUrl(null);
-                      setDraft(null);
-                      setMessages([]);
-                      setError(null);
-                    }}
-                  >
-                    Change
-                  </Button>
-                </div>
+                <p className="text-xs text-muted-foreground">
+                  {imageUrls.length}/{MAX_AI_IMAGES} photos · first image is the
+                  main thumbnail
+                </p>
               </div>
             )}
 
@@ -364,8 +426,9 @@ export function AiProductPanel({
               ref={fileRef}
               type="file"
               accept="image/jpeg,image/jpg,image/png,image/webp"
+              multiple
               className="hidden"
-              onChange={(e) => handleFile(e.target.files?.[0] || null)}
+              onChange={(e) => handleFiles(e.target.files)}
             />
 
             {draft && (
@@ -427,7 +490,7 @@ export function AiProductPanel({
                 placeholder={
                   draft
                     ? "e.g. Price 45000, stock 5, category Earrings…"
-                    : "Upload a photo to start chatting"
+                    : "Upload photos to start chatting"
                 }
                 disabled={!draft || busy}
                 rows={2}
@@ -463,7 +526,7 @@ export function AiProductPanel({
               <Button
                 type="button"
                 className="bg-[#8b2e2e] hover:bg-[#742626] sm:flex-1"
-                disabled={!draft || !imageUrl || busy}
+                disabled={!draft || imageUrls.length === 0 || busy}
                 onClick={handleApply}
               >
                 Apply to form

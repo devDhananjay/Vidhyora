@@ -196,6 +196,15 @@ export function normalizeProductFormValues(product: any): CreateProductInput {
     hsn: product.hsn || "",
     certificateNumber: product.certificateNumber || "",
     attributes: {
+      metal: "",
+      karatage: "",
+      purity: "",
+      colour: "",
+      materialColour: "",
+      weight: "",
+      grossWeight: "",
+      stone: "",
+      finish: "",
       makingChargePercent: "",
       metalRatePerGram: "",
       ...(product.attributes &&

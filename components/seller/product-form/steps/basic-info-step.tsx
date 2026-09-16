@@ -1,3 +1,4 @@
+import type { ChangeEvent } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -38,16 +39,16 @@ export function BasicInfoStep({
     isRequired: boolean;
   }>;
 
-  // Auto-generate slug from name
-  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Auto-generate slug from name (keep RHF register onChange)
+  const nameRegister = register("name");
+  const handleNameChange = (e: ChangeEvent<HTMLInputElement>) => {
+    nameRegister.onChange(e);
     const name = e.target.value;
-    setValue("name", name);
-    
     const slug = name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
-    setValue("slug", slug);
+    setValue("slug", slug, { shouldDirty: true });
   };
 
   const setAttributeValue = (slug: string, value: string) => {
@@ -61,7 +62,7 @@ export function BasicInfoStep({
         <Label htmlFor="name">Product Name *</Label>
         <Input
           id="name"
-          {...register("name")}
+          {...nameRegister}
           onChange={handleNameChange}
           placeholder="Apple iPhone 15 Pro Max"
           className="mt-2"
@@ -193,6 +194,117 @@ export function BasicInfoStep({
           </div>
         </div>
       ) : null}
+
+      {/* Metal details — shown on storefront Jewellery Details */}
+      <div className="space-y-4 rounded-2xl border border-neutral-100 bg-[#faf8f6] p-4">
+        <div>
+          <p className="text-sm font-medium text-neutral-900">Metal details</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            These show under Metal Details on the product page (Karatage,
+            colour, weight, metal).
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="attr-metal">Metal</Label>
+            <NativeSelect
+              id="attr-metal"
+              value={productAttributes.metal || ""}
+              onChange={(e) => setAttributeValue("metal", e.target.value)}
+            >
+              <option value="">Select metal…</option>
+              <option value="Gold">Gold</option>
+              <option value="Silver">Silver</option>
+              <option value="Platinum">Platinum</option>
+              <option value="Diamond">Diamond</option>
+              <option value="Other">Other</option>
+            </NativeSelect>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="attr-karatage">Karatage</Label>
+            <NativeSelect
+              id="attr-karatage"
+              value={productAttributes.karatage || productAttributes.purity || ""}
+              onChange={(e) => {
+                setAttributeValue("karatage", e.target.value);
+                setAttributeValue("purity", e.target.value);
+              }}
+            >
+              <option value="">Select karatage…</option>
+              <option value="24K">24K</option>
+              <option value="22K">22K</option>
+              <option value="18K">18K</option>
+              <option value="14K">14K</option>
+              <option value="9K">9K</option>
+            </NativeSelect>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="attr-colour">Material colour</Label>
+            <NativeSelect
+              id="attr-colour"
+              value={
+                productAttributes.colour ||
+                productAttributes.materialColour ||
+                ""
+              }
+              onChange={(e) => {
+                setAttributeValue("colour", e.target.value);
+                setAttributeValue("materialColour", e.target.value);
+              }}
+            >
+              <option value="">Select colour…</option>
+              <option value="Yellow">Yellow</option>
+              <option value="White">White</option>
+              <option value="Rose">Rose</option>
+              <option value="Two Tone">Two Tone</option>
+              <option value="Tri Color">Tri Color</option>
+            </NativeSelect>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="attr-weight">Gross weight</Label>
+            <Input
+              id="attr-weight"
+              className="rounded-full"
+              placeholder="e.g. 4.25g"
+              value={
+                productAttributes.weight || productAttributes.grossWeight || ""
+              }
+              onChange={(e) => {
+                setAttributeValue("weight", e.target.value);
+                setAttributeValue("grossWeight", e.target.value);
+              }}
+            />
+            <p className="text-xs text-muted-foreground">
+              Include unit, e.g. 4.25g — used for price breakup too
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="attr-stone">Stone (optional)</Label>
+            <Input
+              id="attr-stone"
+              className="rounded-full"
+              placeholder="e.g. Diamond, CZ, None"
+              value={productAttributes.stone || ""}
+              onChange={(e) => setAttributeValue("stone", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="attr-finish">Finish (optional)</Label>
+            <Input
+              id="attr-finish"
+              className="rounded-full"
+              placeholder="e.g. Polished, Matte"
+              value={productAttributes.finish || ""}
+              onChange={(e) => setAttributeValue("finish", e.target.value)}
+            />
+          </div>
+        </div>
+      </div>
 
       {/* Short Description */}
       <div>

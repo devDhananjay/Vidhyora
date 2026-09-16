@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { getProductById } from "@/actions/seller/get-products";
+import { SellerProductDeleteButton } from "@/components/seller/seller-product-delete-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,12 @@ export default async function ProductDetailPage({
           <Link href={`/products/${product.slug}`}>
             <Button variant="outline">View on Store</Button>
           </Link>
+          <SellerProductDeleteButton
+            productId={product.id}
+            productName={product.name}
+            redirectToList
+            size="default"
+          />
         </div>
       </div>
 

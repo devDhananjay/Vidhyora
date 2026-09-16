@@ -21,6 +21,17 @@ export type AiAssistResult = {
   configured: boolean;
 };
 
+function resolveImageUrls(input: {
+  imageUrl?: string;
+  imageUrls?: string[];
+}): string[] {
+  const urls = [
+    ...(input.imageUrls || []),
+    ...(input.imageUrl ? [input.imageUrl] : []),
+  ].filter(Boolean);
+  return [...new Set(urls)].slice(0, 3);
+}
+
 export async function getAiProductAssistStatus(): Promise<
   ActionResult<{ configured: boolean }>
 > {
@@ -36,7 +47,7 @@ export async function analyzeProductImageForListing(
 
     if (!isAiConfigured()) {
       return actionError(
-        "AI is not configured on the server. Ask admin to set OPENAI_API_KEY or GEMINI_API_KEY.",
+        "AI is not configured on the server. Ask admin to set GEMINI_BLOG_API_KEY or GEMINI_API_KEY.",
       );
     }
 
@@ -47,13 +58,17 @@ export async function analyzeProductImageForListing(
       return actionError("Invalid request for AI analysis");
     }
 
-    const image = await loadProductImageForAi(
-      parsed.data.imageUrl,
-      acting.sellerUserId,
+    const urls = resolveImageUrls(parsed.data);
+    if (urls.length === 0) {
+      return actionError("Upload at least one product image");
+    }
+
+    const images = await Promise.all(
+      urls.map((url) => loadProductImageForAi(url, acting.sellerUserId)),
     );
 
     const result = await analyzeJewelleryProduct({
-      image,
+      images,
       categories: parsed.data.categories,
     });
 
@@ -79,7 +94,7 @@ export async function refineProductListingDraft(
 
     if (!isAiConfigured()) {
       return actionError(
-        "AI is not configured on the server. Ask admin to set OPENAI_API_KEY or GEMINI_API_KEY.",
+        "AI is not configured on the server. Ask admin to set GEMINI_BLOG_API_KEY or GEMINI_API_KEY.",
       );
     }
 
@@ -90,20 +105,18 @@ export async function refineProductListingDraft(
       return actionError("Invalid chat request");
     }
 
-    let image;
-    if (parsed.data.imageUrl) {
+    const urls = resolveImageUrls(parsed.data);
+    const images = [];
+    for (const url of urls) {
       try {
-        image = await loadProductImageForAi(
-          parsed.data.imageUrl,
-          acting.sellerUserId,
-        );
+        images.push(await loadProductImageForAi(url, acting.sellerUserId));
       } catch {
-        image = undefined;
+        /* skip unreadable */
       }
     }
 
     const result = await refineJewelleryProductDraft({
-      image,
+      images: images.length ? images : undefined,
       draft: parsed.data.draft,
       categories: parsed.data.categories,
       history: parsed.data.messages,

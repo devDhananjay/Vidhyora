@@ -32,7 +32,8 @@ export const aiChatMessageSchema = z.object({
 export type AiChatMessage = z.infer<typeof aiChatMessageSchema>;
 
 export const analyzeProductImageInputSchema = z.object({
-  imageUrl: z.string().min(1),
+  imageUrl: z.string().min(1).optional(),
+  imageUrls: z.array(z.string().min(1)).min(1).max(3).optional(),
   categories: z
     .array(
       z.object({
@@ -42,10 +43,14 @@ export const analyzeProductImageInputSchema = z.object({
       }),
     )
     .max(80),
-});
+}).refine(
+  (v) => Boolean(v.imageUrl) || (v.imageUrls && v.imageUrls.length > 0),
+  { message: "At least one image is required" },
+);
 
 export const refineProductDraftInputSchema = z.object({
   imageUrl: z.string().min(1).optional(),
+  imageUrls: z.array(z.string().min(1)).max(3).optional(),
   draft: aiProductDraftSchema,
   messages: z.array(aiChatMessageSchema).max(24),
   userMessage: z.string().min(1).max(2000),

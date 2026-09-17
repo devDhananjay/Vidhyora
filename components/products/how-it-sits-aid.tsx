@@ -5,7 +5,6 @@ import Image from "next/image";
 import { Hand, Ruler, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SizeGuideDialog } from "@/components/products/size-guide-dialog";
-import { LiveTryOnButton } from "@/components/products/live-try-on";
 
 type OnModelShot = {
   id: string;
@@ -100,10 +99,6 @@ export function HowItSitsAid({
   const [sizeOpen, setSizeOpen] = useState(false);
   const [activeShot, setActiveShot] = useState(0);
   const shot = onModelImages[activeShot] || onModelImages[0];
-  const overlayUrl =
-    tryOnImageUrl ||
-    onModelImages[0]?.url ||
-    null;
 
   return (
     <section
@@ -128,20 +123,11 @@ export function HowItSitsAid({
                 <Hand className="size-6" strokeWidth={1.5} />
               </span>
               <p className="font-serif text-xl text-neutral-800">
-                Try-on preview
+                On-model preview
               </p>
               <p className="max-w-xs text-sm text-neutral-500">
                 On-model photos will appear here when the seller adds them.
-                Or try it on live with your camera.
               </p>
-              {overlayUrl ? (
-                <LiveTryOnButton
-                  productName={productName}
-                  imageUrl={overlayUrl}
-                  jewelleryKind={kind}
-                  className="mt-1"
-                />
-              ) : null}
             </div>
           )}
           {onModelImages.length > 1 ? (
@@ -190,14 +176,6 @@ export function HowItSitsAid({
               <Ruler className="size-4" strokeWidth={1.7} />
               Open size guide
             </button>
-            {overlayUrl ? (
-              <LiveTryOnButton
-                productName={productName}
-                imageUrl={overlayUrl}
-                jewelleryKind={kind}
-                className="h-11"
-              />
-            ) : null}
           </div>
         </div>
       </div>

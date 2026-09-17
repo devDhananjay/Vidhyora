@@ -14,7 +14,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Film,
-  Hand,
   Minus,
   Plus,
   Sparkles,
@@ -23,7 +22,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isVideoUrl } from "@/lib/media/is-video-url";
-import { LiveTryOnDialog } from "@/components/products/live-try-on";
 
 type GalleryImage = {
   id: string;
@@ -135,13 +133,11 @@ export function ProductGallery({
   images,
   videoUrl,
   discount = 0,
-  jewelleryKind = "jewellery",
 }: ProductGalleryProps) {
   const gallery = buildGallery({ name, thumbnail, images, videoUrl });
   const [active, setActive] = useState(0);
   const [filter, setFilter] = useState<"ALL" | "ON_MODEL" | "DETAIL">("ALL");
   const [lightbox, setLightbox] = useState(false);
-  const [tryOnOpen, setTryOnOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -175,22 +171,6 @@ export function ProductGallery({
   const imageItems = visibleGallery.filter(
     (item) => item.kind === "image" && !isVideoUrl(item.url),
   );
-  // Prefer detail/close-up over studio product; never use on-model for AR
-  // (on-model shots include another hand and break cutout).
-  const tryOnImage =
-    gallery.find((item) => item.kind === "image" && item.role === "DETAIL")
-      ?.url ||
-    gallery.find((item) => item.kind === "image" && item.role === "PRODUCT")
-      ?.url ||
-    gallery.find(
-      (item) =>
-        item.kind === "image" &&
-        item.role !== "ON_MODEL" &&
-        !isVideoUrl(item.url),
-    )?.url ||
-    gallery.find((item) => item.kind === "image" && !isVideoUrl(item.url))
-      ?.url ||
-    thumbnail;
 
   useEffect(() => {
     setMounted(true);
@@ -534,16 +514,6 @@ export function ProductGallery({
             Detail
           </button>
         ) : null}
-        {tryOnImage ? (
-          <button
-            type="button"
-            onClick={() => setTryOnOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-full border border-[#8b2e2e]/30 bg-[#faf4f0] px-3 py-1.5 text-xs font-medium text-[#8b2e2e] transition hover:bg-[#f3ebe4]"
-          >
-            <Hand className="size-3.5" strokeWidth={1.7} />
-            Try on live
-          </button>
-        ) : null}
       </div>
 
       <div className="group relative aspect-square overflow-hidden rounded-[28px] border border-[#ead9c4]/70 bg-[#f4efea] shadow-[0_20px_50px_rgba(43,26,22,0.08)]">
@@ -551,9 +521,6 @@ export function ProductGallery({
 
         {filterEmpty ? (
           <div className="relative z-[1] flex size-full flex-col items-center justify-center gap-3 px-6 text-center">
-            <span className="flex size-14 items-center justify-center rounded-full bg-white text-[#8b2e2e] shadow-sm">
-              <Hand className="size-6" strokeWidth={1.5} />
-            </span>
             <p className="font-serif text-xl text-neutral-800">
               {filter === "ON_MODEL"
                 ? "No on-model photo yet"
@@ -561,19 +528,9 @@ export function ProductGallery({
             </p>
             <p className="max-w-xs text-sm text-neutral-500">
               {filter === "ON_MODEL"
-                ? "Seller hasn’t uploaded a worn shot. Try it on yourself with your camera."
+                ? "Seller hasn't uploaded a worn shot yet."
                 : "Close-up detail photos will appear here when added."}
             </p>
-            {filter === "ON_MODEL" && tryOnImage ? (
-              <button
-                type="button"
-                onClick={() => setTryOnOpen(true)}
-                className="mt-1 inline-flex h-10 items-center gap-2 rounded-full bg-[#8b2e2e] px-5 text-sm font-medium text-white"
-              >
-                <Hand className="size-4" />
-                Try on with camera
-              </button>
-            ) : null}
           </div>
         ) : current ? (
           isVideo ? (
@@ -717,16 +674,6 @@ export function ProductGallery({
       ) : null}
 
       {lightboxNode}
-
-      {tryOnImage ? (
-        <LiveTryOnDialog
-          open={tryOnOpen}
-          onOpenChange={setTryOnOpen}
-          productName={name}
-          imageUrl={tryOnImage}
-          jewelleryKind={jewelleryKind}
-        />
-      ) : null}
     </div>
   );
 }

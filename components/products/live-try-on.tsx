@@ -20,6 +20,34 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
+import { Component, type ReactNode } from "react";
+
+// Error Boundary for 3D models
+class ErrorBoundary extends Component<
+  { children: ReactNode; onError: () => void },
+  { hasError: boolean }
+> {
+  constructor(props: { children: ReactNode; onError: () => void }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    console.error("3D Model Error:", error);
+    this.props.onError();
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return null; // Render nothing, fallback to 2D
+    }
+    return this.props.children;
+  }
+}
 
 // Lazy load 3D components for performance
 const ThreeARCanvas = dynamic(
@@ -703,6 +731,7 @@ export function LiveTryOnDialog({
   // 3D mode state
   const [use3D, setUse3D] = useState(false);
   const [webGLSupported, setWebGLSupported] = useState(false);
+  const [model3DFailed, setModel3DFailed] = useState(false);
   const [handLandmarksFor3D, setHandLandmarksFor3D] = useState<any>(null);
   const [faceLandmarksFor3D, setFaceLandmarksFor3D] = useState<any>(null);
 
@@ -723,8 +752,8 @@ export function LiveTryOnDialog({
       const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
       const supported = !!gl;
       setWebGLSupported(supported);
-      // Enable 3D by default if WebGL is supported
-      setUse3D(supported);
+      // Disable 3D by default since models don't exist yet - user can enable manually
+      setUse3D(false);
     } catch {
       setWebGLSupported(false);
       setUse3D(false);
@@ -1166,68 +1195,76 @@ export function LiveTryOnDialog({
               onPointerCancel={onPointerUp}
             >
               {/* 3D AR Canvas when WebGL is supported and 3D mode is enabled */}
-              {use3D && webGLSupported && useArPose && stageRef.current ? (
-                <ThreeARCanvas
-                  stageWidth={stageRef.current.clientWidth}
-                  stageHeight={stageRef.current.clientHeight}
+              {use3D && webGLSupported && useArPose && stageRef.current && !model3DFailed ? (
+                <ErrorBoundary
+                  onError={() => {
+                    console.warn("3D model failed to load, falling back to 2D");
+                    setModel3DFailed(true);
+                    setUse3D(false);
+                  }}
                 >
-                  {jewelleryKind === "ring" && videoRef.current && handLandmarksFor3D && (
-                    <Ring3DModel
-                      modelPath="/models/rings/sample-ring.glb"
-                      handLandmarks={handLandmarksFor3D}
-                      videoWidth={videoRef.current.videoWidth}
-                      videoHeight={videoRef.current.videoHeight}
-                      stageWidth={stageRef.current.clientWidth}
-                      stageHeight={stageRef.current.clientHeight}
-                      mirrored={facing === "user"}
-                    />
-                  )}
-                  {jewelleryKind === "bangle" && videoRef.current && handLandmarksFor3D && (
-                    <Bangle3DModel
-                      modelPath="/models/bangles/sample-bangle.glb"
-                      handLandmarks={handLandmarksFor3D}
-                      videoWidth={videoRef.current.videoWidth}
-                      videoHeight={videoRef.current.videoHeight}
-                      stageWidth={stageRef.current.clientWidth}
-                      stageHeight={stageRef.current.clientHeight}
-                      mirrored={facing === "user"}
-                    />
-                  )}
-                  {jewelleryKind === "nose" && videoRef.current && faceLandmarksFor3D && (
-                    <NosePin3DModel
-                      modelPath="/models/nose-pins/sample-nose-pin.glb"
-                      faceLandmarks={faceLandmarksFor3D}
-                      videoWidth={videoRef.current.videoWidth}
-                      videoHeight={videoRef.current.videoHeight}
-                      stageWidth={stageRef.current.clientWidth}
-                      stageHeight={stageRef.current.clientHeight}
-                      mirrored={facing === "user"}
-                    />
-                  )}
-                  {jewelleryKind === "earring" && videoRef.current && faceLandmarksFor3D && (
-                    <Earring3DModel
-                      modelPath="/models/earrings/sample-earring.glb"
-                      faceLandmarks={faceLandmarksFor3D}
-                      videoWidth={videoRef.current.videoWidth}
-                      videoHeight={videoRef.current.videoHeight}
-                      stageWidth={stageRef.current.clientWidth}
-                      stageHeight={stageRef.current.clientHeight}
-                      mirrored={facing === "user"}
-                      side="left"
-                    />
-                  )}
-                  {jewelleryKind === "necklace" && videoRef.current && faceLandmarksFor3D && (
-                    <Necklace3DModel
-                      modelPath="/models/necklaces/sample-necklace.glb"
-                      faceLandmarks={faceLandmarksFor3D}
-                      videoWidth={videoRef.current.videoWidth}
-                      videoHeight={videoRef.current.videoHeight}
-                      stageWidth={stageRef.current.clientWidth}
-                      stageHeight={stageRef.current.clientHeight}
-                      mirrored={facing === "user"}
-                    />
-                  )}
-                </ThreeARCanvas>
+                  <ThreeARCanvas
+                    stageWidth={stageRef.current.clientWidth}
+                    stageHeight={stageRef.current.clientHeight}
+                  >
+                    {jewelleryKind === "ring" && videoRef.current && handLandmarksFor3D && (
+                      <Ring3DModel
+                        modelPath="/models/rings/sample-ring.glb"
+                        handLandmarks={handLandmarksFor3D}
+                        videoWidth={videoRef.current.videoWidth}
+                        videoHeight={videoRef.current.videoHeight}
+                        stageWidth={stageRef.current.clientWidth}
+                        stageHeight={stageRef.current.clientHeight}
+                        mirrored={facing === "user"}
+                      />
+                    )}
+                    {jewelleryKind === "bangle" && videoRef.current && handLandmarksFor3D && (
+                      <Bangle3DModel
+                        modelPath="/models/bangles/sample-bangle.glb"
+                        handLandmarks={handLandmarksFor3D}
+                        videoWidth={videoRef.current.videoWidth}
+                        videoHeight={videoRef.current.videoHeight}
+                        stageWidth={stageRef.current.clientWidth}
+                        stageHeight={stageRef.current.clientHeight}
+                        mirrored={facing === "user"}
+                      />
+                    )}
+                    {jewelleryKind === "nose" && videoRef.current && faceLandmarksFor3D && (
+                      <NosePin3DModel
+                        modelPath="/models/nose-pins/sample-nose-pin.glb"
+                        faceLandmarks={faceLandmarksFor3D}
+                        videoWidth={videoRef.current.videoWidth}
+                        videoHeight={videoRef.current.videoHeight}
+                        stageWidth={stageRef.current.clientWidth}
+                        stageHeight={stageRef.current.clientHeight}
+                        mirrored={facing === "user"}
+                      />
+                    )}
+                    {jewelleryKind === "earring" && videoRef.current && faceLandmarksFor3D && (
+                      <Earring3DModel
+                        modelPath="/models/earrings/sample-earring.glb"
+                        faceLandmarks={faceLandmarksFor3D}
+                        videoWidth={videoRef.current.videoWidth}
+                        videoHeight={videoRef.current.videoHeight}
+                        stageWidth={stageRef.current.clientWidth}
+                        stageHeight={stageRef.current.clientHeight}
+                        mirrored={facing === "user"}
+                        side="left"
+                      />
+                    )}
+                    {jewelleryKind === "necklace" && videoRef.current && faceLandmarksFor3D && (
+                      <Necklace3DModel
+                        modelPath="/models/necklaces/sample-necklace.glb"
+                        faceLandmarks={faceLandmarksFor3D}
+                        videoWidth={videoRef.current.videoWidth}
+                        videoHeight={videoRef.current.videoHeight}
+                        stageWidth={stageRef.current.clientWidth}
+                        stageHeight={stageRef.current.clientHeight}
+                        mirrored={facing === "user"}
+                      />
+                    )}
+                  </ThreeARCanvas>
+                </ErrorBoundary>
               ) : null}
               
               {/* Fallback to 2D overlay when 3D is disabled or in manual mode */}
@@ -1279,13 +1316,14 @@ export function LiveTryOnDialog({
       </div>
 
       <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-center gap-2 px-4 py-4 text-white">
-        {webGLSupported && arEnabled && (
+        {webGLSupported && arEnabled && !model3DFailed && (
           <button
             type="button"
             onClick={() => setUse3D((v) => !v)}
             className="rounded-full bg-white/15 px-4 py-2 text-xs font-medium"
+            title={!use3D ? "Enable 3D mode (requires 3D model files)" : "Switch to 2D mode"}
           >
-            {use3D ? "2D Mode" : "3D Mode"}
+            {use3D ? "2D Mode" : "3D Mode (Beta)"}
           </button>
         )}
         

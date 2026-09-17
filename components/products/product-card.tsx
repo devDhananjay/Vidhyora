@@ -145,7 +145,7 @@ export function ProductCard({ product, isInWishlist = false }: ProductCardProps)
         </div>
         {discount > 0 ? (
           <p className="mt-2 rounded-md bg-[#f6ead7] px-2 py-1 text-[11px] text-[#8b2e2e]">
-            {discount}% off on making charges
+            Save {discount}% instantly
           </p>
         ) : null}
       </Link>

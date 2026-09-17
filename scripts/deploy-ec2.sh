@@ -29,6 +29,8 @@ rsync -az \
   --exclude '.env' \
   --exclude 'node_modules/.cache' \
   --exclude 'public/uploads/' \
+  --exclude 'node_modules/@img/sharp-darwin-*' \
+  --exclude 'node_modules/@img/sharp-libvips-darwin-*' \
   -e "ssh -i $PEM -o StrictHostKeyChecking=no -o IdentitiesOnly=yes" \
   /tmp/vidyora-deploy/ "$HOST:/home/ec2-user/VIDYORA/app/"
 

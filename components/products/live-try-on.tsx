@@ -1042,7 +1042,10 @@ export function LiveTryOnDialog({
   const displayUrl = cutoutUrl || imageUrl;
   const useArPose = arEnabled && tracking && !manualOverrideRef.current;
 
-  const overlayStyle = useArPose
+  // Ensure pose has valid values before using for overlay
+  const hasValidPose = pose.scalePx > 10 && targetSeen;
+
+  const overlayStyle = useArPose && hasValidPose
     ? {
         left: pose.x,
         top: pose.y,
@@ -1267,19 +1270,27 @@ export function LiveTryOnDialog({
                 </ErrorBoundary>
               ) : null}
               
-              {/* Fallback to 2D overlay when 3D is disabled or in manual mode */}
-              {(!use3D || !webGLSupported || !useArPose) && (
+              {/* Fallback to 2D overlay - always render when we have an image URL */}
+              {displayUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={displayUrl}
                   alt=""
                   draggable={false}
+                  onError={(e) => {
+                    console.error("Failed to load jewelry image:", displayUrl);
+                    e.currentTarget.style.display = "none";
+                  }}
+                  onLoad={() => {
+                    console.log("Jewelry image loaded successfully");
+                  }}
                   className={cn(
                     "pointer-events-none absolute select-none object-contain transition-opacity duration-200",
-                    targetSeen || !useArPose ? "opacity-100" : "opacity-25",
+                    (targetSeen || !useArPose || !hasValidPose) && !use3D ? "opacity-100" : "opacity-25",
                   )}
                   style={{
                     ...overlayStyle,
+                    display: use3D && hasValidPose && useArPose ? "none" : "block",
                     // Pop jewellery against skin — looks worn, not like a flat sticker
                     filter:
                       jewelleryKind === "ring" || jewelleryKind === "bangle"

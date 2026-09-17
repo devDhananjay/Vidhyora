@@ -596,7 +596,7 @@ function poseFromHand(
     const pinkyMcp = toPx(landmarks[17]);
     const middleMcp = toPx(landmarks[9]);
     const palmW = Math.hypot(indexMcp.x - pinkyMcp.x, indexMcp.y - pinkyMcp.y);
-    const scalePx = Math.max(120, Math.min(320, palmW * 1.65 * scaleBoost));
+    const scalePx = Math.max(180, Math.min(420, palmW * 2.2 * scaleBoost));
     const t = 0.05;
     return {
       x: wrist.x + (middleMcp.x - wrist.x) * t,
@@ -615,7 +615,7 @@ function poseFromHand(
   const spanPinky = Math.hypot(mcp.x - pinkyMcp.x, mcp.y - pinkyMcp.y);
   const boneLen = Math.hypot(pip.x - mcp.x, pip.y - mcp.y);
   const fingerWidth = Math.max(
-    24,
+    30,
     Math.min(spanMid * 0.82, spanPinky * 0.5, boneLen * 0.65),
   );
 
@@ -623,7 +623,7 @@ function poseFromHand(
   return {
     x: mcp.x + (pip.x - mcp.x) * t,
     y: mcp.y + (pip.y - mcp.y) * t,
-    scalePx: Math.max(48, Math.min(170, fingerWidth * 3.05 * scaleBoost)),
+    scalePx: Math.max(70, Math.min(220, fingerWidth * 3.8 * scaleBoost)),
     rotation: angleDeg(mcp.x, mcp.y, dip.x, dip.y) + 90,
   };
 }
@@ -677,11 +677,11 @@ function poseFromFace(
 }
 
 function defaultManualScale(kind: JewelleryKind) {
-  if (kind === "ring" || kind === "nose") return 0.14;
-  if (kind === "earring") return 0.16;
-  if (kind === "bangle") return 0.32;
-  if (kind === "necklace") return 0.38;
-  return 0.28;
+  if (kind === "ring" || kind === "nose") return 0.25;
+  if (kind === "earring") return 0.28;
+  if (kind === "bangle") return 0.55;
+  if (kind === "necklace") return 0.65;
+  return 0.35;
 }
 
 export function LiveTryOnDialog({
@@ -1043,7 +1043,8 @@ export function LiveTryOnDialog({
   const useArPose = arEnabled && tracking && !manualOverrideRef.current;
 
   // Ensure pose has valid values before using for overlay
-  const hasValidPose = pose.scalePx > 10 && targetSeen;
+  // Don't require targetSeen - if we have a valid scale, use it
+  const hasValidPose = pose.scalePx > 40;
 
   const overlayStyle = useArPose && hasValidPose
     ? {
@@ -1064,12 +1065,22 @@ export function LiveTryOnDialog({
         left: "50%",
         top: "50%",
         width: `${Math.round(manualScale * 100)}%`,
+        minWidth:
+          jewelleryKind === "ring" || jewelleryKind === "nose"
+            ? 80
+            : jewelleryKind === "bangle"
+              ? 200
+              : jewelleryKind === "necklace"
+                ? 250
+                : 120,
         maxWidth:
           jewelleryKind === "ring" || jewelleryKind === "nose"
-            ? 140
+            ? 180
             : jewelleryKind === "necklace"
-              ? 360
-              : 280,
+              ? 450
+              : jewelleryKind === "bangle"
+                ? 400
+                : 320,
         transform: `translate(calc(-50% + ${manualPos.x}px), calc(-50% + ${manualPos.y}px)) rotate(${manualRotation}deg)`,
       };
 

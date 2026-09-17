@@ -23,29 +23,29 @@ import dynamic from "next/dynamic";
 
 // Lazy load 3D components for performance
 const ThreeARCanvas = dynamic(
-  () => import("@/components/ar/ThreeARCanvas").then((m) => ({ default: m.ThreeARCanvas })),
+  () => import("@/components/ar/ThreeARCanvas").then((mod) => mod.ThreeARCanvas),
   { ssr: false }
-);
+) as any;
 const Ring3DModel = dynamic(
-  () => import("@/components/ar/Ring3DModel").then((m) => ({ default: m.Ring3DModel })),
+  () => import("@/components/ar/Ring3DModel").then((mod) => mod.Ring3DModel),
   { ssr: false }
-);
+) as any;
 const Bangle3DModel = dynamic(
-  () => import("@/components/ar/Bangle3DModel").then((m) => ({ default: m.Bangle3DModel })),
+  () => import("@/components/ar/Bangle3DModel").then((mod) => mod.Bangle3DModel),
   { ssr: false }
-);
+) as any;
 const NosePin3DModel = dynamic(
-  () => import("@/components/ar/NosePin3DModel").then((m) => ({ default: m.NosePin3DModel })),
+  () => import("@/components/ar/NosePin3DModel").then((mod) => mod.NosePin3DModel),
   { ssr: false }
-);
+) as any;
 const Earring3DModel = dynamic(
-  () => import("@/components/ar/Earring3DModel").then((m) => ({ default: m.Earring3DModel })),
+  () => import("@/components/ar/Earring3DModel").then((mod) => mod.Earring3DModel),
   { ssr: false }
-);
+) as any;
 const Necklace3DModel = dynamic(
-  () => import("@/components/ar/Necklace3DModel").then((m) => ({ default: m.Necklace3DModel })),
+  () => import("@/components/ar/Necklace3DModel").then((mod) => mod.Necklace3DModel),
   { ssr: false }
-);
+) as any;
 
 type JewelleryKind =
   | "ring"

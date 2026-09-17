@@ -121,7 +121,7 @@ async function exportEditedImage(params: {
     try {
       const logo = await loadImage(params.logoSrc);
       const target = Math.max(
-        40,
+        16,
         Math.round(Math.min(outW, outH) * params.logoSize),
       );
       const ratio = logo.width / Math.max(logo.height, 1);
@@ -161,6 +161,8 @@ export function ProductImageEditor({
   const stageRef = useRef<HTMLDivElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const dragOffset = useRef({ x: 0, y: 0 });
+  const logoSizeRef = useRef(0.18);
+  const draggingRef = useRef(false);
 
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -171,10 +173,13 @@ export function ProductImageEditor({
   const [customLogoSrc, setCustomLogoSrc] = useState<string | null>(null);
   const [logoPos, setLogoPos] = useState<LogoPos>({ x: 0.72, y: 0.72 });
   const [logoOpacity, setLogoOpacity] = useState(0.85);
-  const [logoSize, setLogoSize] = useState(0.18);
+  const [logoSize, setLogoSize] = useState(0.12);
   const [draggingLogo, setDraggingLogo] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  logoSizeRef.current = logoSize;
+  draggingRef.current = draggingLogo;
 
   const aspect = ASPECT_OPTIONS.find((a) => a.id === aspectId)?.value ?? 1;
   const activeLogoSrc =
@@ -192,7 +197,7 @@ export function ProductImageEditor({
     setLogoSource("brand");
     setLogoPos({ x: 0.72, y: 0.72 });
     setLogoOpacity(0.85);
-    setLogoSize(0.18);
+    setLogoSize(0.12);
     setDraggingLogo(false);
     setBusy(false);
     setError(null);
@@ -239,26 +244,43 @@ export function ProductImageEditor({
     if (logoInputRef.current) logoInputRef.current.value = "";
   };
 
-  const updateLogoFromClient = (clientX: number, clientY: number) => {
+  const updateLogoFromClient = useCallback((clientX: number, clientY: number) => {
     const stage = stageRef.current;
     if (!stage) return;
     const rect = stage.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
 
-    const sizeFrac = logoSize;
-    const logoWFrac = sizeFrac;
-    const logoHFrac = sizeFrac; // approximate; exact ratio applied on export
-
+    const sizeFrac = logoSizeRef.current;
     const rawX =
       (clientX - rect.left - dragOffset.current.x) / rect.width;
     const rawY =
       (clientY - rect.top - dragOffset.current.y) / rect.height;
 
     setLogoPos({
-      x: clamp(rawX, 0, Math.max(0, 1 - logoWFrac)),
-      y: clamp(rawY, 0, Math.max(0, 1 - logoHFrac)),
+      x: clamp(rawX, 0, Math.max(0, 1 - sizeFrac)),
+      y: clamp(rawY, 0, Math.max(0, 1 - sizeFrac)),
     });
-  };
+  }, []);
+
+  // Keep drag alive even if pointer crosses Cropper layers under the logo
+  useEffect(() => {
+    if (!draggingLogo) return;
+
+    const onMove = (e: PointerEvent) => {
+      e.preventDefault();
+      updateLogoFromClient(e.clientX, e.clientY);
+    };
+    const onUp = () => setDraggingLogo(false);
+
+    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+    };
+  }, [draggingLogo, updateLogoFromClient]);
 
   const onLogoPointerDown = (e: ReactPointerEvent<HTMLDivElement>) => {
     if (busy) return;
@@ -270,27 +292,7 @@ export function ProductImageEditor({
       x: e.clientX - rect.left,
       y: e.clientY - rect.top,
     };
-    target.setPointerCapture(e.pointerId);
     setDraggingLogo(true);
-  };
-
-  const onLogoPointerMove = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!draggingLogo) return;
-    e.preventDefault();
-    e.stopPropagation();
-    updateLogoFromClient(e.clientX, e.clientY);
-  };
-
-  const onLogoPointerUp = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!draggingLogo) return;
-    e.preventDefault();
-    e.stopPropagation();
-    try {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    } catch {
-      // ignore
-    }
-    setDraggingLogo(false);
   };
 
   const handleApply = async () => {
@@ -336,60 +338,69 @@ export function ProductImageEditor({
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
           <div
             ref={stageRef}
-            className="relative h-[min(52vh,360px)] overflow-hidden rounded-2xl bg-neutral-900 touch-none"
+            className="relative isolate h-[min(52vh,360px)] overflow-hidden rounded-2xl bg-neutral-900 touch-none"
           >
             {imageSrc ? (
               <>
-                <Cropper
-                  image={imageSrc}
-                  crop={crop}
-                  zoom={zoom}
-                  aspect={aspect}
-                  onCropChange={(next) => {
-                    if (!draggingLogo) setCrop(next);
-                  }}
-                  onZoomChange={(next) => {
-                    if (!draggingLogo) setZoom(next);
-                  }}
-                  onCropComplete={onCropComplete}
-                  showGrid
-                  objectFit="contain"
-                  classes={{
-                    containerClassName: "rounded-2xl",
-                    cropAreaClassName: "!border-[#8b2e2e]",
-                  }}
-                />
+                <div
+                  className={cn(
+                    "absolute inset-0 z-0",
+                    withLogo && "[&_.reactEasyCrop_Container]:!z-0",
+                  )}
+                  style={draggingLogo ? { pointerEvents: "none" } : undefined}
+                >
+                  <Cropper
+                    image={imageSrc}
+                    crop={crop}
+                    zoom={zoom}
+                    aspect={aspect}
+                    onCropChange={(next) => {
+                      if (!draggingRef.current) setCrop(next);
+                    }}
+                    onZoomChange={(next) => {
+                      if (!draggingRef.current) setZoom(next);
+                    }}
+                    onCropComplete={onCropComplete}
+                    showGrid
+                    objectFit="contain"
+                    classes={{
+                      containerClassName: "rounded-2xl !z-0",
+                      mediaClassName: "!z-0",
+                      cropAreaClassName: "!border-[#8b2e2e] !z-[1]",
+                    }}
+                  />
+                </div>
 
                 {withLogo && (
-                  <div
-                    className={cn(
-                      "absolute z-30 select-none",
-                      draggingLogo ? "cursor-grabbing" : "cursor-grab",
-                    )}
-                    style={{
-                      left: `${logoPos.x * 100}%`,
-                      top: `${logoPos.y * 100}%`,
-                      width: `${logoSize * 100}%`,
-                      maxWidth: 120,
-                      opacity: logoOpacity,
-                      touchAction: "none",
-                    }}
-                    onPointerDown={onLogoPointerDown}
-                    onPointerMove={onLogoPointerMove}
-                    onPointerUp={onLogoPointerUp}
-                    onPointerCancel={onLogoPointerUp}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={activeLogoSrc}
-                      alt="Watermark"
-                      draggable={false}
-                      className="pointer-events-none w-full object-contain drop-shadow-md"
-                    />
-                    <span className="pointer-events-none absolute -bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full bg-black/70 px-2 py-0.5 text-[10px] text-white">
-                      <Move className="size-2.5" />
-                      Drag to place
-                    </span>
+                  <div className="pointer-events-none absolute inset-0 z-[200]">
+                    <div
+                      className={cn(
+                        "pointer-events-auto absolute select-none will-change-transform",
+                        draggingLogo ? "cursor-grabbing" : "cursor-grab",
+                      )}
+                      style={{
+                        left: `${logoPos.x * 100}%`,
+                        top: `${logoPos.y * 100}%`,
+                        width: `${logoSize * 100}%`,
+                        minWidth: 16,
+                        opacity: logoOpacity,
+                        touchAction: "none",
+                        zIndex: 200,
+                      }}
+                      onPointerDown={onLogoPointerDown}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={activeLogoSrc}
+                        alt="Watermark"
+                        draggable={false}
+                        className="pointer-events-none w-full object-contain drop-shadow-md"
+                      />
+                      <span className="pointer-events-none absolute left-1/2 top-full mt-1 flex -translate-x-1/2 items-center gap-1 whitespace-nowrap rounded-full bg-black/75 px-2 py-0.5 text-[10px] text-white shadow">
+                        <Move className="size-2.5" />
+                        Drag to place
+                      </span>
+                    </div>
                   </div>
                 )}
               </>
@@ -592,14 +603,17 @@ export function ProductImageEditor({
                     </div>
                     <input
                       type="range"
-                      min={0.08}
+                      min={0.03}
                       max={0.4}
-                      step={0.01}
+                      step={0.005}
                       value={logoSize}
                       disabled={busy}
                       onChange={(e) => setLogoSize(Number(e.target.value))}
                       className="h-2 w-full cursor-pointer accent-[#8b2e2e]"
                     />
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      Drag smaller for a subtle mark — down to 3% of the photo.
+                    </p>
                   </div>
                   <div>
                     <div className="mb-1.5 flex justify-between text-xs">
@@ -639,7 +653,7 @@ export function ProductImageEditor({
               setAspectId("1:1");
               setWithLogo(false);
               setLogoPos({ x: 0.72, y: 0.72 });
-              setLogoSize(0.18);
+              setLogoSize(0.12);
               setLogoOpacity(0.85);
             }}
           >

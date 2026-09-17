@@ -92,6 +92,9 @@ function extensionFor(file: File) {
     "image/png": "png",
     "image/webp": "webp",
     "application/pdf": "pdf",
+    "video/mp4": "mp4",
+    "video/webm": "webm",
+    "video/quicktime": "mov",
   };
   return map[file.type] || "bin";
 }

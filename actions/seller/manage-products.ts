@@ -53,6 +53,7 @@ export async function createProduct(
         shortDescription: validated.shortDescription,
         description: validated.description,
         thumbnail: validated.thumbnail,
+        videoUrl: validated.videoUrl || null,
         basePrice: validated.basePrice,
         compareAtPrice: validated.compareAtPrice,
         tax: validated.tax,
@@ -201,6 +202,7 @@ export async function updateProduct(
           shortDescription: validated.shortDescription,
           description: validated.description,
           thumbnail: validated.thumbnail,
+          videoUrl: validated.videoUrl || null,
           basePrice: validated.basePrice,
           compareAtPrice: validated.compareAtPrice,
           tax: validated.tax,
@@ -294,6 +296,7 @@ type DraftProductInput = {
   shortDescription?: string;
   description?: string;
   thumbnail?: string;
+  videoUrl?: string;
   images?: Array<{ url?: string; altText?: string; sortOrder?: number }>;
   variants?: Array<{
     sku?: string;
@@ -327,6 +330,16 @@ function isPersistableImageUrl(value?: string) {
     /^https?:\/\//i.test(value) ||
     value.startsWith("/uploads/") ||
     value.startsWith("data:image/")
+  );
+}
+
+function isPersistableVideoUrl(value?: string) {
+  if (!value) return false;
+  if (!(/^https?:\/\//i.test(value) || value.startsWith("/uploads/"))) {
+    return false;
+  }
+  return (
+    /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(value) || value.includes("/videos/")
   );
 }
 
@@ -410,6 +423,7 @@ export async function saveProductDraft(
       thumbnail: isPersistableImageUrl(data.thumbnail)
         ? data.thumbnail
         : images[0]?.url,
+      videoUrl: isPersistableVideoUrl(data.videoUrl) ? data.videoUrl : null,
       basePrice: Number(data.basePrice) || variantPayload[0].price || 0,
       compareAtPrice: data.compareAtPrice || undefined,
       tax: Number(data.tax) || 0,

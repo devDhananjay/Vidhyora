@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isVideoUrl } from "@/lib/media/is-video-url";
 
 type GalleryImage = {
   id: string;
@@ -11,10 +12,13 @@ type GalleryImage = {
   altText?: string | null;
 };
 
+type GalleryItem = GalleryImage & { kind: "image" | "video" };
+
 type ProductGalleryProps = {
   name: string;
   thumbnail: string | null;
   images: GalleryImage[];
+  videoUrl?: string | null;
   discount?: number;
 };
 
@@ -26,20 +30,27 @@ export function ProductGallery({
   name,
   thumbnail,
   images,
+  videoUrl,
   discount = 0,
 }: ProductGalleryProps) {
-  const gallery = [
-    ...(isValidSrc(thumbnail) && thumbnail
-      ? [{ id: "main", url: thumbnail, altText: name }]
+  const gallery: GalleryItem[] = [
+    ...(isValidSrc(videoUrl) && videoUrl
+      ? [{ id: "video", url: videoUrl, altText: `${name} video`, kind: "video" as const }]
       : []),
-    ...images.filter((image) => isValidSrc(image.url)),
+    ...(isValidSrc(thumbnail) && thumbnail
+      ? [{ id: "main", url: thumbnail, altText: name, kind: "image" as const }]
+      : []),
+    ...images
+      .filter((image) => isValidSrc(image.url))
+      .map((image) => ({ ...image, kind: "image" as const })),
   ].filter(
-    (image, index, list) =>
-      list.findIndex((entry) => entry.url === image.url) === index,
+    (item, index, list) =>
+      list.findIndex((entry) => entry.url === item.url) === index,
   );
 
   const [active, setActive] = useState(0);
   const current = gallery[active];
+  const isVideo = current?.kind === "video" || isVideoUrl(current?.url);
 
   function go(delta: number) {
     if (gallery.length < 2) return;
@@ -52,15 +63,26 @@ export function ProductGallery({
         <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_55%)]" />
 
         {current ? (
-          <Image
-            key={current.url}
-            src={current.url}
-            alt={current.altText || name}
-            fill
-            className="object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
-            priority
-            sizes="(max-width: 1024px) 100vw, 50vw"
-          />
+          isVideo ? (
+            <video
+              key={current.url}
+              src={current.url}
+              controls
+              playsInline
+              preload="metadata"
+              className="relative z-[1] size-full object-cover"
+            />
+          ) : (
+            <Image
+              key={current.url}
+              src={current.url}
+              alt={current.altText || name}
+              fill
+              className="object-cover transition duration-700 ease-out group-hover:scale-[1.04]"
+              priority
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+          )
         ) : (
           <div className="flex size-full flex-col items-center justify-center bg-gradient-to-br from-[#f6ebe8] to-[#faf6f0]">
             <span className="font-serif text-3xl tracking-[0.2em] text-[#8b2e2e]/70">
@@ -75,17 +97,19 @@ export function ProductGallery({
           </span>
         ) : null}
 
-        <span className="absolute bottom-4 left-4 z-[2] inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-medium tracking-[0.12em] text-[#8b2e2e] uppercase shadow-sm backdrop-blur-sm">
-          <Sparkles className="size-3" strokeWidth={1.7} />
-          Certified piece
-        </span>
+        {!isVideo ? (
+          <span className="absolute bottom-4 left-4 z-[2] inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-medium tracking-[0.12em] text-[#8b2e2e] uppercase shadow-sm backdrop-blur-sm">
+            <Sparkles className="size-3" strokeWidth={1.7} />
+            Certified piece
+          </span>
+        ) : null}
 
         {gallery.length > 1 ? (
           <>
             <button
               type="button"
               onClick={() => go(-1)}
-              aria-label="Previous image"
+              aria-label="Previous media"
               className="absolute left-3 top-1/2 z-[2] flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#8b2e2e] opacity-0 shadow-md backdrop-blur transition group-hover:opacity-100"
             >
               <ChevronLeft className="size-4" strokeWidth={1.8} />
@@ -93,7 +117,7 @@ export function ProductGallery({
             <button
               type="button"
               onClick={() => go(1)}
-              aria-label="Next image"
+              aria-label="Next media"
               className="absolute right-3 top-1/2 z-[2] flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#8b2e2e] opacity-0 shadow-md backdrop-blur transition group-hover:opacity-100"
             >
               <ChevronRight className="size-4" strokeWidth={1.8} />
@@ -104,28 +128,48 @@ export function ProductGallery({
 
       {gallery.length > 1 ? (
         <div className="grid grid-cols-4 gap-2.5 sm:grid-cols-5">
-          {gallery.slice(0, 5).map((image, index) => (
-            <button
-              key={image.id}
-              type="button"
-              onClick={() => setActive(index)}
-              className={cn(
-                "relative aspect-square overflow-hidden rounded-2xl border bg-[#f4efea] transition duration-300",
-                active === index
-                  ? "border-[#8b2e2e] shadow-[0_0_0_1px_rgba(139,46,46,0.25)]"
-                  : "border-neutral-100 hover:border-[#8b2e2e]/40",
-              )}
-              aria-label={`View image ${index + 1}`}
-            >
-              <Image
-                src={image.url}
-                alt={image.altText || name}
-                fill
-                className="object-cover transition duration-500 hover:scale-105"
-                sizes="20vw"
-              />
-            </button>
-          ))}
+          {gallery.slice(0, 6).map((item, index) => {
+            const thumbIsVideo = item.kind === "video" || isVideoUrl(item.url);
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setActive(index)}
+                className={cn(
+                  "relative aspect-square overflow-hidden rounded-2xl border bg-[#f4efea] transition duration-300",
+                  active === index
+                    ? "border-[#8b2e2e] shadow-[0_0_0_1px_rgba(139,46,46,0.25)]"
+                    : "border-neutral-100 hover:border-[#8b2e2e]/40",
+                )}
+                aria-label={
+                  thumbIsVideo ? "View product video" : `View image ${index + 1}`
+                }
+              >
+                {thumbIsVideo ? (
+                  <div className="flex size-full items-center justify-center bg-neutral-900">
+                    <video
+                      src={item.url}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="absolute inset-0 size-full object-cover opacity-70"
+                    />
+                    <span className="relative z-[1] flex size-8 items-center justify-center rounded-full bg-white/95 text-[#8b2e2e] shadow">
+                      <Play className="size-3.5 fill-current" />
+                    </span>
+                  </div>
+                ) : (
+                  <Image
+                    src={item.url}
+                    alt={item.altText || name}
+                    fill
+                    className="object-cover transition duration-500 hover:scale-105"
+                    sizes="20vw"
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
       ) : null}
     </div>

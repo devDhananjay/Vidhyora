@@ -104,6 +104,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         shortDescription: "",
         description: "",
         thumbnail: "",
+        videoUrl: undefined,
         images: [],
         variants: [
           {
@@ -294,6 +295,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
       description: 1,
       thumbnail: 2,
       images: 2,
+      videoUrl: 2,
       variants: 3,
       basePrice: 4,
       compareAtPrice: 4,

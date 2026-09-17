@@ -179,6 +179,7 @@ export default async function ProductDetailPage({
               name={product.name}
               thumbnail={product.thumbnail}
               images={product.images}
+              videoUrl={product.videoUrl}
               discount={discount}
             />
 

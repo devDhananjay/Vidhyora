@@ -64,13 +64,27 @@ export function PreviewStep({ watch, categories }: PreviewStepProps) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {formData.videoUrl ? (
+              <div className="relative aspect-square overflow-hidden rounded-xl border bg-neutral-900">
+                <video
+                  src={formData.videoUrl}
+                  muted
+                  playsInline
+                  preload="metadata"
+                  className="size-full object-cover"
+                />
+                <div className="absolute bottom-2 left-2 rounded bg-[#8b2e2e] px-2 py-1 text-xs font-medium text-white">
+                  Video
+                </div>
+              </div>
+            ) : null}
             {formData.images?.map((img: any, index: number) => (
               <div
                 key={index}
                 className="relative aspect-square overflow-hidden rounded-xl border"
               >
                 <Image src={img.url} alt={img.altText || "Product"} fill className="object-cover" />
-                {index === 0 && (
+                {formData.thumbnail === img.url && (
                   <div className="absolute bottom-2 left-2 rounded bg-primary px-2 py-1 text-xs font-medium text-primary-foreground">
                     Thumbnail
                   </div>

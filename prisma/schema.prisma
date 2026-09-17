@@ -344,6 +344,7 @@ model Product {
   hsn              String?
   certificateNumber String?
   thumbnail        String?
+  videoUrl         String?
   rejectionReason  String?               @db.Text
   metaTitle        String?
   metaDescription  String?               @db.Text

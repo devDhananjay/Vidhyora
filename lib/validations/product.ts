@@ -90,6 +90,29 @@ export const createProductSchema = z.object({
     )
     .min(1, "Add at least one product image"),
 
+  videoUrl: z.preprocess(
+    (value) => {
+      if (value === "" || value === null || value === undefined) return undefined;
+      return value;
+    },
+    z
+      .string()
+      .refine(
+        (value) =>
+          value.startsWith("/uploads/") ||
+          value.startsWith("http://") ||
+          value.startsWith("https://"),
+        "Upload a valid product video",
+      )
+      .refine(
+        (value) =>
+          /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(value) ||
+          value.includes("/videos/"),
+        "Video must be MP4, WEBM, or MOV",
+      )
+      .optional(),
+  ),
+
   variants: z
     .array(productVariantSchema)
     .min(1, "Add at least one variant"),
@@ -166,6 +189,7 @@ export function normalizeProductFormValues(product: any): CreateProductInput {
     description: product.description ?? "",
     thumbnail: product.thumbnail || images[0]?.url || "",
     images,
+    videoUrl: product.videoUrl || undefined,
     variants:
       variants.length > 0
         ? variants

@@ -10,6 +10,7 @@ import {
   buildProductWhere,
   type ProductListParams,
 } from "@/lib/products/product-query";
+import { getProductFacets } from "@/lib/products/product-facets";
 
 async function getCategory(slug: string) {
   const category = await prisma.category.findUnique({
@@ -64,14 +65,9 @@ export default async function CategoryPage({
 
   const resolved = await searchParams;
   const listParams = { ...resolved, category: slug };
-  const [total, brands] = await Promise.all([
+  const [total, facets] = await Promise.all([
     prisma.product.count({ where: buildProductWhere(listParams) }),
-    prisma.product.findMany({
-      where: { status: "ACTIVE", approvalStatus: "APPROVED" },
-      select: { brand: true },
-      distinct: ["brand"],
-      orderBy: { brand: "asc" },
-    }),
+    getProductFacets(),
   ]);
 
   return (
@@ -92,10 +88,7 @@ export default async function CategoryPage({
       </h1>
 
       <Suspense fallback={<div className="mb-8 h-11 animate-pulse rounded-full bg-neutral-100" />}>
-        <TanishqFilterBar
-          brands={brands.map((item) => item.brand)}
-          total={total}
-        />
+        <TanishqFilterBar facets={facets} total={total} />
       </Suspense>
 
       <Suspense fallback={<ProductListingSkeleton />}>

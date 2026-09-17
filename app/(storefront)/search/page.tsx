@@ -15,6 +15,7 @@ import {
   isBestSellerFlag,
   jewelleryCardMeta,
 } from "@/lib/products/product-card-data";
+import { getProductFacets } from "@/lib/products/product-facets";
 import { productSearch } from "@/lib/search/product-search";
 import { PAGINATION } from "@/lib/constants";
 
@@ -91,14 +92,9 @@ export default async function SearchPage({
 }) {
   const params = await searchParams;
   const query = params.q || "";
-  const [total, brands] = await Promise.all([
+  const [total, facets] = await Promise.all([
     prisma.product.count({ where: buildProductWhere(params) }),
-    prisma.product.findMany({
-      where: { status: "ACTIVE", approvalStatus: "APPROVED" },
-      select: { brand: true },
-      distinct: ["brand"],
-      orderBy: { brand: "asc" },
-    }),
+    getProductFacets(),
   ]);
 
   const title = query ? `Search results for “${query}”` : "Search Jewellery";
@@ -113,10 +109,7 @@ export default async function SearchPage({
       </h1>
 
       <Suspense fallback={<div className="mb-8 h-11 animate-pulse rounded-full bg-neutral-100" />}>
-        <TanishqFilterBar
-          brands={brands.map((item) => item.brand)}
-          total={total}
-        />
+        <TanishqFilterBar facets={facets} total={total} />
       </Suspense>
 
       <Suspense fallback={<ProductListingSkeleton />}>

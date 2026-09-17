@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { ProductGrid } from "@/components/products/product-grid";
 import { TanishqFilterBar } from "@/components/products/tanishq-filter-bar";
 import { ProductListingSkeleton } from "@/components/products/product-listing-skeleton";
+import { getProductFacets } from "@/lib/products/product-facets";
 import { buildProductWhere, getListingTitle, type ProductListParams } from "@/lib/products/product-query";
 
 export const metadata: Metadata = {
@@ -21,14 +22,9 @@ export default async function ProductsPage({
   searchParams: Promise<ProductListParams>;
 }) {
   const params = await searchParams;
-  const [total, brands] = await Promise.all([
+  const [total, facets] = await Promise.all([
     prisma.product.count({ where: buildProductWhere(params) }),
-    prisma.product.findMany({
-      where: { status: "ACTIVE", approvalStatus: "APPROVED" },
-      select: { brand: true },
-      distinct: ["brand"],
-      orderBy: { brand: "asc" },
-    }),
+    getProductFacets(),
   ]);
 
   const title = getListingTitle(params);
@@ -51,10 +47,7 @@ export default async function ProductsPage({
       </h1>
 
       <Suspense fallback={<div className="mb-8 h-11 animate-pulse rounded-full bg-neutral-100" />}>
-        <TanishqFilterBar
-          brands={brands.map((item) => item.brand)}
-          total={total}
-        />
+        <TanishqFilterBar facets={facets} total={total} />
       </Suspense>
 
       <Suspense fallback={<ProductListingSkeleton />}>

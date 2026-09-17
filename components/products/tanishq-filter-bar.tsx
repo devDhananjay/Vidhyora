@@ -1,32 +1,77 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ComponentType, type SVGProps } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ChevronDown, ChevronRight, ListFilter, X } from "lucide-react";
-import { splitCsv, toggleCsv } from "@/lib/products/product-query";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  ChevronRight,
+  ListFilter,
+  X,
+} from "lucide-react";
+import {
+  IconBangles,
+  IconChain,
+  IconCoin,
+  IconDiamond,
+  IconGift,
+  IconGem,
+  IconPerson,
+  IconWedding,
+} from "@/components/storefront/jewellery-icons";
 import { NativeSelect } from "@/components/ui/native-select";
+import {
+  labelForPriceValue,
+  type ProductFacets,
+} from "@/lib/products/product-facets";
+import { splitCsv, toggleCsv } from "@/lib/products/product-query";
+import { cn } from "@/lib/utils";
+
+const partnerBtnClass =
+  "inline-flex h-9 items-center gap-1.5 rounded-full border border-brand/20 bg-brand/5 px-3.5 text-[12px] font-medium text-brand transition duration-500 hover:bg-brand hover:text-primary-foreground";
 
 type FilterBarProps = {
-  brands: string[];
+  facets: ProductFacets;
   total: number;
 };
 
-const PRICE_PILLS = [
-  { label: "₹10,000 - ₹25,000", min: "10000", max: "25000" },
-  { label: "₹25,000 - ₹50,000", min: "25000", max: "50000" },
-  { label: "₹50,000 - ₹1,00,000", min: "50000", max: "100000" },
-];
+type SectionId =
+  | "price"
+  | "type"
+  | "brand"
+  | "gender"
+  | "karat"
+  | "size"
+  | "occasion"
+  | "metal";
 
-const DRAWER_SECTIONS = [
-  "Price",
-  "Jewellery Type",
-  "Brand",
-  "Gender",
-  "Karatage",
-  "Size",
-  "Occasion",
-  "Metal",
-] as const;
+type IconComp = ComponentType<SVGProps<SVGSVGElement>>;
+
+const SECTION_META: Array<{
+  id: SectionId;
+  label: string;
+  Icon: IconComp;
+  facetKey: keyof ProductFacets;
+}> = [
+  { id: "price", label: "Price", Icon: IconCoin, facetKey: "prices" },
+  {
+    id: "type",
+    label: "Jewellery Type",
+    Icon: IconDiamond,
+    facetKey: "types",
+  },
+  { id: "brand", label: "Brand", Icon: IconGift, facetKey: "brands" },
+  { id: "gender", label: "Gender", Icon: IconPerson, facetKey: "genders" },
+  { id: "karat", label: "Karatage", Icon: IconBangles, facetKey: "karats" },
+  { id: "size", label: "Size", Icon: IconChain, facetKey: "sizes" },
+  {
+    id: "occasion",
+    label: "Occasion",
+    Icon: IconWedding,
+    facetKey: "occasions",
+  },
+  { id: "metal", label: "Metal", Icon: IconGem, facetKey: "metals" },
+];
 
 const FILTER_KEYS = [
   "price",
@@ -41,22 +86,25 @@ const FILTER_KEYS = [
   "occasion",
 ] as const;
 
-const SIZE_PILLS = ["16", "18", "20", "Free Size"] as const;
-
-function priceKey(min: string, max: string) {
-  return `${min}-${max}`;
-}
-
 function legacyPrice(minPrice: string, maxPrice: string) {
-  return minPrice && maxPrice ? priceKey(minPrice, maxPrice) : "";
+  return minPrice && maxPrice ? `${minPrice}-${maxPrice}` : "";
 }
 
-export function TanishqFilterBar({ brands, total }: FilterBarProps) {
+export function TanishqFilterBar({ facets, total }: FilterBarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
-  const [expanded, setExpanded] = useState<string>("Price");
+
+  const sections = useMemo(
+    () =>
+      SECTION_META.filter((section) => facets[section.facetKey].length > 0),
+    [facets],
+  );
+
+  const [expanded, setExpanded] = useState<string>(
+    sections[0]?.id ?? "price",
+  );
 
   const current = useMemo(() => {
     const minPrice = searchParams.get("minPrice") ?? "";
@@ -79,6 +127,12 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
   useEffect(() => {
     setDraft(current);
   }, [current, open]);
+
+  useEffect(() => {
+    if (sections.length && !sections.some((s) => s.id === expanded)) {
+      setExpanded(sections[0].id);
+    }
+  }, [sections, expanded]);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -144,76 +198,80 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
     setOpen(false);
   }
 
-  // Only show chips for filters the user has applied
   const appliedFilters = useMemo(() => {
     const chips: Array<{ key: string; label: string; onClick: () => void }> =
       [];
 
     for (const value of splitCsv(current.price)) {
-      const match = PRICE_PILLS.find(
-        (pill) => priceKey(pill.min, pill.max) === value,
-      );
       chips.push({
         key: `price-${value}`,
-        label: match?.label ?? `₹${value.replace("-", " - ₹")}`,
+        label: labelForPriceValue(value),
         onClick: () => toggleParam("price", value),
       });
     }
 
     for (const value of splitCsv(current.gender)) {
+      const match = facets.genders.find((item) => item.value === value);
       chips.push({
         key: `gender-${value}`,
-        label: value === "women" ? "Women" : "Men",
+        label: match?.label ?? (value === "women" ? "Women" : "Men"),
         onClick: () => toggleParam("gender", value),
       });
     }
 
     for (const value of splitCsv(current.type)) {
+      const match = facets.types.find((item) => item.value === value);
       chips.push({
         key: `type-${value}`,
         label:
-          value === "gold"
+          match?.label ??
+          (value === "gold"
             ? "Gold Jewellery"
             : value === "diamond"
               ? "Diamond Jewellery"
-              : value,
+              : value),
         onClick: () => toggleParam("type", value),
       });
     }
 
     for (const value of splitCsv(current.karat)) {
+      const match = facets.karats.find((item) => item.value === value);
       chips.push({
         key: `karat-${value}`,
-        label: `${value}KT`,
+        label: match?.label ?? `${value}KT`,
         onClick: () => toggleParam("karat", value),
       });
     }
 
     for (const value of splitCsv(current.size)) {
+      const match = facets.sizes.find((item) => item.value === value);
       chips.push({
         key: `size-${value}`,
-        label: value === "Free Size" ? "Free Size" : `Size ${value}`,
+        label: match?.label ?? (value === "Free Size" ? "Free Size" : `Size ${value}`),
         onClick: () => toggleParam("size", value),
       });
     }
 
     for (const value of splitCsv(current.occasion)) {
+      const match = facets.occasions.find((item) => item.value === value);
       chips.push({
         key: `occasion-${value}`,
         label:
-          value === "daily"
+          match?.label ??
+          (value === "daily"
             ? "Daily Wear"
             : value === "wedding"
               ? "Wedding"
-              : "Festive",
+              : "Festive"),
         onClick: () => toggleParam("occasion", value),
       });
     }
 
     for (const value of splitCsv(current.metal)) {
+      const match = facets.metals.find((item) => item.value === value);
       chips.push({
         key: `metal-${value}`,
-        label: value === "Gold" ? "Yellow Gold" : value,
+        label: match?.label ?? (value === "Gold" ? "Yellow Gold" : value),
         onClick: () => toggleParam("metal", value),
       });
     }
@@ -227,9 +285,29 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
     }
 
     return chips;
-    // toggleParam closes over current; chips rebuild when current changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [current]);
+  }, [current, facets]);
+
+  const draftCount = useMemo(() => {
+    return (
+      splitCsv(draft.price).length +
+      splitCsv(draft.brand).length +
+      splitCsv(draft.type).length +
+      splitCsv(draft.gender).length +
+      splitCsv(draft.karat).length +
+      splitCsv(draft.size).length +
+      splitCsv(draft.metal).length +
+      splitCsv(draft.occasion).length
+    );
+  }, [draft]);
+
+  function draftValueFor(sectionId: SectionId) {
+    return draft[sectionId];
+  }
+
+  function setDraftValue(sectionId: SectionId, next: string) {
+    setDraft((value) => ({ ...value, [sectionId]: next }));
+  }
 
   return (
     <>
@@ -237,44 +315,49 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="inline-flex h-11 items-center gap-2 rounded-full border border-neutral-200 px-5 text-sm text-neutral-800"
+          className={cn(partnerBtnClass, "group w-fit shrink-0")}
         >
-          <ListFilter className="size-4" strokeWidth={1.6} />
-          Filter
-          <ChevronDown className="size-4 text-neutral-500" />
+          <ListFilter className="size-3.5" strokeWidth={1.75} />
+          Filters
+          {appliedFilters.length > 0 ? (
+            <span className="inline-flex size-4 items-center justify-center rounded-full bg-brand text-[10px] font-semibold text-primary-foreground transition group-hover:bg-primary-foreground group-hover:text-brand">
+              {appliedFilters.length}
+            </span>
+          ) : (
+            <ChevronDown className="size-3.5 opacity-70" strokeWidth={1.75} />
+          )}
         </button>
 
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-          {appliedFilters.length === 0 ? (
-            <p className="text-sm text-neutral-400">
-              No filters applied
-            </p>
-          ) : (
-            <>
-              {appliedFilters.map((pill) => (
-                <button
-                  key={pill.key}
-                  type="button"
-                  onClick={pill.onClick}
-                  className="inline-flex h-10 items-center gap-2 rounded-full bg-[#8b2e2e] px-4 text-sm text-white"
-                  aria-label={`Remove ${pill.label}`}
-                >
-                  <X className="size-3.5" strokeWidth={2.4} />
-                  {pill.label}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="text-sm font-medium text-[#8b2e2e] hover:underline"
-              >
-                Clear all
-              </button>
-            </>
-          )}
+          {appliedFilters.map((pill) => (
+            <button
+              key={pill.key}
+              type="button"
+              onClick={pill.onClick}
+              className="inline-flex h-8 items-center gap-1.5 rounded-full border border-brand/20 bg-brand px-3 text-[12px] font-medium text-primary-foreground transition hover:bg-brand/90"
+              aria-label={`Remove ${pill.label}`}
+            >
+              <X className="size-3" strokeWidth={2.2} />
+              {pill.label}
+            </button>
+          ))}
+          {appliedFilters.length > 0 ? (
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="text-[12px] font-medium text-brand hover:underline"
+            >
+              Clear all
+            </button>
+          ) : null}
         </div>
 
-        <div className="w-full lg:w-auto lg:min-w-[220px] lg:shrink-0">
+        <div className="relative w-full sm:w-auto sm:min-w-[200px] lg:shrink-0">
+          <ArrowUpDown
+            className="pointer-events-none absolute top-1/2 left-3 z-10 size-3.5 -translate-y-1/2 text-brand"
+            strokeWidth={1.75}
+            aria-hidden
+          />
           <NativeSelect
             value={current.sort}
             onChange={(event) =>
@@ -286,7 +369,8 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
                 ["sort"],
               )
             }
-            className="h-11 border-neutral-200"
+            className="h-9 border-brand/20 bg-brand/5 py-1.5 pl-9 pr-9 text-[12px] font-medium text-brand transition duration-500 hover:bg-brand/10 focus:border-brand/40 focus:ring-brand/20"
+            wrapperClassName="w-full"
           >
             <option value="default">Sort By: Best Matches</option>
             <option value="price-low">Sort By: Price Low to High</option>
@@ -301,254 +385,113 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
         <div className="fixed inset-0 z-[70]">
           <button
             type="button"
-            className="absolute inset-0 bg-black/25 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-black/30 backdrop-blur-[3px]"
             aria-label="Close filters"
             onClick={() => setOpen(false)}
           />
-          <aside className="absolute left-0 top-0 flex h-full w-[min(100%,380px)] flex-col rounded-r-2xl bg-[#faf8f6] shadow-2xl">
-            <div className="flex items-center justify-between px-6 py-5">
-              <h2 className="font-serif text-2xl text-neutral-900">Filter By</h2>
+          <aside className="absolute left-0 top-0 flex h-full w-[min(100%,400px)] flex-col border-r border-brand/10 bg-white shadow-[8px_0_40px_rgba(0,0,0,0.12)]">
+            <div className="flex items-center justify-between border-b border-brand/10 bg-brand/[0.03] px-5 py-4">
+              <div>
+                <h2 className="font-serif text-xl tracking-tight text-brand">
+                  Filters
+                </h2>
+                <p className="mt-0.5 text-[11px] text-neutral-500">
+                  {draftCount > 0
+                    ? `${draftCount} selected · ${total.toLocaleString("en-IN")} results`
+                    : `${total.toLocaleString("en-IN")} products`}
+                </p>
+              </div>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="rounded-full p-1 text-neutral-600 hover:bg-white"
+                className="rounded-full border border-brand/15 p-2 text-brand transition hover:bg-brand hover:text-primary-foreground"
                 aria-label="Close"
               >
-                <X className="size-5" strokeWidth={1.5} />
+                <X className="size-4" strokeWidth={1.75} />
               </button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-2">
-              {DRAWER_SECTIONS.map((section) => (
-                <div key={section} className="border-b border-neutral-200">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setExpanded((value) => (value === section ? "" : section))
-                    }
-                    className="flex w-full items-center justify-between px-4 py-4 text-left text-sm text-neutral-800"
+            <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2">
+              {sections.map((section) => {
+                const isOpen = expanded === section.id;
+                const options = facets[section.facetKey];
+                const Icon = section.Icon;
+                return (
+                  <div
+                    key={section.id}
+                    className={cn(
+                      "mb-1 overflow-hidden rounded-xl border transition",
+                      isOpen
+                        ? "border-brand/20 bg-brand/[0.03]"
+                        : "border-transparent hover:border-brand/10 hover:bg-neutral-50",
+                    )}
                   >
-                    {section}
-                    <ChevronDown
-                      className={`size-4 text-neutral-500 transition ${
-                        expanded === section ? "rotate-180" : ""
-                      }`}
-                    />
-                  </button>
-                  {expanded === section ? (
-                    <div className="space-y-2 px-4 pb-4">
-                      {section === "Price"
-                        ? PRICE_PILLS.map((pill) => (
-                            <FilterOption
-                              key={pill.label}
-                              label={pill.label}
-                              checked={splitCsv(draft.price).includes(
-                                priceKey(pill.min, pill.max),
-                              )}
-                              onChange={() =>
-                                setDraft((value) => ({
-                                  ...value,
-                                  price: toggleCsv(
-                                    value.price,
-                                    priceKey(pill.min, pill.max),
-                                  ),
-                                }))
-                              }
-                            />
-                          ))
-                        : null}
-                      {section === "Jewellery Type" ? (
-                        <>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpanded((value) =>
+                          value === section.id ? "" : section.id,
+                        )
+                      }
+                      className="flex w-full items-center justify-between gap-3 px-3.5 py-3.5 text-left"
+                    >
+                      <span className="flex items-center gap-2.5 text-[13px] font-medium text-neutral-800">
+                        <span className="inline-flex size-8 items-center justify-center rounded-full border border-brand/15 bg-white text-brand">
+                          <Icon className="size-4" />
+                        </span>
+                        {section.label}
+                      </span>
+                      <ChevronDown
+                        className={cn(
+                          "size-4 shrink-0 text-brand/60 transition duration-300",
+                          isOpen && "rotate-180 text-brand",
+                        )}
+                        strokeWidth={1.75}
+                      />
+                    </button>
+                    {isOpen ? (
+                      <div className="space-y-1 px-3 pb-3.5">
+                        {options.map((option) => (
                           <FilterOption
-                            label="Gold Jewellery"
-                            checked={splitCsv(draft.type).includes("gold")}
+                            key={option.value}
+                            label={option.label}
+                            count={option.count}
+                            checked={splitCsv(
+                              draftValueFor(section.id),
+                            ).includes(option.value)}
                             onChange={() =>
-                              setDraft((value) => ({
-                                ...value,
-                                type: toggleCsv(value.type, "gold"),
-                              }))
+                              setDraftValue(
+                                section.id,
+                                toggleCsv(
+                                  draftValueFor(section.id),
+                                  option.value,
+                                ),
+                              )
                             }
                           />
-                          <FilterOption
-                            label="Diamond Jewellery"
-                            checked={splitCsv(draft.type).includes("diamond")}
-                            onChange={() =>
-                              setDraft((value) => ({
-                                ...value,
-                                type: toggleCsv(value.type, "diamond"),
-                              }))
-                            }
-                          />
-                        </>
-                      ) : null}
-                      {section === "Brand"
-                        ? brands.map((brand) => (
-                            <FilterOption
-                              key={brand}
-                              label={brand}
-                              checked={splitCsv(draft.brand).includes(brand)}
-                              onChange={() =>
-                                setDraft((value) => ({
-                                  ...value,
-                                  brand: toggleCsv(value.brand, brand),
-                                }))
-                              }
-                            />
-                          ))
-                        : null}
-                      {section === "Gender" ? (
-                        <>
-                          <FilterOption
-                            label="Women"
-                            checked={splitCsv(draft.gender).includes("women")}
-                            onChange={() =>
-                              setDraft((value) => ({
-                                ...value,
-                                gender: toggleCsv(value.gender, "women"),
-                              }))
-                            }
-                          />
-                          <FilterOption
-                            label="Men"
-                            checked={splitCsv(draft.gender).includes("men")}
-                            onChange={() =>
-                              setDraft((value) => ({
-                                ...value,
-                                gender: toggleCsv(value.gender, "men"),
-                              }))
-                            }
-                          />
-                        </>
-                      ) : null}
-                      {section === "Karatage" ? (
-                        <>
-                          <FilterOption
-                            label="18KT"
-                            checked={splitCsv(draft.karat).includes("18")}
-                            onChange={() =>
-                              setDraft((value) => ({
-                                ...value,
-                                karat: toggleCsv(value.karat, "18"),
-                              }))
-                            }
-                          />
-                          <FilterOption
-                            label="22KT"
-                            checked={splitCsv(draft.karat).includes("22")}
-                            onChange={() =>
-                              setDraft((value) => ({
-                                ...value,
-                                karat: toggleCsv(value.karat, "22"),
-                              }))
-                            }
-                          />
-                        </>
-                      ) : null}
-                      {section === "Size"
-                        ? SIZE_PILLS.map((size) => (
-                            <FilterOption
-                              key={size}
-                              label={size === "Free Size" ? "Free Size" : size}
-                              checked={splitCsv(draft.size).includes(size)}
-                              onChange={() =>
-                                setDraft((value) => ({
-                                  ...value,
-                                  size: toggleCsv(value.size, size),
-                                }))
-                              }
-                            />
-                          ))
-                        : null}
-                      {section === "Occasion" ? (
-                        <>
-                          <FilterOption
-                            label="Daily Wear"
-                            checked={splitCsv(draft.occasion).includes("daily")}
-                            onChange={() =>
-                              setDraft((value) => ({
-                                ...value,
-                                occasion: toggleCsv(value.occasion, "daily"),
-                              }))
-                            }
-                          />
-                          <FilterOption
-                            label="Wedding"
-                            checked={splitCsv(draft.occasion).includes("wedding")}
-                            onChange={() =>
-                              setDraft((value) => ({
-                                ...value,
-                                occasion: toggleCsv(value.occasion, "wedding"),
-                              }))
-                            }
-                          />
-                          <FilterOption
-                            label="Festive"
-                            checked={splitCsv(draft.occasion).includes("festive")}
-                            onChange={() =>
-                              setDraft((value) => ({
-                                ...value,
-                                occasion: toggleCsv(value.occasion, "festive"),
-                              }))
-                            }
-                          />
-                        </>
-                      ) : null}
-                      {section === "Metal" ? (
-                        <>
-                          <FilterOption
-                            label="Yellow Gold"
-                            checked={splitCsv(draft.metal).includes("Gold")}
-                            onChange={() =>
-                              setDraft((value) => ({
-                                ...value,
-                                metal: toggleCsv(value.metal, "Gold"),
-                              }))
-                            }
-                          />
-                          <FilterOption
-                            label="White Gold"
-                            checked={splitCsv(draft.metal).includes("White Gold")}
-                            onChange={() =>
-                              setDraft((value) => ({
-                                ...value,
-                                metal: toggleCsv(value.metal, "White Gold"),
-                              }))
-                            }
-                          />
-                          <FilterOption
-                            label="Rose Gold"
-                            checked={splitCsv(draft.metal).includes("Rose Gold")}
-                            onChange={() =>
-                              setDraft((value) => ({
-                                ...value,
-                                metal: toggleCsv(value.metal, "Rose Gold"),
-                              }))
-                            }
-                          />
-                        </>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
-              ))}
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
             </div>
 
-            <div className="flex gap-3 border-t border-neutral-200 bg-[#faf8f6] p-4">
+            <div className="flex gap-2.5 border-t border-brand/10 bg-white p-4">
               <button
                 type="button"
                 onClick={clearFilters}
-                className="flex flex-1 items-center justify-center gap-1 rounded-full bg-[#f3e6e4] py-3 text-sm text-neutral-800"
+                className={cn(partnerBtnClass, "h-11 flex-1 justify-center")}
               >
-                Clear Filters
-                <ChevronRight className="size-4" />
+                Clear
               </button>
               <button
                 type="button"
                 onClick={applyDraft}
-                className="flex flex-1 items-center justify-center gap-1 rounded-full bg-[#8b2e2e] py-3 text-sm text-white"
+                className="inline-flex h-11 flex-[1.4] items-center justify-center gap-1 rounded-full bg-brand px-4 text-[12px] font-medium text-primary-foreground transition hover:bg-brand/90"
               >
-                Show Result ({total.toLocaleString("en-IN")})
-                <ChevronRight className="size-4" />
+                Show results
+                <ChevronRight className="size-3.5" strokeWidth={2} />
               </button>
             </div>
           </aside>
@@ -560,22 +503,57 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
 
 function FilterOption({
   label,
+  count,
   checked,
   onChange,
 }: {
   label: string;
+  count?: number;
   checked: boolean;
   onChange: () => void;
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-3 text-sm text-neutral-700">
+    <label
+      className={cn(
+        "flex cursor-pointer items-center gap-3 rounded-lg px-2.5 py-2.5 text-[13px] transition",
+        checked
+          ? "bg-brand/10 font-medium text-brand"
+          : "text-neutral-700 hover:bg-white",
+      )}
+    >
+      <span
+        className={cn(
+          "flex size-4 shrink-0 items-center justify-center rounded border transition",
+          checked
+            ? "border-brand bg-brand text-primary-foreground"
+            : "border-neutral-300 bg-white",
+        )}
+        aria-hidden
+      >
+        {checked ? (
+          <svg
+            viewBox="0 0 12 12"
+            className="size-2.5 fill-none stroke-current"
+          >
+            <path
+              d="M2.5 6.2 4.8 8.5 9.5 3.5"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        ) : null}
+      </span>
       <input
         type="checkbox"
         checked={checked}
         onChange={onChange}
-        className="size-4 rounded border-neutral-300 accent-[#8b2e2e]"
+        className="sr-only"
       />
-      {label}
+      <span className="min-w-0 flex-1">{label}</span>
+      {typeof count === "number" ? (
+        <span className="text-[11px] text-neutral-400">{count}</span>
+      ) : null}
     </label>
   );
 }

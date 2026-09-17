@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ChevronDown, ChevronRight, ListFilter, Plus, X } from "lucide-react";
+import { ChevronDown, ChevronRight, ListFilter, X } from "lucide-react";
 import { splitCsv, toggleCsv } from "@/lib/products/product-query";
 import { NativeSelect } from "@/components/ui/native-select";
 
@@ -57,7 +57,6 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<string>("Price");
-  const [showMorePills, setShowMorePills] = useState(false);
 
   const current = useMemo(() => {
     const minPrice = searchParams.get("minPrice") ?? "";
@@ -145,86 +144,92 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
     setOpen(false);
   }
 
-  const pills = [
-    ...PRICE_PILLS.map((pill) => {
-      const value = priceKey(pill.min, pill.max);
-      return {
-        key: pill.label,
-        label: pill.label,
-        active: splitCsv(current.price).includes(value),
+  // Only show chips for filters the user has applied
+  const appliedFilters = useMemo(() => {
+    const chips: Array<{ key: string; label: string; onClick: () => void }> =
+      [];
+
+    for (const value of splitCsv(current.price)) {
+      const match = PRICE_PILLS.find(
+        (pill) => priceKey(pill.min, pill.max) === value,
+      );
+      chips.push({
+        key: `price-${value}`,
+        label: match?.label ?? `₹${value.replace("-", " - ₹")}`,
         onClick: () => toggleParam("price", value),
-      };
-    }),
-    {
-      key: "women",
-      label: "Women",
-      active: splitCsv(current.gender).includes("women"),
-      onClick: () => toggleParam("gender", "women"),
-    },
-    {
-      key: "gold",
-      label: "Gold Jewellery",
-      active: splitCsv(current.type).includes("gold"),
-      onClick: () => toggleParam("type", "gold"),
-    },
-    {
-      key: "22",
-      label: "22",
-      active: splitCsv(current.karat).includes("22"),
-      onClick: () => toggleParam("karat", "22"),
-    },
-  ];
+      });
+    }
 
-  const visiblePills = showMorePills ? pills : pills.slice(0, 4);
-
-  const extraSelected = [
-    ...splitCsv(current.occasion).map((value) => ({
-      key: `occasion-${value}`,
-      label:
-        value === "daily"
-          ? "Daily Wear"
-          : value === "wedding"
-            ? "Wedding"
-            : "Festive",
-      onClick: () => toggleParam("occasion", value),
-    })),
-    ...splitCsv(current.metal).map((value) => ({
-      key: `metal-${value}`,
-      label: value === "Gold" ? "Yellow Gold" : value,
-      onClick: () => toggleParam("metal", value),
-    })),
-    ...splitCsv(current.brand).map((value) => ({
-      key: `brand-${value}`,
-      label: value,
-      onClick: () => toggleParam("brand", value),
-    })),
-    ...splitCsv(current.type)
-      .filter((value) => value !== "gold")
-      .map((value) => ({
-        key: `type-${value}`,
-        label: value === "diamond" ? "Diamond Jewellery" : value,
-        onClick: () => toggleParam("type", value),
-      })),
-    ...splitCsv(current.gender)
-      .filter((value) => value !== "women")
-      .map((value) => ({
+    for (const value of splitCsv(current.gender)) {
+      chips.push({
         key: `gender-${value}`,
-        label: "Men",
+        label: value === "women" ? "Women" : "Men",
         onClick: () => toggleParam("gender", value),
-      })),
-    ...splitCsv(current.karat)
-      .filter((value) => value !== "22")
-      .map((value) => ({
+      });
+    }
+
+    for (const value of splitCsv(current.type)) {
+      chips.push({
+        key: `type-${value}`,
+        label:
+          value === "gold"
+            ? "Gold Jewellery"
+            : value === "diamond"
+              ? "Diamond Jewellery"
+              : value,
+        onClick: () => toggleParam("type", value),
+      });
+    }
+
+    for (const value of splitCsv(current.karat)) {
+      chips.push({
         key: `karat-${value}`,
         label: `${value}KT`,
         onClick: () => toggleParam("karat", value),
-      })),
-    ...splitCsv(current.size).map((value) => ({
-      key: `size-${value}`,
-      label: value === "Free Size" ? "Free Size" : `Size ${value}`,
-      onClick: () => toggleParam("size", value),
-    })),
-  ];
+      });
+    }
+
+    for (const value of splitCsv(current.size)) {
+      chips.push({
+        key: `size-${value}`,
+        label: value === "Free Size" ? "Free Size" : `Size ${value}`,
+        onClick: () => toggleParam("size", value),
+      });
+    }
+
+    for (const value of splitCsv(current.occasion)) {
+      chips.push({
+        key: `occasion-${value}`,
+        label:
+          value === "daily"
+            ? "Daily Wear"
+            : value === "wedding"
+              ? "Wedding"
+              : "Festive",
+        onClick: () => toggleParam("occasion", value),
+      });
+    }
+
+    for (const value of splitCsv(current.metal)) {
+      chips.push({
+        key: `metal-${value}`,
+        label: value === "Gold" ? "Yellow Gold" : value,
+        onClick: () => toggleParam("metal", value),
+      });
+    }
+
+    for (const value of splitCsv(current.brand)) {
+      chips.push({
+        key: `brand-${value}`,
+        label: value,
+        onClick: () => toggleParam("brand", value),
+      });
+    }
+
+    return chips;
+    // toggleParam closes over current; chips rebuild when current changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current]);
 
   return (
     <>
@@ -240,45 +245,33 @@ export function TanishqFilterBar({ brands, total }: FilterBarProps) {
         </button>
 
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-          {visiblePills.map((pill) => (
-            <button
-              key={pill.key}
-              type="button"
-              onClick={pill.onClick}
-              className={`inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm ${
-                pill.active
-                  ? "bg-[#8b2e2e] text-white"
-                  : "border border-[#ead9c4] bg-[#faf6f0] text-neutral-700 hover:bg-[#f6ead7]"
-              }`}
-            >
-              {pill.active ? (
-                <X className="size-3.5" strokeWidth={2.4} />
-              ) : (
-                <span className="flex size-[18px] items-center justify-center rounded-full bg-[#f3e4c8] text-[#8b2e2e]">
-                  <Plus className="size-3" strokeWidth={2.5} />
-                </span>
-              )}
-              {pill.label}
-            </button>
-          ))}
-          {extraSelected.map((pill) => (
-            <button
-              key={pill.key}
-              type="button"
-              onClick={pill.onClick}
-              className="inline-flex h-10 items-center gap-2 rounded-full bg-[#8b2e2e] px-4 text-sm text-white"
-            >
-              <X className="size-3.5" strokeWidth={2.4} />
-              {pill.label}
-            </button>
-          ))}
-          <button
-            type="button"
-            onClick={() => setShowMorePills((value) => !value)}
-            className="text-sm text-[#8b2e2e]"
-          >
-            {showMorePills ? "Show Less" : "+ Show More"}
-          </button>
+          {appliedFilters.length === 0 ? (
+            <p className="text-sm text-neutral-400">
+              No filters applied
+            </p>
+          ) : (
+            <>
+              {appliedFilters.map((pill) => (
+                <button
+                  key={pill.key}
+                  type="button"
+                  onClick={pill.onClick}
+                  className="inline-flex h-10 items-center gap-2 rounded-full bg-[#8b2e2e] px-4 text-sm text-white"
+                  aria-label={`Remove ${pill.label}`}
+                >
+                  <X className="size-3.5" strokeWidth={2.4} />
+                  {pill.label}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-sm font-medium text-[#8b2e2e] hover:underline"
+              >
+                Clear all
+              </button>
+            </>
+          )}
         </div>
 
         <div className="w-full lg:w-auto lg:min-w-[220px] lg:shrink-0">

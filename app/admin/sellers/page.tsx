@@ -5,16 +5,44 @@ import { Badge } from "@/components/ui/badge";
 import { SellerActions } from "@/components/admin/seller-actions";
 import { format } from "date-fns";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Seller Admins | Super Admin",
 };
 
-export default async function AdminSellersPage() {
-  const sellers = await getAllSellers();
+const KYC_FILTERS = [
+  { id: "ALL", label: "All KYC" },
+  { id: "PENDING", label: "KYC Pending" },
+  { id: "VERIFIED", label: "KYC Verified" },
+  { id: "REJECTED", label: "KYC Rejected" },
+  { id: "NOT_SUBMITTED", label: "Not submitted" },
+] as const;
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
+const STATUS_FILTERS = [
+  { id: "ALL", label: "All accounts" },
+  { id: "PENDING", label: "Account pending" },
+  { id: "APPROVED", label: "Approved" },
+  { id: "REJECTED", label: "Rejected" },
+  { id: "SUSPENDED", label: "Suspended" },
+] as const;
+
+export default async function AdminSellersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ kyc?: string; status?: string }>;
+}) {
+  const params = await searchParams;
+  const kycStatus = params.kyc || "ALL";
+  const status = params.status || "ALL";
+
+  const sellers = await getAllSellers({
+    kycStatus: kycStatus === "ALL" ? undefined : kycStatus,
+    status: status === "ALL" ? undefined : status,
+  });
+
+  const getStatusBadge = (s: string) => {
+    switch (s) {
       case "APPROVED":
         return <Badge className="bg-green-600">Approved</Badge>;
       case "PENDING":
@@ -28,28 +56,80 @@ export default async function AdminSellersPage() {
     }
   };
 
-  const pendingCount = sellers.filter(s => s.verificationStatus === "PENDING").length;
+  const pendingKycCount = sellers.filter((s) => s.kycStatus === "PENDING").length;
+  const pendingCount = sellers.filter(
+    (s) => s.verificationStatus === "PENDING",
+  ).length;
+
+  const filterHref = (next: { kyc?: string; status?: string }) => {
+    const q = new URLSearchParams();
+    const k = next.kyc ?? kycStatus;
+    const st = next.status ?? status;
+    if (k && k !== "ALL") q.set("kyc", k);
+    if (st && st !== "ALL") q.set("status", st);
+    const qs = q.toString();
+    return qs ? `/admin/sellers?${qs}` : "/admin/sellers";
+  };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Seller Admins</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+          Seller Admins
+        </h1>
         <p className="mt-2 text-muted-foreground">
-          {sellers.length} seller admins • {pendingCount} pending approval.
-          Approve, reject, or deactivate accounts from here.
+          {sellers.length} seller admins • {pendingCount} account pending •{" "}
+          {pendingKycCount} KYC pending in this view.
         </p>
       </div>
 
-      {/* Sellers Table */}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap gap-2">
+          {KYC_FILTERS.map((f) => (
+            <Link
+              key={f.id}
+              href={filterHref({ kyc: f.id })}
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                kycStatus === f.id
+                  ? "border-[#8b2e2e] bg-[#8b2e2e] text-white"
+                  : "border-neutral-200 bg-white text-neutral-600 hover:border-[#8b2e2e]/40",
+              )}
+            >
+              {f.label}
+            </Link>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {STATUS_FILTERS.map((f) => (
+            <Link
+              key={f.id}
+              href={filterHref({ status: f.id })}
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                status === f.id
+                  ? "border-neutral-800 bg-neutral-800 text-white"
+                  : "border-neutral-200 bg-white text-neutral-600 hover:border-neutral-400",
+              )}
+            >
+              {f.label}
+            </Link>
+          ))}
+        </div>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle>All Seller Admins</CardTitle>
+          <CardTitle>
+            {kycStatus === "PENDING"
+              ? "KYC pending queue"
+              : "Seller admins"}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {sellers.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground">
-              No seller admins found
+              No seller admins match these filters
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -87,7 +167,9 @@ export default async function AdminSellersPage() {
                         </div>
                       </td>
                       <td className="py-4">
-                        <span className="font-medium">{seller._count.products}</span>
+                        <span className="font-medium">
+                          {seller._count.products}
+                        </span>
                       </td>
                       <td className="py-4">
                         {getStatusBadge(seller.verificationStatus)}
@@ -100,7 +182,9 @@ export default async function AdminSellersPage() {
                               ? "text-green-600"
                               : seller.kycStatus === "PENDING"
                                 ? "text-yellow-600"
-                                : ""
+                                : seller.kycStatus === "REJECTED"
+                                  ? "text-red-600"
+                                  : ""
                           }
                         >
                           {seller.kycStatus}

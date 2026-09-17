@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import { getOrderStatusLabel } from "@/lib/orders/order-utils";
 import { format } from "date-fns";
+import { SlaOrderActions } from "@/components/admin/sla-order-actions";
 
 export const metadata: Metadata = {
   title: "Order SLA | Super Admin",
@@ -48,7 +49,12 @@ export default async function AdminOrderSlaPage() {
       ) : (
         <div className="grid gap-4">
           {orders.map((order) => (
-            <Card key={order.id}>
+            <Card
+              key={order.id}
+              className={
+                order.slaEscalatedAt ? "border-amber-300 bg-amber-50/40" : undefined
+              }
+            >
               <CardContent className="p-6">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
                   <div className="flex gap-3">
@@ -89,6 +95,11 @@ export default async function AdminOrderSlaPage() {
                           Placed {format(order.createdAt, "MMM dd, yyyy")} •{" "}
                           {daysSince(order.createdAt)} days ago
                         </p>
+                        {order.slaAdminNote ? (
+                          <p className="mt-2 whitespace-pre-wrap text-xs text-amber-900">
+                            {order.slaAdminNote}
+                          </p>
+                        ) : null}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <Badge variant="destructive">
@@ -97,14 +108,29 @@ export default async function AdminOrderSlaPage() {
                         <Badge variant="outline">
                           {formatCurrency(Number(order.total))}
                         </Badge>
+                        {order.slaNudgedAt ? (
+                          <Badge variant="outline" className="text-blue-700">
+                            Nudged
+                          </Badge>
+                        ) : null}
+                        {order.slaEscalatedAt ? (
+                          <Badge className="bg-amber-600">Escalated</Badge>
+                        ) : null}
                       </div>
                     </div>
-                    <Link
-                      href={`/admin/orders/${order.id}`}
-                      className="mt-3 inline-block text-sm text-primary hover:underline"
-                    >
-                      Open order →
-                    </Link>
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <SlaOrderActions
+                        orderId={order.id}
+                        nudgedAt={order.slaNudgedAt}
+                        escalatedAt={order.slaEscalatedAt}
+                      />
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className="text-sm text-primary hover:underline"
+                      >
+                        Open order →
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </CardContent>

@@ -18,6 +18,7 @@ import {
 } from "@/actions/admin/manage-products";
 import { CheckCircle, XCircle, Ban } from "lucide-react";
 import { appAlert } from "@/components/shared/app-dialog";
+import { REJECTION_CATEGORIES } from "@/lib/products/jewellery-qa";
 
 type ProductActionsProps = {
   productId: string;
@@ -32,6 +33,7 @@ export function ProductActions({
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [suspendDialogOpen, setSuspendDialogOpen] = useState(false);
   const [reason, setReason] = useState("");
+  const [category, setCategory] = useState<string>("INFO_INCOMPLETE");
 
   const handleApprove = () => {
     startTransition(async () => {
@@ -54,9 +56,9 @@ export function ProductActions({
     }
 
     startTransition(async () => {
-      const result = await rejectProduct(productId, reason);
+      const result = await rejectProduct(productId, reason, category);
       if (result.success) {
-        await appAlert("Product rejected successfully!", {
+        await appAlert("Product rejected. Seller can fix and resubmit.", {
           variant: "success",
         });
         setRejectDialogOpen(false);
@@ -97,7 +99,6 @@ export function ProductActions({
     });
   };
 
-  // Draft + pending both await Super Admin review (draft save left some listings as DRAFT)
   const needsReview =
     currentStatus === "PENDING_APPROVAL" || currentStatus === "DRAFT";
 
@@ -119,6 +120,7 @@ export function ProductActions({
           type="button"
           onClick={() => {
             setReason("");
+            setCategory("INFO_INCOMPLETE");
             setRejectDialogOpen(true);
           }}
           disabled={isPending}
@@ -163,14 +165,31 @@ export function ProductActions({
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
+              <label htmlFor="reject-category" className="text-sm font-medium">
+                Category *
+              </label>
+              <select
+                id="reject-category"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="mt-2 flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              >
+                {REJECTION_CATEGORIES.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
               <label htmlFor="reject-reason" className="text-sm font-medium">
-                Rejection Reason *
+                What should the seller fix? *
               </label>
               <Textarea
                 id="reject-reason"
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                placeholder="Please provide a detailed reason for rejection"
+                placeholder="Be specific so the seller can fix and resubmit (e.g. add close-up of hallmark, correct weight)."
                 rows={4}
                 className="mt-2"
               />

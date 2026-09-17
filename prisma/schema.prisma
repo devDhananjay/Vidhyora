@@ -353,6 +353,11 @@ model Product {
   thumbnail        String?
   videoUrl         String?
   rejectionReason  String?               @db.Text
+  rejectionCategory String?
+  resubmissionCount Int                  @default(0)
+  qualityChecklist Json?
+  qualityCheckedAt DateTime?
+  qualityCheckedBy String?
   metaTitle        String?
   metaDescription  String?               @db.Text
   createdAt        DateTime              @default(now())
@@ -582,6 +587,9 @@ model Order {
   giftMessage     String?       @db.Text
   occasionNote    String?       @db.Text
   hidePriceOnInvoice Boolean    @default(false)
+  slaEscalatedAt  DateTime?
+  slaNudgedAt     DateTime?
+  slaAdminNote    String?       @db.Text
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 

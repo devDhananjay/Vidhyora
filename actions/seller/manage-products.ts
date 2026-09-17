@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { getActingSeller } from "@/lib/seller-context";
 import { revalidatePath } from "next/cache";
 import { createProductSchema, type CreateProductInput } from "@/lib/validations/product";
@@ -233,6 +234,21 @@ export async function updateProduct(
                 ? "DRAFT"
                 : existingProduct.status
             : "ACTIVE",
+          // Clear rejection when seller fixes & resubmits
+          rejectionReason: needsApproval ? null : existingProduct.rejectionReason,
+          rejectionCategory: needsApproval
+            ? null
+            : existingProduct.rejectionCategory,
+          resubmissionCount:
+            existingProduct.approvalStatus === "REJECTED" && needsApproval
+              ? (existingProduct.resubmissionCount ?? 0) + 1
+              : existingProduct.resubmissionCount,
+          qualityChecklist: needsApproval
+            ? Prisma.JsonNull
+            : (existingProduct.qualityChecklist as Prisma.InputJsonValue) ??
+              undefined,
+          qualityCheckedAt: needsApproval ? null : existingProduct.qualityCheckedAt,
+          qualityCheckedBy: needsApproval ? null : existingProduct.qualityCheckedBy,
           policy: {
             upsert: {
               create: policyData,
@@ -562,6 +578,121 @@ export async function saveProductDraft(
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to save draft",
+    };
+  }
+}
+
+/**
+ * Clone an existing listing so the seller can tweak size/metal/SKU quickly.
+ */
+export async function cloneProduct(
+  productId: string,
+): Promise<ActionResult<{ id: string }>> {
+  try {
+    const acting = await getActingSeller();
+    if (!acting) {
+      return { success: false, error: "Seller profile not found" };
+    }
+
+    const source = await prisma.product.findFirst({
+      where: {
+        id: productId,
+        sellerId: acting.sellerUserId,
+      },
+      include: {
+        images: { orderBy: { sortOrder: "asc" } },
+        variants: true,
+        policy: true,
+      },
+    });
+
+    if (!source) {
+      return { success: false, error: "Product not found" };
+    }
+
+    const stamp = Date.now().toString(36);
+    const baseSlug = `${source.slug}-copy`
+      .toLowerCase()
+      .replace(/[^a-z0-9-]+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 160);
+    let slug = `${baseSlug}-${stamp}`;
+    if (await prisma.product.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${stamp}-${Math.floor(Math.random() * 1000)}`;
+    }
+
+    const clone = await prisma.product.create({
+      data: {
+        name: `${source.name} (Copy)`,
+        slug,
+        brand: source.brand,
+        categoryId: source.categoryId,
+        sellerId: acting.sellerUserId,
+        shortDescription: source.shortDescription,
+        description: source.description,
+        thumbnail: source.thumbnail,
+        videoUrl: source.videoUrl,
+        basePrice: source.basePrice,
+        compareAtPrice: source.compareAtPrice,
+        tax: source.tax,
+        hsn: source.hsn,
+        certificateNumber: source.certificateNumber,
+        certificateUrl: source.certificateUrl,
+        attributes: source.attributes ?? {},
+        status: "DRAFT",
+        approvalStatus: "DRAFT",
+        rejectionReason: null,
+        rejectionCategory: null,
+        resubmissionCount: 0,
+        images: {
+          create: source.images.map((image, index) => ({
+            url: image.url,
+            sourceUrl: image.sourceUrl || image.url,
+            kind: image.kind,
+            role: image.role,
+            altText: image.altText,
+            sortOrder: image.sortOrder ?? index,
+          })),
+        },
+        variants: {
+          create: source.variants.map((variant, index) => ({
+            sku: `${variant.sku}-C${stamp}`.slice(0, 50),
+            attributes: variant.attributes ?? {},
+            price: variant.price,
+            compareAtPrice: variant.compareAtPrice,
+            stock: 0,
+            reservedStock: 0,
+            weight: variant.weight,
+            length: variant.length,
+            width: variant.width,
+            height: variant.height,
+            isActive: variant.isActive,
+          })),
+        },
+        policy: source.policy
+          ? {
+              create: {
+                returnAllowed: source.policy.returnAllowed,
+                returnWindowDays: source.policy.returnWindowDays,
+                replacementAllowed: source.policy.replacementAllowed,
+                replacementWindowDays: source.policy.replacementWindowDays,
+                warrantyAvailable: source.policy.warrantyAvailable,
+                warrantyMonths: source.policy.warrantyMonths,
+                policyDescription: source.policy.policyDescription,
+              },
+            }
+          : undefined,
+      },
+    });
+
+    revalidatePath("/seller/products");
+    return { success: true, data: { id: clone.id } };
+  } catch (error) {
+    console.error("Clone product error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to clone product",
     };
   }
 }

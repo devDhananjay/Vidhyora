@@ -7,6 +7,7 @@ import type { ActionResult } from "@/lib/utils";
 
 export async function getAllSellers(filters?: {
   status?: string;
+  kycStatus?: string;
   search?: string;
 }) {
   try {
@@ -16,6 +17,10 @@ export async function getAllSellers(filters?: {
 
     if (filters?.status && filters.status !== "ALL") {
       where.verificationStatus = filters.status;
+    }
+
+    if (filters?.kycStatus && filters.kycStatus !== "ALL") {
+      where.kycStatus = filters.kycStatus;
     }
 
     if (filters?.search) {

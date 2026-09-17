@@ -106,11 +106,39 @@ export async function approveProduct(
   try {
     await requireAdmin();
 
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+      select: { qualityChecklist: true },
+    });
+
+    const checklist = product?.qualityChecklist as
+      | { checked?: Record<string, boolean> }
+      | null;
+    const criticalIds = [
+      "images_clear",
+      "weight",
+      "metal_purity",
+      "pricing",
+      "description",
+      "sku_stock",
+    ];
+    const missingCritical = criticalIds.filter(
+      (id) => !checklist?.checked?.[id],
+    );
+    if (missingCritical.length > 0) {
+      return {
+        success: false,
+        error: `Complete QA checklist first (${missingCritical.length} critical item(s) unchecked). Save the checklist, then approve.`,
+      };
+    }
+
     await prisma.product.update({
       where: { id: productId },
       data: {
         approvalStatus: "APPROVED",
         status: "ACTIVE",
+        rejectionReason: null,
+        rejectionCategory: null,
       },
     });
 
@@ -137,26 +165,33 @@ export async function approveProduct(
 export async function rejectProduct(
   productId: string,
   reason: string,
+  category?: string,
 ): Promise<ActionResult<void>> {
   try {
     await requireAdmin();
+
+    const trimmed = reason.trim();
+    if (!trimmed) {
+      return { success: false, error: "Rejection reason is required" };
+    }
 
     await prisma.product.update({
       where: { id: productId },
       data: {
         approvalStatus: "REJECTED",
         status: "INACTIVE",
-        rejectionReason: reason,
+        rejectionReason: trimmed,
+        rejectionCategory: category?.trim() || null,
       },
     });
 
-    // TODO removed — email seller on rejection
-    void notifyProductRejected(productId, reason).catch((error) =>
+    void notifyProductRejected(productId, trimmed).catch((error) =>
       console.error("Product reject email failed:", error),
     );
 
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${productId}`);
+    revalidatePath("/seller/products");
 
     return {
       success: true,
@@ -167,6 +202,43 @@ export async function rejectProduct(
     return {
       success: false,
       error: "Failed to reject product",
+    };
+  }
+}
+
+export async function saveProductQaChecklist(
+  productId: string,
+  checklist: {
+    checked: Record<string, boolean>;
+    notes?: string;
+  },
+): Promise<ActionResult<void>> {
+  try {
+    const session = await requireAdmin();
+
+    await prisma.product.update({
+      where: { id: productId },
+      data: {
+        qualityChecklist: {
+          checked: checklist.checked,
+          notes: checklist.notes || "",
+          checkedAt: new Date().toISOString(),
+          checkedBy: session.user.id,
+        },
+        qualityCheckedAt: new Date(),
+        qualityCheckedBy: session.user.id,
+      },
+    });
+
+    revalidatePath(`/admin/products/${productId}`);
+    revalidatePath("/admin/products");
+
+    return { success: true, data: undefined };
+  } catch (error) {
+    console.error("Save QA checklist error:", error);
+    return {
+      success: false,
+      error: "Failed to save QA checklist",
     };
   }
 }

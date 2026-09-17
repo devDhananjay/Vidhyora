@@ -8,6 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { ProductActions } from "@/components/admin/product-actions";
 import { formatCurrency } from "@/lib/utils";
 import { AdminStockEditor } from "@/components/admin/admin-stock-editor";
+import { JewelleryQaChecklistPanel } from "@/components/admin/jewellery-qa-checklist";
+import type { JewelleryQaChecklist } from "@/lib/products/jewellery-qa";
+import { rejectionCategoryLabel } from "@/lib/products/jewellery-qa";
 
 export const metadata: Metadata = {
   title: "Product Review | Super Admin",
@@ -78,9 +81,19 @@ export default async function AdminProductDetailPage({
                 : product.approvalStatus}
             </Badge>
             {product.rejectionReason ? (
-              <p className="mt-2 text-sm text-red-700">
-                Reason: {product.rejectionReason}
-              </p>
+              <div className="mt-2 space-y-1 text-sm text-red-700">
+                {product.rejectionCategory ? (
+                  <p className="font-medium">
+                    {rejectionCategoryLabel(product.rejectionCategory)}
+                  </p>
+                ) : null}
+                <p>Reason: {product.rejectionReason}</p>
+                {product.resubmissionCount > 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    Resubmissions: {product.resubmissionCount}
+                  </p>
+                ) : null}
+              </div>
             ) : null}
           </CardContent>
         </Card>
@@ -109,6 +122,17 @@ export default async function AdminProductDetailPage({
           </CardContent>
         </Card>
       </div>
+
+      {(product.approvalStatus === "PENDING_APPROVAL" ||
+        product.approvalStatus === "DRAFT" ||
+        product.qualityChecklist) && (
+        <JewelleryQaChecklistPanel
+          productId={product.id}
+          initial={
+            (product.qualityChecklist as JewelleryQaChecklist | null) ?? null
+          }
+        />
+      )}
 
       {/* Seller Information */}
       <Card>

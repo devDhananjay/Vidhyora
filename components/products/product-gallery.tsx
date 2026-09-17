@@ -210,11 +210,19 @@ export function ProductGallery({
                 {thumbIsVideo ? (
                   <div className="flex size-full items-center justify-center bg-neutral-900">
                     <video
-                      src={item.url}
+                      src={`${item.url}${item.url.includes("#") ? "" : "#t=0.1"}`}
                       muted
                       playsInline
                       preload="metadata"
-                      className="absolute inset-0 size-full object-cover opacity-80"
+                      className="absolute inset-0 size-full object-cover opacity-90"
+                      onLoadedData={(e) => {
+                        const el = e.currentTarget;
+                        try {
+                          if (el.currentTime < 0.05) el.currentTime = 0.1;
+                        } catch {
+                          /* ignore */
+                        }
+                      }}
                     />
                     <span className="relative z-[1] rounded bg-black/55 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-white uppercase">
                       Video

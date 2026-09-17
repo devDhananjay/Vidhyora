@@ -379,13 +379,27 @@ export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
                   )}
                 >
                   {item.kind === "VIDEO" ? (
-                    <video
-                      src={item.url}
-                      muted
-                      playsInline
-                      preload="metadata"
-                      className="size-full object-cover"
-                    />
+                    <div className="absolute inset-0 bg-neutral-900">
+                      {/* #t=0.1 forces Safari/Chrome to paint a preview frame */}
+                      <video
+                        src={`${item.url}${item.url.includes("#") ? "" : "#t=0.1"}`}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        className="absolute inset-0 size-full object-cover"
+                        onLoadedData={(e) => {
+                          const el = e.currentTarget;
+                          try {
+                            if (el.currentTime < 0.05) el.currentTime = 0.1;
+                          } catch {
+                            /* ignore seek errors */
+                          }
+                        }}
+                      />
+                      <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/15">
+                        <Film className="size-7 text-white/90 drop-shadow" />
+                      </span>
+                    </div>
                   ) : (
                     <Image
                       src={item.url}

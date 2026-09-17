@@ -1,11 +1,18 @@
 "use client";
 
-import { useState, useRef, type ChangeEvent, type DragEvent } from "react";
+import { useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import Image from "next/image";
-import { Check, X, Upload, Image as ImageIcon } from "lucide-react";
+import {
+  Check,
+  Image as ImageIcon,
+  Pencil,
+  Upload,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { uploadProductImage } from "@/actions/seller/upload-product-image";
+import { ProductImageEditor } from "@/components/shared/product-image-editor";
 
 type ImageUploadProps = {
   value?: string[];
@@ -17,6 +24,16 @@ type ImageUploadProps = {
   maxSize?: number;
   disabled?: boolean;
   className?: string;
+  /** Open crop / logo / zoom editor before upload (default true). */
+  enableEditor?: boolean;
+};
+
+type EditorSession = {
+  src: string;
+  /** When set, replace this URL after save; otherwise append. */
+  replaceUrl?: string;
+  revokeOnClose?: boolean;
+  queue?: File[];
 };
 
 export function ImageUpload({
@@ -28,44 +45,86 @@ export function ImageUpload({
   maxSize = 5,
   disabled = false,
   className,
+  enableEditor = true,
 }: ImageUploadProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editor, setEditor] = useState<EditorSession | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const valueRef = useRef(value);
+  valueRef.current = value;
 
   const activeThumbnail =
     thumbnailUrl && value.includes(thumbnailUrl) ? thumbnailUrl : value[0] || "";
+
+  const uploadFile = async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const result = await uploadProductImage(formData);
+    if (!result.success) {
+      throw new Error(result.error || "Failed to upload image");
+    }
+    return result.data.url;
+  };
+
+  const closeEditor = () => {
+    setEditor((prev) => {
+      if (prev?.revokeOnClose && prev.src.startsWith("blob:")) {
+        URL.revokeObjectURL(prev.src);
+      }
+      return null;
+    });
+  };
+
+  const openNextFromQueue = (queue: File[]) => {
+    const [next, ...rest] = queue;
+    if (!next) {
+      closeEditor();
+      return;
+    }
+    if (next.size > maxSize * 1024 * 1024) {
+      setError(`Each image must be under ${maxSize}MB`);
+      openNextFromQueue(rest);
+      return;
+    }
+    const src = URL.createObjectURL(next);
+    setEditor({
+      src,
+      revokeOnClose: true,
+      queue: rest,
+    });
+  };
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
 
     setError(null);
-    setIsUploading(true);
+    const fileArray = Array.from(files);
 
-    try {
-      const fileArray = Array.from(files);
+    if (value.length + fileArray.length > maxFiles) {
+      setError(`Maximum ${maxFiles} images allowed`);
+      return;
+    }
 
-      if (value.length + fileArray.length > maxFiles) {
-        setError(`Maximum ${maxFiles} images allowed`);
-        setIsUploading(false);
+    for (const file of fileArray) {
+      if (file.size > maxSize * 1024 * 1024) {
+        setError(`Each image must be under ${maxSize}MB`);
         return;
       }
+    }
 
+    if (enableEditor) {
+      openNextFromQueue(fileArray);
+      return;
+    }
+
+    setIsUploading(true);
+    try {
       const uploadedUrls: string[] = [];
       for (const file of fileArray) {
-        if (file.size > maxSize * 1024 * 1024) {
-          throw new Error(`Each image must be under ${maxSize}MB`);
-        }
-        const formData = new FormData();
-        formData.append("file", file);
-        const result = await uploadProductImage(formData);
-        if (!result.success) {
-          throw new Error(result.error || "Failed to upload image");
-        }
-        uploadedUrls.push(result.data.url);
+        uploadedUrls.push(await uploadFile(file));
       }
-
       const next = [...value, ...uploadedUrls];
       onChange(next);
       if (!activeThumbnail && next[0]) {
@@ -75,7 +134,60 @@ export function ImageUpload({
       setError(err instanceof Error ? err.message : "Failed to upload images");
     } finally {
       setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  };
+
+  const handleEditorApply = async (file: File) => {
+    setIsUploading(true);
+    setError(null);
+    try {
+      const url = await uploadFile(file);
+      const current = valueRef.current;
+      const replaceUrl = editor?.replaceUrl;
+      const queue = editor?.queue || [];
+
+      if (replaceUrl) {
+        const next = current.map((u) => (u === replaceUrl ? url : u));
+        onChange(next);
+        if (activeThumbnail === replaceUrl) {
+          onThumbnailChange?.(url);
+        }
+        if (editor?.revokeOnClose && editor.src.startsWith("blob:")) {
+          URL.revokeObjectURL(editor.src);
+        }
+        setEditor(null);
+      } else {
+        const next = [...current, url];
+        onChange(next);
+        if (!activeThumbnail && next[0]) {
+          onThumbnailChange?.(next[0]);
+        }
+        if (editor?.revokeOnClose && editor.src.startsWith("blob:")) {
+          URL.revokeObjectURL(editor.src);
+        }
+        if (queue.length > 0) {
+          openNextFromQueue(queue);
+        } else {
+          setEditor(null);
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to upload image");
+      throw err;
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleEditExisting = (url: string) => {
+    setError(null);
+    setEditor({
+      src: url,
+      replaceUrl: url,
+      revokeOnClose: false,
+    });
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -111,6 +223,7 @@ export function ImageUpload({
   };
 
   const canUploadMore = value.length < maxFiles;
+  const queueLeft = editor?.queue?.length ?? 0;
 
   return (
     <div className={cn("space-y-4", className)}>
@@ -123,34 +236,39 @@ export function ImageUpload({
           className={cn(
             "relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-colors",
             isDragging
-              ? "border-primary bg-primary/5"
-              : "border-muted-foreground/25 hover:border-primary/50",
+              ? "border-[#8b2e2e] bg-[#8b2e2e]/5"
+              : "border-muted-foreground/25 hover:border-[#8b2e2e]/50",
             disabled && "cursor-not-allowed opacity-50",
           )}
         >
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/jpg,image/png,image/webp"
             multiple
             onChange={handleChange}
-            disabled={disabled || isUploading}
+            disabled={disabled || isUploading || Boolean(editor)}
             className="hidden"
           />
 
-          <Upload className="mb-4 size-10 text-muted-foreground" />
+          <Upload className="mb-4 size-10 text-[#8b2e2e]" />
           <p className="mb-2 text-sm font-medium">
-            {isDragging ? "Drop images here" : "Click to upload or drag and drop"}
+            {isDragging
+              ? "Drop images here"
+              : enableEditor
+                ? "Upload photos to crop & brand"
+                : "Click to upload or drag and drop"}
           </p>
           <p className="text-xs text-muted-foreground">
-            PNG, JPG, WEBP up to {maxSize}MB ({maxFiles - value.length} remaining)
+            PNG, JPG, WEBP up to {maxSize}MB · crop, zoom & logo
+            {canUploadMore ? ` · ${maxFiles - value.length} left` : ""}
           </p>
           {isUploading && (
             <div className="mt-4">
               <div className="h-1 w-48 overflow-hidden rounded-full bg-muted">
-                <div className="h-full animate-pulse bg-primary" />
+                <div className="h-full animate-pulse bg-[#8b2e2e]" />
               </div>
-              <p className="mt-2 text-xs text-muted-foreground">Uploading...</p>
+              <p className="mt-2 text-xs text-muted-foreground">Uploading…</p>
             </div>
           )}
         </div>
@@ -178,19 +296,32 @@ export function ImageUpload({
                   src={url}
                   alt={`Upload ${index + 1}`}
                   fill
-                  unoptimized={url.startsWith("data:")}
+                  unoptimized={url.startsWith("data:") || url.startsWith("blob:")}
                   className="object-cover"
                 />
                 {!disabled && (
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute right-2 top-2 z-10 size-6 opacity-0 transition-opacity group-hover:opacity-100"
-                    onClick={() => handleRemove(index)}
-                  >
-                    <X className="size-4" />
-                  </Button>
+                  <div className="absolute right-2 top-2 z-10 flex flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    {enableEditor && (
+                      <Button
+                        type="button"
+                        size="icon"
+                        className="size-7 bg-black/65 text-white hover:bg-black/80"
+                        onClick={() => handleEditExisting(url)}
+                        title="Crop / logo / zoom"
+                      >
+                        <Pencil className="size-3.5" />
+                      </Button>
+                    )}
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="size-7"
+                      onClick={() => handleRemove(index)}
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  </div>
                 )}
                 {isThumb ? (
                   <div className="absolute bottom-2 left-2 flex items-center gap-1 rounded bg-[#8b2e2e] px-2 py-1 text-xs font-medium text-white">
@@ -221,6 +352,25 @@ export function ImageUpload({
           <p className="text-sm">No images uploaded</p>
         </div>
       )}
+
+      <ProductImageEditor
+        open={Boolean(editor)}
+        imageSrc={editor?.src ?? null}
+        title={
+          editor?.replaceUrl
+            ? "Edit product photo"
+            : queueLeft > 0
+              ? `Edit photo · ${queueLeft} more in queue`
+              : "Edit product photo"
+        }
+        onOpenChange={(open) => {
+          if (!open) {
+            // Skip remaining queued files if user cancels
+            closeEditor();
+          }
+        }}
+        onApply={handleEditorApply}
+      />
     </div>
   );
 }

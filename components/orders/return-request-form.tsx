@@ -205,6 +205,7 @@ export function ReturnRequestForm({ orderItem, order, eligibility }: ReturnReque
             onChange={setImages}
             maxFiles={5}
             maxSize={5}
+            enableEditor={false}
           />
         </CardContent>
       </Card>

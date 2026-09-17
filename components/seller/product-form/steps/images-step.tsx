@@ -53,9 +53,9 @@ export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
       <div>
         <Label>Product Images *</Label>
         <p className="mb-4 text-sm text-muted-foreground">
-          Upload up to 5 high-quality images. Hover an image and click{" "}
-          <span className="font-medium text-neutral-700">Set as thumbnail</span>{" "}
-          to choose the main photo (first image is default).
+          Upload up to 5 photos. Each opens an editor to crop, zoom, and add the
+          VIDYORA logo. Hover a saved image to edit again or{" "}
+          <span className="font-medium text-neutral-700">Set as thumbnail</span>.
         </p>
         <ImageUpload
           value={imageUrls}
@@ -76,11 +76,11 @@ export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
       <div className="rounded-xl border bg-muted/50 p-4">
         <h4 className="mb-2 font-medium">Image Guidelines</h4>
         <ul className="space-y-1 text-sm text-muted-foreground">
-          <li>• Use high-resolution images (at least 1000x1000px)</li>
-          <li>• Use white or neutral backgrounds</li>
-          <li>• Show product from multiple angles</li>
+          <li>• Crop and zoom before upload; add logo if you want</li>
+          <li>• Click the pencil on any image to re-edit (add or edit product)</li>
           <li>• Click “Set as thumbnail” on the photo you want as main</li>
-          <li>• Avoid watermarks or text overlays</li>
+          <li>• Use white or neutral backgrounds when possible</li>
+          <li>• Avoid heavy watermarks that hide the jewellery</li>
         </ul>
       </div>
     </div>

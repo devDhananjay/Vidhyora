@@ -86,10 +86,27 @@ export const createProductSchema = z.object({
         url: z.string().min(1),
         sourceUrl: z.string().optional(),
         altText: z.string().optional(),
+        kind: z.enum(["IMAGE", "VIDEO"]).optional().default("IMAGE"),
         sortOrder: z.coerce.number().int().min(0),
       }),
     )
-    .min(1, "Add at least one product image"),
+    .min(1, "Add at least one product image")
+    .superRefine((items, ctx) => {
+      const photos = items.filter((i) => (i.kind || "IMAGE") === "IMAGE");
+      const videos = items.filter((i) => i.kind === "VIDEO");
+      if (photos.length < 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Add at least one product photo",
+        });
+      }
+      if (videos.length > 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Only one product video is allowed",
+        });
+      }
+    }),
 
   videoUrl: z.preprocess(
     (value) => {
@@ -138,19 +155,56 @@ export type ProductPolicyInput = z.infer<typeof productPolicySchema>;
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 
 export function normalizeProductFormValues(product: any): CreateProductInput {
-  const images = (product.images ?? []).map(
-    (image: {
-      url: string;
-      sourceUrl?: string | null;
-      altText?: string | null;
-      sortOrder?: number;
-    }, index: number) => ({
+  type MediaRow = {
+    url: string;
+    sourceUrl?: string;
+    altText?: string;
+    kind: "IMAGE" | "VIDEO";
+    sortOrder: number;
+  };
+
+  const rawImages: MediaRow[] = (product.images ?? []).map(
+    (
+      image: {
+        url: string;
+        sourceUrl?: string | null;
+        altText?: string | null;
+        kind?: string | null;
+        sortOrder?: number;
+      },
+      index: number,
+    ) => ({
       url: image.url,
       sourceUrl: image.sourceUrl || image.url,
       altText: image.altText || undefined,
+      kind: image.kind === "VIDEO" ? "VIDEO" : "IMAGE",
       sortOrder: image.sortOrder ?? index,
     }),
   );
+
+  const hasVideoItem = rawImages.some((i) => i.kind === "VIDEO");
+  const images: MediaRow[] =
+    product.videoUrl && !hasVideoItem
+      ? [
+          {
+            url: product.videoUrl as string,
+            sourceUrl: product.videoUrl as string,
+            altText: undefined,
+            kind: "VIDEO",
+            sortOrder: 0,
+          },
+          ...rawImages.map((img, index) => ({
+            ...img,
+            sortOrder: index + 1,
+          })),
+        ]
+      : rawImages
+          .slice()
+          .sort((a, b) => a.sortOrder - b.sortOrder)
+          .map((img, index) => ({ ...img, sortOrder: index }));
+
+  const firstPhoto = images.find((i) => i.kind === "IMAGE");
+  const videoItem = images.find((i) => i.kind === "VIDEO");
 
   const variants = (product.variants ?? []).map(
     (variant: {
@@ -194,9 +248,14 @@ export function normalizeProductFormValues(product: any): CreateProductInput {
     categoryId: product.categoryId ?? "",
     shortDescription: product.shortDescription ?? "",
     description: product.description ?? "",
-    thumbnail: product.thumbnail || images[0]?.url || "",
+    thumbnail:
+      (product.thumbnail &&
+      firstPhoto &&
+      images.some((i) => i.url === product.thumbnail && i.kind === "IMAGE")
+        ? product.thumbnail
+        : firstPhoto?.url) || "",
     images,
-    videoUrl: product.videoUrl || undefined,
+    videoUrl: videoItem?.url || product.videoUrl || undefined,
     variants:
       variants.length > 0
         ? variants

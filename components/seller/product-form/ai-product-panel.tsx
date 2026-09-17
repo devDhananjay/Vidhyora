@@ -136,6 +136,7 @@ function draftToFormValues(
     url,
     sourceUrl: url,
     altText: draft.imageAltText || name,
+    kind: "IMAGE" as const,
     sortOrder: index,
   }));
 

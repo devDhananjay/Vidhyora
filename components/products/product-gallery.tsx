@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Play, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isVideoUrl } from "@/lib/media/is-video-url";
 
@@ -10,9 +10,16 @@ type GalleryImage = {
   id: string;
   url: string;
   altText?: string | null;
+  kind?: string | null;
+  sortOrder?: number | null;
 };
 
-type GalleryItem = GalleryImage & { kind: "image" | "video" };
+type GalleryItem = {
+  id: string;
+  url: string;
+  altText?: string | null;
+  kind: "image" | "video";
+};
 
 type ProductGalleryProps = {
   name: string;
@@ -26,6 +33,61 @@ function isValidSrc(src: string | null | undefined) {
   return Boolean(src && !src.includes("placeholder"));
 }
 
+function buildGallery(params: {
+  name: string;
+  thumbnail: string | null;
+  images: GalleryImage[];
+  videoUrl?: string | null;
+}): GalleryItem[] {
+  const sorted = [...params.images]
+    .filter((image) => isValidSrc(image.url))
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+
+  const fromImages: GalleryItem[] = sorted.map((image) => {
+    const isVideo =
+      image.kind?.toUpperCase() === "VIDEO" || isVideoUrl(image.url);
+    return {
+      id: image.id,
+      url: image.url,
+      altText: image.altText,
+      kind: isVideo ? "video" : "image",
+    };
+  });
+
+  // Legacy: videoUrl not yet stored as an image row
+  if (
+    isValidSrc(params.videoUrl) &&
+    params.videoUrl &&
+    !fromImages.some((item) => item.url === params.videoUrl)
+  ) {
+    fromImages.unshift({
+      id: "video-legacy",
+      url: params.videoUrl,
+      altText: `${params.name} video`,
+      kind: "video",
+    });
+  }
+
+  // Ensure thumbnail appears if missing from images list
+  if (
+    isValidSrc(params.thumbnail) &&
+    params.thumbnail &&
+    !fromImages.some((item) => item.url === params.thumbnail)
+  ) {
+    fromImages.unshift({
+      id: "main",
+      url: params.thumbnail,
+      altText: params.name,
+      kind: "image",
+    });
+  }
+
+  return fromImages.filter(
+    (item, index, list) =>
+      list.findIndex((entry) => entry.url === item.url) === index,
+  );
+}
+
 export function ProductGallery({
   name,
   thumbnail,
@@ -33,28 +95,21 @@ export function ProductGallery({
   videoUrl,
   discount = 0,
 }: ProductGalleryProps) {
-  const gallery: GalleryItem[] = [
-    ...(isValidSrc(videoUrl) && videoUrl
-      ? [{ id: "video", url: videoUrl, altText: `${name} video`, kind: "video" as const }]
-      : []),
-    ...(isValidSrc(thumbnail) && thumbnail
-      ? [{ id: "main", url: thumbnail, altText: name, kind: "image" as const }]
-      : []),
-    ...images
-      .filter((image) => isValidSrc(image.url))
-      .map((image) => ({ ...image, kind: "image" as const })),
-  ].filter(
-    (item, index, list) =>
-      list.findIndex((entry) => entry.url === item.url) === index,
-  );
-
+  const gallery = buildGallery({ name, thumbnail, images, videoUrl });
   const [active, setActive] = useState(0);
   const current = gallery[active];
   const isVideo = current?.kind === "video" || isVideoUrl(current?.url);
 
+  useEffect(() => {
+    setActive(0);
+  }, [thumbnail, videoUrl, images]);
+
   function go(delta: number) {
     if (gallery.length < 2) return;
-    setActive((currentIndex) => (currentIndex + delta + gallery.length) % gallery.length);
+    setActive(
+      (currentIndex) =>
+        (currentIndex + delta + gallery.length) % gallery.length,
+    );
   }
 
   return (
@@ -67,10 +122,15 @@ export function ProductGallery({
             <video
               key={current.url}
               src={current.url}
-              controls
+              autoPlay
+              muted
+              loop
               playsInline
-              preload="metadata"
-              className="relative z-[1] size-full object-cover"
+              preload="auto"
+              controls={false}
+              disablePictureInPicture
+              controlsList="nodownload noplaybackrate noremoteplayback"
+              className="relative z-[1] size-full object-cover pointer-events-none"
             />
           ) : (
             <Image
@@ -142,7 +202,9 @@ export function ProductGallery({
                     : "border-neutral-100 hover:border-[#8b2e2e]/40",
                 )}
                 aria-label={
-                  thumbIsVideo ? "View product video" : `View image ${index + 1}`
+                  thumbIsVideo
+                    ? "View product video"
+                    : `View image ${index + 1}`
                 }
               >
                 {thumbIsVideo ? (
@@ -152,10 +214,10 @@ export function ProductGallery({
                       muted
                       playsInline
                       preload="metadata"
-                      className="absolute inset-0 size-full object-cover opacity-70"
+                      className="absolute inset-0 size-full object-cover opacity-80"
                     />
-                    <span className="relative z-[1] flex size-8 items-center justify-center rounded-full bg-white/95 text-[#8b2e2e] shadow">
-                      <Play className="size-3.5 fill-current" />
+                    <span className="relative z-[1] rounded bg-black/55 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-white uppercase">
+                      Video
                     </span>
                   </div>
                 ) : (

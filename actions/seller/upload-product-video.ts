@@ -20,9 +20,22 @@ export async function uploadProductVideo(
       return { success: false, error: "Please choose a video" };
     }
 
-    const uploaded = await uploadFile(file, {
+    // MediaRecorder exports may omit type in some browsers
+    const typedFile =
+      file.type && file.type.startsWith("video/")
+        ? file
+        : new File([file], file.name || `video-${Date.now()}.webm`, {
+            type: "video/webm",
+          });
+
+    const uploaded = await uploadFile(typedFile, {
       maxSize: MAX_BYTES,
-      allowedTypes: ["video/mp4", "video/webm", "video/quicktime"],
+      allowedTypes: [
+        "video/mp4",
+        "video/webm",
+        "video/quicktime",
+        "video/x-matroska",
+      ],
       folder: `uploads/products/${acting.sellerUserId}/videos`,
     });
 

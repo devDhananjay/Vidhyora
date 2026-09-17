@@ -53,7 +53,10 @@ export async function createProduct(
         shortDescription: validated.shortDescription,
         description: validated.description,
         thumbnail: validated.thumbnail,
-        videoUrl: validated.videoUrl || null,
+        videoUrl:
+          validated.images.find((img) => img.kind === "VIDEO")?.url ||
+          validated.videoUrl ||
+          null,
         basePrice: validated.basePrice,
         compareAtPrice: validated.compareAtPrice,
         tax: validated.tax,
@@ -68,6 +71,7 @@ export async function createProduct(
           create: validated.images.map((img) => ({
             url: img.url,
             sourceUrl: img.sourceUrl || img.url,
+            kind: img.kind === "VIDEO" ? "VIDEO" : "IMAGE",
             altText: img.altText,
             sortOrder: img.sortOrder,
           })),
@@ -203,7 +207,10 @@ export async function updateProduct(
           shortDescription: validated.shortDescription,
           description: validated.description,
           thumbnail: validated.thumbnail,
-          videoUrl: validated.videoUrl || null,
+          videoUrl:
+          validated.images.find((img) => img.kind === "VIDEO")?.url ||
+          validated.videoUrl ||
+          null,
           basePrice: validated.basePrice,
           compareAtPrice: validated.compareAtPrice,
           tax: validated.tax,
@@ -302,6 +309,7 @@ type DraftProductInput = {
     url?: string;
     sourceUrl?: string;
     altText?: string;
+    kind?: "IMAGE" | "VIDEO";
     sortOrder?: number;
   }>;
   variants?: Array<{
@@ -382,9 +390,16 @@ export async function saveProductDraft(
       data.description?.trim() ||
       data.shortDescription?.trim() ||
       "Draft product. Complete all steps before submitting for approval.";
-    const images = (data.images ?? []).filter((image) =>
-      isPersistableImageUrl(image.url),
-    );    const variants = (data.variants ?? []).map((variant, index) => ({
+    const images = (data.images ?? []).filter((image) => {
+      if (!image.url) return false;
+      if ((image as { kind?: string }).kind === "VIDEO") {
+        return isPersistableVideoUrl(image.url);
+      }
+      return (
+        isPersistableImageUrl(image.url) || isPersistableVideoUrl(image.url)
+      );
+    });
+    const variants = (data.variants ?? []).map((variant, index) => ({
       sku:
         variant.sku?.trim() ||
         `DRAFT-${Date.now().toString(36).toUpperCase()}-${index + 1}`,
@@ -426,10 +441,20 @@ export async function saveProductDraft(
       categoryId: data.categoryId,
       shortDescription: data.shortDescription?.trim() || description.slice(0, 200),
       description,
-      thumbnail: isPersistableImageUrl(data.thumbnail)
-        ? data.thumbnail
-        : images[0]?.url,
-      videoUrl: isPersistableVideoUrl(data.videoUrl) ? data.videoUrl : null,
+      thumbnail: (() => {
+        if (isPersistableImageUrl(data.thumbnail)) return data.thumbnail;
+        const firstPhoto = images.find(
+          (image) => (image as { kind?: string }).kind !== "VIDEO",
+        );
+        return firstPhoto?.url;
+      })(),
+      videoUrl: (() => {
+        const fromImages = images.find(
+          (image) => (image as { kind?: string }).kind === "VIDEO",
+        )?.url;
+        if (fromImages && isPersistableVideoUrl(fromImages)) return fromImages;
+        return isPersistableVideoUrl(data.videoUrl) ? data.videoUrl : null;
+      })(),
       basePrice: Number(data.basePrice) || variantPayload[0].price || 0,
       compareAtPrice: data.compareAtPrice || undefined,
       tax: Number(data.tax) || 0,
@@ -459,6 +484,8 @@ export async function saveProductDraft(
           images.map((image, index) => ({
             url: image.url as string,
             sourceUrl: (image as { sourceUrl?: string }).sourceUrl || (image.url as string),
+            kind:
+              (image as { kind?: string }).kind === "VIDEO" ? "VIDEO" : "IMAGE",
             altText: image.altText,
             sortOrder: image.sortOrder ?? index,
           })),
@@ -498,6 +525,8 @@ export async function saveProductDraft(
           create: images.map((image, index) => ({
             url: image.url as string,
             sourceUrl: (image as { sourceUrl?: string }).sourceUrl || (image.url as string),
+            kind:
+              (image as { kind?: string }).kind === "VIDEO" ? "VIDEO" : "IMAGE",
             altText: image.altText,
             sortOrder: image.sortOrder ?? index,
           })),

@@ -2,5 +2,16 @@
 export function isVideoUrl(url: string | null | undefined): boolean {
   if (!url) return false;
   const clean = url.split("?")[0].split("#")[0].toLowerCase();
-  return /\.(mp4|webm|ogg|mov|m4v)$/.test(clean);
+  return (
+    /\.(mp4|webm|ogg|mov|m4v)$/.test(clean) ||
+    clean.includes("/videos/")
+  );
+}
+
+export function isImageMediaKind(kind: string | null | undefined): boolean {
+  return !kind || kind.toUpperCase() === "IMAGE";
+}
+
+export function isVideoMediaKind(kind: string | null | undefined): boolean {
+  return kind?.toUpperCase() === "VIDEO";
 }

@@ -1,11 +1,38 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Film, Loader2, X } from "lucide-react";
-import { ImageUpload } from "@/components/shared/image-upload";
+import Image from "next/image";
+import {
+  Check,
+  Film,
+  GripVertical,
+  Loader2,
+  Pencil,
+  Upload,
+  X,
+} from "lucide-react";
+import {
+  ProductImageEditor,
+  type EditedImageResult,
+} from "@/components/shared/product-image-editor";
+import {
+  ProductVideoEditor,
+  type EditedVideoResult,
+} from "@/components/shared/product-video-editor";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { uploadProductImage } from "@/actions/seller/upload-product-image";
 import { uploadProductVideo } from "@/actions/seller/upload-product-video";
+import { cn } from "@/lib/utils";
+import { isVideoUrl } from "@/lib/media/is-video-url";
+
+type MediaItem = {
+  url: string;
+  sourceUrl?: string;
+  altText?: string;
+  kind: "IMAGE" | "VIDEO";
+  sortOrder: number;
+};
 
 type ImagesStepProps = {
   watch: any;
@@ -13,229 +40,498 @@ type ImagesStepProps = {
   errors: any;
 };
 
+const MAX_PHOTOS = 5;
+const MAX_VIDEOS = 1;
+
+async function uploadBlob(file: File, asVideo: boolean) {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (asVideo) {
+    const result = await uploadProductVideo(formData);
+    if (!result.success) throw new Error(result.error || "Video upload failed");
+    return result.data.url;
+  }
+  const result = await uploadProductImage(formData);
+  if (!result.success) throw new Error(result.error || "Image upload failed");
+  return result.data.url;
+}
+
 export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
-  const currentImages = watch("images") || [];
+  const currentImages: MediaItem[] = (watch("images") || []).map(
+    (img: MediaItem, index: number) => ({
+      url: img.url,
+      sourceUrl: img.sourceUrl || img.url,
+      altText: img.altText,
+      kind:
+        img.kind === "VIDEO" || isVideoUrl(img.url) ? "VIDEO" : "IMAGE",
+      sortOrder: img.sortOrder ?? index,
+    }),
+  );
   const thumbnail = watch("thumbnail") || "";
-  const videoUrl = watch("videoUrl") || "";
   const productName = watch("name") || "Product image";
-  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
-  const [videoError, setVideoError] = useState<string | null>(null);
+
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+
+  const [imageEditor, setImageEditor] = useState<{
+    src: string;
+    replaceUrl?: string;
+    revokeOnClose?: boolean;
+    queue?: File[];
+  } | null>(null);
+  const [videoEditor, setVideoEditor] = useState<{
+    src: string;
+    replaceUrl?: string;
+    revokeOnClose?: boolean;
+  } | null>(null);
+
+  const photoInputRef = useRef<HTMLInputElement>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
-  const syncImages = (
-    urls: string[],
-    sources: Record<string, string>,
-    nextThumbnail?: string,
-  ) => {
-    const prevByUrl = Object.fromEntries(
-      (currentImages as Array<{ url: string; sourceUrl?: string }>).map((img) => [
-        img.url,
-        img,
-      ]),
-    );
-    const images = urls.map((url, index) => ({
-      url,
-      sourceUrl: sources[url] || prevByUrl[url]?.sourceUrl || url,
-      altText: productName,
+  const photoCount = currentImages.filter((i) => i.kind === "IMAGE").length;
+  const videoCount = currentImages.filter((i) => i.kind === "VIDEO").length;
+  const canAddPhoto = photoCount < MAX_PHOTOS;
+  const canAddVideo = videoCount < MAX_VIDEOS;
+
+  const commitMedia = (items: MediaItem[], nextThumbnail?: string) => {
+    const normalized = items.map((item, index) => ({
+      ...item,
+      altText: item.altText || productName,
       sortOrder: index,
     }));
-    setValue("images", images, { shouldValidate: true, shouldDirty: true });
+    setValue("images", normalized, { shouldValidate: true, shouldDirty: true });
+
+    const photos = normalized.filter((i) => i.kind === "IMAGE");
+    const video = normalized.find((i) => i.kind === "VIDEO");
+    setValue("videoUrl", video?.url || undefined, {
+      shouldValidate: true,
+      shouldDirty: true,
+    });
 
     let thumb = nextThumbnail ?? thumbnail;
-    if (thumb && !urls.includes(thumb)) {
-      thumb = urls[0] || "";
+    if (thumb && !photos.some((p) => p.url === thumb)) {
+      thumb = photos[0]?.url || "";
     }
-    if (!thumb && urls[0]) {
-      thumb = urls[0];
-    }
-    if (!urls.length) {
-      thumb = "";
-    }
+    if (!thumb) thumb = photos[0]?.url || "";
     setValue("thumbnail", thumb, { shouldValidate: true, shouldDirty: true });
   };
 
-  const sourceByUrl = Object.fromEntries(
-    (currentImages as Array<{ url: string; sourceUrl?: string }>).map((img) => [
-      img.url,
-      img.sourceUrl || img.url,
-    ]),
-  );
+  const reorder = (from: number, to: number) => {
+    if (from === to || from < 0 || to < 0) return;
+    const next = [...currentImages];
+    const [moved] = next.splice(from, 1);
+    next.splice(to, 0, moved);
+    commitMedia(next);
+  };
 
-  const handleImagesChange = (
-    urls: string[],
-    sources?: Record<string, string>,
-  ) => {
-    const keepCurrent = thumbnail && urls.includes(thumbnail);
-    syncImages(
-      urls,
-      sources || sourceByUrl,
-      keepCurrent ? thumbnail : urls[0] || "",
+  const removeAt = (index: number) => {
+    const removed = currentImages[index];
+    const next = currentImages.filter((_, i) => i !== index);
+    commitMedia(
+      next,
+      removed?.url === thumbnail ? undefined : thumbnail,
     );
   };
 
-  const handleSourcesChange = (map: Record<string, string>) => {
-    const urls = (
-      (watch("images") as Array<{ url: string }> | undefined) || []
-    ).map((img) => img.url);
-    if (urls.length === 0) return;
-    syncImages(urls, map, thumbnail);
+  const openPhotoQueue = (files: File[]) => {
+    if (!files.length) return;
+    const [first, ...rest] = files;
+    const src = URL.createObjectURL(first);
+    setImageEditor({
+      src,
+      revokeOnClose: true,
+      queue: rest,
+    });
   };
 
-  const handleThumbnailChange = (url: string) => {
-    if (!url) {
-      setValue("thumbnail", "", { shouldValidate: true, shouldDirty: true });
+  const handlePhotoFiles = (list: FileList | null) => {
+    if (!list?.length) return;
+    setError(null);
+    const remaining = MAX_PHOTOS - photoCount;
+    const files = Array.from(list)
+      .filter((f) => f.type.startsWith("image/"))
+      .slice(0, remaining);
+    if (!files.length) {
+      setError("Choose image files (JPG, PNG, WEBP)");
       return;
     }
-    setValue("thumbnail", url, { shouldValidate: true, shouldDirty: true });
+    openPhotoQueue(files);
+    if (photoInputRef.current) photoInputRef.current.value = "";
   };
 
-  const handleVideoFile = async (file: File | null) => {
+  const handleVideoFile = (file: File | null) => {
     if (!file) return;
-    setVideoError(null);
-    setIsUploadingVideo(true);
+    if (!canAddVideo && !videoEditor?.replaceUrl) {
+      setError("Only one product video is allowed");
+      return;
+    }
+    setError(null);
+    const src = URL.createObjectURL(file);
+    setVideoEditor({ src, revokeOnClose: true });
+    if (videoInputRef.current) videoInputRef.current.value = "";
+  };
+
+  const closeImageEditor = () => {
+    if (imageEditor?.revokeOnClose && imageEditor.src.startsWith("blob:")) {
+      URL.revokeObjectURL(imageEditor.src);
+    }
+    setImageEditor(null);
+  };
+
+  const closeVideoEditor = () => {
+    if (videoEditor?.revokeOnClose && videoEditor.src.startsWith("blob:")) {
+      URL.revokeObjectURL(videoEditor.src);
+    }
+    setVideoEditor(null);
+  };
+
+  const handleImageApply = async (result: EditedImageResult) => {
+    setBusy(true);
+    setError(null);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const result = await uploadProductVideo(formData);
-      if (!result.success) {
-        throw new Error(result.error || "Video upload failed");
+      const cleanUrl = await uploadBlob(result.cleanFile, false);
+      const displayUrl = result.hasWatermark
+        ? await uploadBlob(result.displayFile, false)
+        : cleanUrl;
+
+      const replaceUrl = imageEditor?.replaceUrl;
+      const queue = imageEditor?.queue || [];
+
+      if (replaceUrl) {
+        const next = currentImages.map((item) =>
+          item.url === replaceUrl
+            ? {
+                ...item,
+                url: displayUrl,
+                sourceUrl: cleanUrl,
+                kind: "IMAGE" as const,
+              }
+            : item,
+        );
+        commitMedia(
+          next,
+          thumbnail === replaceUrl ? displayUrl : thumbnail,
+        );
+        closeImageEditor();
+      } else {
+        const next = [
+          ...currentImages,
+          {
+            url: displayUrl,
+            sourceUrl: cleanUrl,
+            altText: productName,
+            kind: "IMAGE" as const,
+            sortOrder: currentImages.length,
+          },
+        ];
+        commitMedia(next, thumbnail || displayUrl);
+        if (imageEditor?.revokeOnClose && imageEditor.src.startsWith("blob:")) {
+          URL.revokeObjectURL(imageEditor.src);
+        }
+        if (queue.length > 0) {
+          openPhotoQueue(queue);
+        } else {
+          setImageEditor(null);
+        }
       }
-      setValue("videoUrl", result.data.url, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
     } catch (err) {
-      setVideoError(err instanceof Error ? err.message : "Video upload failed");
+      setError(err instanceof Error ? err.message : "Failed to upload image");
+      throw err;
     } finally {
-      setIsUploadingVideo(false);
-      if (videoInputRef.current) videoInputRef.current.value = "";
+      setBusy(false);
     }
   };
 
-  const clearVideo = () => {
-    setValue("videoUrl", undefined, { shouldValidate: true, shouldDirty: true });
-    setVideoError(null);
+  const handleVideoApply = async (result: EditedVideoResult) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const cleanUrl = await uploadBlob(result.cleanFile, true);
+      const displayUrl = result.hasWatermark
+        ? await uploadBlob(result.displayFile, true)
+        : cleanUrl;
+
+      const replaceUrl = videoEditor?.replaceUrl;
+      if (replaceUrl) {
+        const next = currentImages.map((item) =>
+          item.url === replaceUrl
+            ? {
+                ...item,
+                url: displayUrl,
+                sourceUrl: cleanUrl,
+                kind: "VIDEO" as const,
+              }
+            : item,
+        );
+        commitMedia(next);
+      } else {
+        // Remove any existing video first (max 1)
+        const withoutVideo = currentImages.filter((i) => i.kind !== "VIDEO");
+        commitMedia([
+          ...withoutVideo,
+          {
+            url: displayUrl,
+            sourceUrl: cleanUrl,
+            altText: `${productName} video`,
+            kind: "VIDEO",
+            sortOrder: withoutVideo.length,
+          },
+        ]);
+      }
+      closeVideoEditor();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to upload video");
+      throw err;
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const imageUrls = currentImages.map((img: any) => img.url);
+  const editExisting = (item: MediaItem) => {
+    const src = item.sourceUrl || item.url;
+    if (item.kind === "VIDEO") {
+      setVideoEditor({ src, replaceUrl: item.url, revokeOnClose: false });
+    } else {
+      setImageEditor({ src, replaceUrl: item.url, revokeOnClose: false });
+    }
+  };
 
   return (
     <div className="space-y-8">
       <div>
-        <Label>Product Images *</Label>
+        <Label>Product media *</Label>
         <p className="mb-4 text-sm text-muted-foreground">
-          Upload up to 5 photos. Each opens an editor to crop, zoom, and add the
-          VIDYORA logo. Hover a saved image to edit again or{" "}
-          <span className="font-medium text-neutral-700">Set as thumbnail</span>.
-        </p>
-        <ImageUpload
-          value={imageUrls}
-          onChange={handleImagesChange}
-          sourceByUrl={sourceByUrl}
-          onSourceByUrlChange={handleSourcesChange}
-          thumbnailUrl={thumbnail}
-          onThumbnailChange={handleThumbnailChange}
-          maxFiles={5}
-          maxSize={5}
-        />
-        {errors.images && (
-          <p className="mt-2 text-sm text-destructive">{errors.images.message}</p>
-        )}
-        {errors.thumbnail && (
-          <p className="mt-2 text-sm text-destructive">{errors.thumbnail.message}</p>
-        )}
-      </div>
-
-      <div>
-        <Label>Product video (optional)</Label>
-        <p className="mb-4 text-sm text-muted-foreground">
-          Add one short product video (MP4 / WEBM / MOV, up to 40MB). Shown in the
-          product gallery on the storefront.
+          Upload photos and one video. Drag cards to set gallery order. Crop and
+          add a logo on both photos and video before saving.
         </p>
 
-        {videoUrl ? (
-          <div className="overflow-hidden rounded-2xl border border-neutral-200 bg-neutral-950">
-            <div className="relative aspect-video">
-              <video
-                src={videoUrl}
-                controls
-                playsInline
-                preload="metadata"
-                className="size-full object-contain"
-              />
-              <Button
-                type="button"
-                variant="destructive"
-                size="icon"
-                className="absolute right-3 top-3 size-8"
-                onClick={clearVideo}
-                aria-label="Remove video"
-              >
-                <X className="size-4" />
-              </Button>
-            </div>
-            <div className="flex items-center justify-between gap-3 bg-white px-4 py-3">
-              <p className="truncate text-xs text-muted-foreground">{videoUrl}</p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={isUploadingVideo}
-                onClick={() => videoInputRef.current?.click()}
-              >
-                Replace
-              </Button>
-            </div>
+        <div className="mb-4 flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy || !canAddPhoto}
+            onClick={() => photoInputRef.current?.click()}
+          >
+            <Upload className="mr-1.5 size-4" />
+            Add photos
+            <span className="ml-1 text-muted-foreground">
+              ({photoCount}/{MAX_PHOTOS})
+            </span>
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy || (!canAddVideo && videoCount === 0)}
+            onClick={() => videoInputRef.current?.click()}
+          >
+            <Film className="mr-1.5 size-4" />
+            {videoCount ? "Replace video" : "Add video"}
+          </Button>
+          <input
+            ref={photoInputRef}
+            type="file"
+            accept="image/jpeg,image/jpg,image/png,image/webp"
+            multiple
+            className="hidden"
+            onChange={(e) => handlePhotoFiles(e.target.files)}
+          />
+          <input
+            ref={videoInputRef}
+            type="file"
+            accept="video/mp4,video/webm,video/quicktime"
+            className="hidden"
+            onChange={(e) => handleVideoFile(e.target.files?.[0] || null)}
+          />
+        </div>
+
+        {currentImages.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            {currentImages.map((item, index) => {
+              const isThumb =
+                item.kind === "IMAGE" && item.url === thumbnail;
+              const isOver = overIndex === index && dragIndex !== index;
+              return (
+                <div
+                  key={`${item.kind}-${item.url}`}
+                  draggable={!busy}
+                  onDragStart={() => setDragIndex(index)}
+                  onDragEnd={() => {
+                    setDragIndex(null);
+                    setOverIndex(null);
+                  }}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setOverIndex(index);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    if (dragIndex != null) reorder(dragIndex, index);
+                    setDragIndex(null);
+                    setOverIndex(null);
+                  }}
+                  className={cn(
+                    "group relative aspect-square overflow-hidden rounded-xl border bg-muted transition",
+                    isThumb && "ring-2 ring-[#8b2e2e] ring-offset-2",
+                    isOver && "border-[#8b2e2e] border-dashed",
+                    dragIndex === index && "opacity-60",
+                  )}
+                >
+                  {item.kind === "VIDEO" ? (
+                    <video
+                      src={item.url}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="size-full object-cover"
+                    />
+                  ) : (
+                    <Image
+                      src={item.url}
+                      alt={item.altText || `Media ${index + 1}`}
+                      fill
+                      unoptimized={
+                        item.url.startsWith("data:") ||
+                        item.url.startsWith("blob:")
+                      }
+                      className="object-cover"
+                    />
+                  )}
+
+                  <div className="absolute left-2 top-2 z-10 flex items-center gap-1">
+                    <span className="flex cursor-grab items-center rounded bg-black/65 px-1.5 py-1 text-white active:cursor-grabbing">
+                      <GripVertical className="size-3.5" />
+                      <span className="text-[10px] font-semibold">
+                        {index + 1}
+                      </span>
+                    </span>
+                    {item.kind === "VIDEO" ? (
+                      <span className="rounded bg-[#8b2e2e] px-1.5 py-0.5 text-[10px] font-medium text-white">
+                        Video
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <div className="absolute right-2 top-2 z-10 flex flex-col gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                    <Button
+                      type="button"
+                      size="icon"
+                      className="size-7 bg-black/65 text-white hover:bg-black/80"
+                      onClick={() => editExisting(item)}
+                      title="Crop / logo"
+                    >
+                      <Pencil className="size-3.5" />
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="size-7"
+                      onClick={() => removeAt(index)}
+                    >
+                      <X className="size-3.5" />
+                    </Button>
+                  </div>
+
+                  {item.kind === "IMAGE" ? (
+                    isThumb ? (
+                      <div className="absolute bottom-2 left-2 flex items-center gap-1 rounded bg-[#8b2e2e] px-2 py-1 text-xs font-medium text-white">
+                        <Check className="size-3" />
+                        Thumbnail
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setValue("thumbnail", item.url, {
+                            shouldValidate: true,
+                            shouldDirty: true,
+                          })
+                        }
+                        className="absolute inset-x-2 bottom-2 rounded bg-black/70 px-2 py-1.5 text-[11px] font-medium text-white opacity-0 transition group-hover:opacity-100 hover:bg-black/85"
+                      >
+                        Set as thumbnail
+                      </button>
+                    )
+                  ) : null}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <button
             type="button"
-            disabled={isUploadingVideo}
-            onClick={() => videoInputRef.current?.click()}
-            className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-neutral-300 bg-[#faf8f6] px-6 py-10 text-center transition hover:border-[#8b2e2e]/40 hover:bg-[#f6ebe8] disabled:opacity-60"
+            disabled={busy}
+            onClick={() => photoInputRef.current?.click()}
+            className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-neutral-300 bg-[#faf8f6] px-6 py-12 text-center transition hover:border-[#8b2e2e]/40"
           >
-            {isUploadingVideo ? (
-              <Loader2 className="size-8 animate-spin text-[#8b2e2e]" />
-            ) : (
-              <Film className="size-8 text-[#8b2e2e]" />
-            )}
+            <Upload className="size-8 text-[#8b2e2e]" />
             <div>
               <p className="font-medium text-neutral-900">
-                {isUploadingVideo ? "Uploading video…" : "Upload product video"}
+                Upload product photos
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                MP4, WEBM or MOV · max 40MB
+                Then optionally add a video · drag to reorder
               </p>
             </div>
           </button>
         )}
 
-        <input
-          ref={videoInputRef}
-          type="file"
-          accept="video/mp4,video/webm,video/quicktime"
-          className="hidden"
-          onChange={(e) => handleVideoFile(e.target.files?.[0] || null)}
-        />
-
-        {videoError && (
-          <p className="mt-2 text-sm text-destructive">{videoError}</p>
+        {(error || errors.images || errors.thumbnail || errors.videoUrl) && (
+          <p className="mt-2 text-sm text-destructive">
+            {error ||
+              errors.images?.message ||
+              errors.thumbnail?.message ||
+              errors.videoUrl?.message}
+          </p>
         )}
-        {errors.videoUrl && (
-          <p className="mt-2 text-sm text-destructive">{errors.videoUrl.message}</p>
+        {busy && (
+          <p className="mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
+            Uploading media…
+          </p>
         )}
       </div>
 
       <div className="rounded-xl border bg-muted/50 p-4">
         <h4 className="mb-2 font-medium">Media guidelines</h4>
         <ul className="space-y-1 text-sm text-muted-foreground">
-          <li>• Crop photos; drag watermark on the crop — Save places it exactly</li>
-          <li>• Edit again from the clean photo: turn watermark off to remove logo</li>
-          <li>• Optional video helps customers see craftsmanship and fit</li>
-          <li>• Keep videos short and steady; avoid heavy music overlays</li>
-          <li>• Click “Set as thumbnail” on the photo you want as main</li>
+          <li>• Drag cards by the grip handle to set gallery sequence</li>
+          <li>• Crop photos & video; drag watermark, then Save</li>
+          <li>• Edit again: open pencil → turn watermark off to remove logo</li>
+          <li>• Storefront video autoplays muted with no controls</li>
+          <li>• Keep videos short (under ~40s) for smooth crop export</li>
         </ul>
       </div>
+
+      <ProductImageEditor
+        open={Boolean(imageEditor)}
+        imageSrc={imageEditor?.src ?? null}
+        title={
+          imageEditor?.replaceUrl
+            ? "Edit product photo"
+            : imageEditor?.queue?.length
+              ? `Edit photo · ${imageEditor.queue.length} more in queue`
+              : "Edit product photo"
+        }
+        onOpenChange={(open) => {
+          if (!open) closeImageEditor();
+        }}
+        onApply={handleImageApply}
+      />
+
+      <ProductVideoEditor
+        open={Boolean(videoEditor)}
+        videoSrc={videoEditor?.src ?? null}
+        title={
+          videoEditor?.replaceUrl ? "Edit product video" : "Edit product video"
+        }
+        onOpenChange={(open) => {
+          if (!open) closeVideoEditor();
+        }}
+        onApply={handleVideoApply}
+      />
     </div>
   );
 }

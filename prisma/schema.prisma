@@ -406,6 +406,8 @@ model ProductImage {
   url       String
   /** Clean crop without watermark — used when re-editing logo placement. */
   sourceUrl String?
+  /** IMAGE | VIDEO — gallery order uses sortOrder across both. */
+  kind      String  @default("IMAGE")
   altText   String?
   sortOrder Int     @default(0)
 

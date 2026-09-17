@@ -67,10 +67,27 @@ const SNAP_PRESETS: Array<{ id: string; label: string; pos: LogoPos }> = [
   { id: "c", label: "Center", pos: { x: 0.38, y: 0.38 } },
 ];
 
+function isSameOriginSrc(src: string): boolean {
+  if (
+    src.startsWith("/") ||
+    src.startsWith("blob:") ||
+    src.startsWith("data:")
+  ) {
+    return true;
+  }
+  try {
+    return new URL(src, window.location.href).origin === window.location.origin;
+  } catch {
+    return false;
+  }
+}
+
 function loadImage(src: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new window.Image();
-    if (!src.startsWith("blob:") && !src.startsWith("data:")) {
+    // Setting crossOrigin on same-origin assets can break canvas export
+    // when the response has no Access-Control-Allow-Origin header.
+    if (!isSameOriginSrc(src)) {
       img.crossOrigin = "anonymous";
     }
     img.onload = () => resolve(img);
@@ -150,26 +167,23 @@ async function exportEditedImage(params: {
 
   const displayCanvas = document.createElement("canvas");
   const ctx = drawBase(displayCanvas);
-  try {
-    const logo = await loadImage(params.logoSrc);
-    const target = Math.max(
-      16,
-      Math.round(Math.min(outW, outH) * params.logoSize),
-    );
-    const ratio = logo.width / Math.max(logo.height, 1);
-    const logoW = target;
-    const logoH = Math.round(target / ratio);
-    const maxX = Math.max(0, outW - logoW);
-    const maxY = Math.max(0, outH - logoH);
-    const x = clamp(Math.round(params.logoPos.x * outW), 0, maxX);
-    const y = clamp(Math.round(params.logoPos.y * outH), 0, maxY);
-    ctx.save();
-    ctx.globalAlpha = params.logoOpacity;
-    ctx.drawImage(logo, x, y, logoW, logoH);
-    ctx.restore();
-  } catch {
-    return { displayFile: cleanFile, cleanFile, hasWatermark: false };
-  }
+  const logo = await loadImage(params.logoSrc);
+  const target = Math.max(
+    16,
+    Math.round(Math.min(outW, outH) * params.logoSize),
+  );
+  const ratio = logo.width / Math.max(logo.height, 1);
+  const logoW = target;
+  const logoH = Math.round(target / ratio);
+  const maxX = Math.max(0, outW - logoW);
+  const maxY = Math.max(0, outH - logoH);
+  // logoPos is top-left as a fraction of the cropped output (same as overlay).
+  const x = clamp(Math.round(params.logoPos.x * outW), 0, maxX);
+  const y = clamp(Math.round(params.logoPos.y * outH), 0, maxY);
+  ctx.save();
+  ctx.globalAlpha = params.logoOpacity;
+  ctx.drawImage(logo, x, y, logoW, logoH);
+  ctx.restore();
 
   const displayFile = await canvasToFile(
     displayCanvas,
@@ -231,12 +245,17 @@ export function ProductImageEditor({
     setCroppedAreaPixels(null);
     setWithLogo(false);
     setLogoSource("brand");
+    setCustomLogoSrc((prev) => {
+      if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev);
+      return null;
+    });
     setLogoPos({ x: 0.72, y: 0.72 });
     setLogoOpacity(0.85);
     setLogoSize(0.12);
     setDraggingLogo(false);
     setBusy(false);
     setError(null);
+    if (logoInputRef.current) logoInputRef.current.value = "";
   }, [open, imageSrc]);
 
   useEffect(() => {

@@ -194,7 +194,7 @@ export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
       <div className="rounded-xl border bg-muted/50 p-4">
         <h4 className="mb-2 font-medium">Media guidelines</h4>
         <ul className="space-y-1 text-sm text-muted-foreground">
-          <li>• Crop and zoom photos before upload; add logo if you want</li>
+          <li>• Crop and zoom photos; upload your logo as watermark and drag it anywhere</li>
           <li>• Click the pencil on any image to re-edit (add or edit product)</li>
           <li>• Optional video helps customers see craftsmanship and fit</li>
           <li>• Keep videos short and steady; avoid heavy music overlays</li>

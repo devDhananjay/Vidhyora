@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ThumbsUp, ThumbsDown } from "lucide-react";
 import { markReviewHelpful } from "@/actions/reviews/mark-helpful";
 import Image from "next/image";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type ReviewCardProps = {
   review: ReviewWithUser;
@@ -36,7 +37,7 @@ export function ReviewCard({ review, isVerified = false }: ReviewCardProps) {
           setUnhelpfulCount((prev) => prev + 1);
         }
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };

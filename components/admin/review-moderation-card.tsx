@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import Image from "next/image";
 import { CheckCircle, XCircle } from "lucide-react";
+import { appAlert, appConfirm } from "@/components/shared/app-dialog";
 
 type Review = {
   id: string;
@@ -42,26 +43,27 @@ export function ReviewModerationCard({ review }: ReviewModerationCardProps) {
     startTransition(async () => {
       const result = await approveReview(review.id);
       if (result.success) {
-        alert("Review approved!");
+        await appAlert("Review approved!", { variant: "success" });
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };
 
-  const handleReject = () => {
-    if (confirm("Are you sure you want to reject this review?")) {
-      startTransition(async () => {
-        const result = await rejectReview(review.id);
-        if (result.success) {
-          alert("Review rejected!");
-          window.location.reload();
-        } else {
-          alert(result.error);
-        }
-      });
+  const handleReject = async () => {
+    if (!(await appConfirm("Are you sure you want to reject this review?"))) {
+      return;
     }
+    startTransition(async () => {
+      const result = await rejectReview(review.id);
+      if (result.success) {
+        await appAlert("Review rejected!", { variant: "success" });
+        window.location.reload();
+      } else {
+        await appAlert(result.error, { variant: "error" });
+      }
+    });
   };
 
   return (

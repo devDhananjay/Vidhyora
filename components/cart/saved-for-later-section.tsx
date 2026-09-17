@@ -9,6 +9,7 @@ import { ShoppingCart, Trash2 } from "lucide-react";
 import type { CartItemWithDetails } from "@/types/cart";
 import { toggleSaveForLater } from "@/actions/cart/save-for-later";
 import { removeCartItem } from "@/actions/cart/remove-cart-item";
+import { appAlert, appConfirm } from "@/components/shared/app-dialog";
 
 type SavedForLaterSectionProps = {
   items: CartItemWithDetails[];
@@ -25,13 +26,13 @@ export function SavedForLaterSection({ items }: SavedForLaterSectionProps) {
 
       const result = await toggleSaveForLater(formData);
       if (!result.success) {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };
 
-  const handleRemove = (itemId: string) => {
-    if (!confirm("Remove this item permanently?")) return;
+  const handleRemove = async (itemId: string) => {
+    if (!(await appConfirm("Remove this item permanently?"))) return;
 
     startTransition(async () => {
       const formData = new FormData();
@@ -39,7 +40,7 @@ export function SavedForLaterSection({ items }: SavedForLaterSectionProps) {
 
       const result = await removeCartItem(formData);
       if (!result.success) {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };

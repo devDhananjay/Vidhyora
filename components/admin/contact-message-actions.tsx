@@ -8,6 +8,7 @@ import {
   markContactMessageRead,
 } from "@/actions/content/submit-contact";
 import { Button } from "@/components/ui/button";
+import { appConfirm } from "@/components/shared/app-dialog";
 
 export function ContactMessageActions({
   id,
@@ -72,8 +73,8 @@ export function ContactMessageActions({
         variant="outline"
         className="rounded-full border-red-200 text-red-700"
         disabled={isPending}
-        onClick={() => {
-          if (!confirm("Delete this message permanently?")) return;
+        onClick={async () => {
+          if (!(await appConfirm("Delete this message permanently?"))) return;
           startTransition(async () => {
             await deleteContactMessage(id);
             router.refresh();

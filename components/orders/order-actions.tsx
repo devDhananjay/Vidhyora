@@ -16,6 +16,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { X } from "lucide-react";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type OrderActionsProps = {
   order: OrderWithDetails;
@@ -26,9 +27,9 @@ export function OrderActions({ order }: OrderActionsProps) {
   const [reason, setReason] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     if (reason.length < 10) {
-      alert("Please provide a reason (minimum 10 characters)");
+      await appAlert("Please provide a reason (minimum 10 characters)");
       return;
     }
 
@@ -41,10 +42,10 @@ export function OrderActions({ order }: OrderActionsProps) {
 
       if (result.success) {
         setIsOpen(false);
-        alert("Order cancelled successfully");
+        await appAlert("Order cancelled successfully", { variant: "success" });
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };

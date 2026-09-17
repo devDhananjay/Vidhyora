@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type ExportAnalyticsButtonProps = {
   label?: string;
@@ -22,7 +23,7 @@ export function ExportAnalyticsButton({
     startTransition(async () => {
       const result = await exportAction();
       if (!result.success) {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
         return;
       }
       const blob = new Blob([result.data.csv], {

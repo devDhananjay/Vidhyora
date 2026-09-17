@@ -12,6 +12,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { approveSeller, rejectSeller, suspendSeller, reactivateSeller } from "@/actions/admin/manage-sellers";
 import { CheckCircle, XCircle, Ban } from "lucide-react";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type SellerActionsProps = {
   sellerId: string;
@@ -28,46 +29,52 @@ export function SellerActions({ sellerId, currentStatus }: SellerActionsProps) {
     startTransition(async () => {
       const result = await approveSeller(sellerId);
       if (result.success) {
-        alert("Seller approved successfully!");
+        await appAlert("Seller approved successfully!", {
+          variant: "success",
+        });
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (!reason.trim()) {
-      alert("Please provide a reason for rejection");
+      await appAlert("Please provide a reason for rejection");
       return;
     }
 
     startTransition(async () => {
       const result = await rejectSeller(sellerId, reason);
       if (result.success) {
-        alert("Seller rejected successfully!");
+        await appAlert("Seller rejected successfully!", {
+          variant: "success",
+        });
         setRejectDialogOpen(false);
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };
 
-  const handleSuspend = () => {
+  const handleSuspend = async () => {
     if (!reason.trim()) {
-      alert("Please provide a reason for suspension");
+      await appAlert("Please provide a reason for suspension");
       return;
     }
 
     startTransition(async () => {
       const result = await suspendSeller(sellerId, reason);
       if (result.success) {
-        alert("Seller admin suspended and deactivated.");
+        await appAlert("Seller admin suspended and deactivated.", {
+          variant: "success",
+        });
         setSuspendDialogOpen(false);
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };
@@ -76,10 +83,10 @@ export function SellerActions({ sellerId, currentStatus }: SellerActionsProps) {
     startTransition(async () => {
       const result = await reactivateSeller(sellerId);
       if (result.success) {
-        alert("Seller admin activated.");
+        await appAlert("Seller admin activated.", { variant: "success" });
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };

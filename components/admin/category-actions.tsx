@@ -25,6 +25,7 @@ import {
   deleteCategory,
   toggleCategoryStatus,
 } from "@/actions/admin/manage-categories";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type CategoryActionsProps = {
   categoryId: string;
@@ -48,7 +49,7 @@ export function CategoryActions({
       if (result.success) {
         router.refresh();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };
@@ -60,7 +61,7 @@ export function CategoryActions({
         setDeleteDialogOpen(false);
         router.refresh();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
         setDeleteDialogOpen(false);
       }
     });

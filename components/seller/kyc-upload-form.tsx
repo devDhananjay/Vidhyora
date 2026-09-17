@@ -3,6 +3,7 @@
 import { useTransition, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { uploadKycDocument } from "@/actions/seller/upload-kyc";
+import { appAlert } from "@/components/shared/app-dialog";
 
 export function KycUploadForm({
   kind,
@@ -23,7 +24,7 @@ export function KycUploadForm({
       if (result.success) {
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };

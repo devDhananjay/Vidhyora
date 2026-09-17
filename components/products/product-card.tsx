@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Star } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { ProductFavoriteButton } from "@/components/products/product-favorite-button";
+import { isVideoUrl } from "@/lib/media/is-video-url";
 
 type ProductCardProps = {
   product: {
@@ -25,6 +26,7 @@ type ProductCardProps = {
 function hasValidImage(src: string | null | undefined) {
   if (!src) return false;
   if (src.includes("placeholder")) return false;
+  if (isVideoUrl(src)) return false;
   return true;
 }
 

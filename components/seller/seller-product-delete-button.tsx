@@ -13,6 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { deleteSellerProduct } from "@/actions/seller/manage-products";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type SellerProductDeleteButtonProps = {
   productId: string;
@@ -38,7 +39,9 @@ export function SellerProductDeleteButton({
     startTransition(async () => {
       const result = await deleteSellerProduct(productId);
       if (!result.success) {
-        alert(result.error || "Failed to delete product");
+        await appAlert(result.error || "Failed to delete product", {
+          variant: "error",
+        });
         setOpen(false);
         return;
       }

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { updateCategoryCommission } from "@/actions/admin/manage-commission";
+import { appAlert } from "@/components/shared/app-dialog";
 
 export function CategoryCommissionRow({
   categoryId,
@@ -25,7 +26,7 @@ export function CategoryCommissionRow({
       if (result.success) {
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };

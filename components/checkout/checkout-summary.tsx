@@ -16,6 +16,7 @@ import {
 } from "@/lib/shipping/cod";
 import { calculateCartSummary } from "@/lib/cart/cart-utils";
 import type { CartWithItems } from "@/types/cart";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type AddressLite = {
   id: string;
@@ -114,13 +115,13 @@ export function CheckoutSummary({
     }
   }, [codAvailable, paymentMethod]);
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrder = async () => {
     if (!selectedAddressId) {
-      alert("Please select a delivery address");
+      await appAlert("Please select a delivery address");
       return;
     }
     if (paymentMethod === "COD" && !codAvailable) {
-      alert(codUnavailableMessage(selectedAddress?.postalCode));
+      await appAlert(codUnavailableMessage(selectedAddress?.postalCode));
       return;
     }
 
@@ -143,13 +144,13 @@ export function CheckoutSummary({
       const result = await createOrder(formData);
 
       if (!result.success) {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
         return;
       }
 
       if (paymentMethod === "COD") {
         if (!result.data?.orderId) {
-          alert("Failed to create order");
+          await appAlert("Failed to create order", { variant: "error" });
           return;
         }
         router.push(`/orders/${result.data.orderId}?success=true`);
@@ -158,15 +159,19 @@ export function CheckoutSummary({
       }
 
       if (!result.data?.razorpayOrderId) {
-        alert("Online payment could not start. Please try Cash on Delivery.");
+        await appAlert(
+          "Online payment could not start. Please try Cash on Delivery.",
+          { variant: "error" },
+        );
         return;
       }
 
       try {
         await loadRazorpayScript();
       } catch {
-        alert(
+        await appAlert(
           "Could not open Razorpay. Please try again or use Cash on Delivery.",
+          { variant: "error" },
         );
         return;
       }
@@ -198,12 +203,12 @@ export function CheckoutSummary({
             router.push(`/orders/${confirmed.data.orderId}?success=true`);
             router.refresh();
           } else {
-            alert(confirmed.error);
+            await appAlert(confirmed.error, { variant: "error" });
           }
         },
         modal: {
           ondismiss: () => {
-            alert("Payment cancelled. Your cart is still saved.");
+            void appAlert("Payment cancelled. Your cart is still saved.");
           },
         },
         theme: {
@@ -213,8 +218,9 @@ export function CheckoutSummary({
 
       const razorpay = new window.Razorpay(options);
       razorpay.on("payment.failed", () => {
-        alert(
+        void appAlert(
           "Payment failed. Your cart is still saved — try again or use COD.",
+          { variant: "error" },
         );
       });
       razorpay.open();

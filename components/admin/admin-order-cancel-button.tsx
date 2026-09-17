@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { adminCancelOrder } from "@/actions/admin/manage-orders";
 import { canCancelOrder } from "@/lib/orders/order-utils";
+import { appAlert, appConfirm } from "@/components/shared/app-dialog";
 
 export function AdminOrderCancelButton({
   orderId,
@@ -22,12 +23,12 @@ export function AdminOrderCancelButton({
       variant="outline"
       disabled={isPending}
       className="rounded-full border-red-200 text-red-700 hover:bg-red-50"
-      onClick={() => {
-        if (!confirm("Cancel this order for the customer?")) return;
+      onClick={async () => {
+        if (!(await appConfirm("Cancel this order for the customer?"))) return;
         startTransition(async () => {
           const result = await adminCancelOrder(orderId);
           if (!result.success) {
-            alert(result.error);
+            await appAlert(result.error, { variant: "error" });
             return;
           }
           window.location.reload();

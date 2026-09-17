@@ -2,7 +2,7 @@ import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
-import { Check, X } from "lucide-react";
+import { Check, Film, X } from "lucide-react";
 
 type PreviewStepProps = {
   watch: any;
@@ -73,8 +73,9 @@ export function PreviewStep({ watch, categories }: PreviewStepProps) {
                   preload="metadata"
                   className="size-full object-cover"
                 />
-                <div className="absolute bottom-2 left-2 rounded bg-[#8b2e2e] px-2 py-1 text-xs font-medium text-white">
-                  Video
+                <div className="absolute bottom-2 left-2 flex size-7 items-center justify-center rounded-full border border-white/50 bg-[#8b2e2e] text-white shadow-sm">
+                  <Film className="size-3.5" strokeWidth={1.8} />
+                  <span className="sr-only">Video</span>
                 </div>
               </div>
             ) : null}

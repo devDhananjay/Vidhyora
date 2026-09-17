@@ -421,8 +421,9 @@ export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
                       </span>
                     </span>
                     {item.kind === "VIDEO" ? (
-                      <span className="rounded bg-[#8b2e2e] px-1.5 py-0.5 text-[10px] font-medium text-white">
-                        Video
+                      <span className="flex size-6 items-center justify-center rounded-full border border-white/40 bg-[#8b2e2e] text-white">
+                        <Film className="size-3" strokeWidth={1.8} />
+                        <span className="sr-only">Video</span>
                       </span>
                     ) : null}
                   </div>

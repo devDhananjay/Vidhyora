@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Heart } from "lucide-react";
 import { addToWishlist, removeFromWishlist } from "@/actions/wishlist/manage-wishlist";
 import { cn } from "@/lib/utils";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type WishlistButtonProps = {
   productId: string;
@@ -25,7 +26,7 @@ export function WishlistButton({
           setInWishlist(false);
           return;
         }
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
         return;
       }
 
@@ -34,7 +35,7 @@ export function WishlistButton({
         setInWishlist(true);
         return;
       }
-      alert(result.error);
+      await appAlert(result.error, { variant: "error" });
     });
   };
 

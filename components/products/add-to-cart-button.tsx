@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingBag, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { addToCart } from "@/actions/cart/add-to-cart";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type AddToCartButtonProps = {
   productId: string;
@@ -28,7 +29,7 @@ export function AddToCartButton({
 
   const handleAddToCart = async () => {
     if (!variantId) {
-      alert("Please select a variant");
+      await appAlert("Please select a variant");
       return;
     }
 
@@ -48,7 +49,9 @@ export function AddToCartButton({
         return;
       }
 
-      alert(result.error || "Failed to add to cart");
+      await appAlert(result.error || "Failed to add to cart", {
+        variant: "error",
+      });
     });
   };
 

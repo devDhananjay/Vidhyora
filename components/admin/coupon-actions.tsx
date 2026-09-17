@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { deleteCoupon, toggleCouponStatus } from "@/actions/admin/manage-coupons";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type CouponActionsProps = {
   couponId: string;
@@ -25,7 +26,7 @@ export function CouponActions({ couponId, isActive }: CouponActionsProps) {
       if (result.success) {
         router.refresh();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };
@@ -37,7 +38,7 @@ export function CouponActions({ couponId, isActive }: CouponActionsProps) {
         setDeleteDialogOpen(false);
         router.refresh();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
         setDeleteDialogOpen(false);
       }
     });

@@ -23,6 +23,7 @@ import { PricingStep } from "./steps/pricing-step";
 import { PolicyStep } from "./steps/policy-step";
 import { PreviewStep } from "./steps/preview-step";
 import { AiProductPanel } from "./ai-product-panel";
+import { appAlert } from "@/components/shared/app-dialog";
 
 const STEPS = [
   { id: 1, title: "Basic Info", description: "Product name, brand, category" },
@@ -266,20 +267,31 @@ export function ProductForm({ categories, product }: ProductFormProps) {
 
       if (result.success) {
         localStorage.removeItem(DRAFT_STORAGE_KEY);
-        alert(
+        await appAlert(
           needsApprovalSubmit
             ? "Product submitted for Super Admin approval."
             : "Product updated successfully.",
+          {
+            title: needsApprovalSubmit ? "Submitted for review" : "Product saved",
+            variant: "success",
+            confirmLabel: "Continue",
+          },
         );
         router.push("/seller/products");
         router.refresh();
       } else {
         setSaveMessage(result.error || "Submit failed. Please try again.");
-        alert(result.error || "Submit failed. Please try again.");
+        await appAlert(result.error || "Submit failed. Please try again.", {
+          title: "Could not submit",
+          variant: "error",
+        });
       }
     } catch {
       setSaveMessage("An error occurred. Please try again.");
-      alert("An error occurred. Please try again.");
+      await appAlert("An error occurred. Please try again.", {
+        title: "Something went wrong",
+        variant: "error",
+      });
     } finally {
       setIsSubmitting(false);
     }

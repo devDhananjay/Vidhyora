@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { updateAdminVariantStock } from "@/actions/admin/manage-inventory";
+import { appAlert } from "@/components/shared/app-dialog";
 
 export function AdminStockEditor({
   variantId,
@@ -15,10 +16,10 @@ export function AdminStockEditor({
   const [value, setValue] = useState(String(stock));
   const [isPending, startTransition] = useTransition();
 
-  const save = () => {
+  const save = async () => {
     const next = Number(value);
     if (!Number.isInteger(next) || next < 0) {
-      alert("Stock must be a whole number of 0 or more");
+      await appAlert("Stock must be a whole number of 0 or more");
       return;
     }
     startTransition(async () => {
@@ -26,7 +27,7 @@ export function AdminStockEditor({
       if (result.success) {
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };

@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { settleSellerPayout } from "@/actions/admin/manage-payouts";
+import { appAlert, appConfirm } from "@/components/shared/app-dialog";
 
 export function SettlePayoutButton({
   sellerId,
@@ -13,11 +14,11 @@ export function SettlePayoutButton({
 }) {
   const [isPending, startTransition] = useTransition();
 
-  const settle = () => {
+  const settle = async () => {
     if (
-      !confirm(
+      !(await appConfirm(
         `Mark ${amountLabel} as paid to this seller admin? This records a settlement in the ledger.`,
-      )
+      ))
     ) {
       return;
     }
@@ -37,7 +38,7 @@ export function SettlePayoutButton({
       if (result.success) {
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { updateSellerCommission } from "@/actions/admin/manage-commission";
+import { appAlert } from "@/components/shared/app-dialog";
 
 export function SellerCommissionForm({
   sellerId,
@@ -22,7 +23,7 @@ export function SellerCommissionForm({
       if (result.success) {
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { setUserActive } from "@/actions/admin/manage-users";
 import { Button } from "@/components/ui/button";
 import { isPlatformAdmin } from "@/lib/roles";
+import { appAlert } from "@/components/shared/app-dialog";
 
 export function UserRowActions({
   userId,
@@ -25,7 +26,7 @@ export function UserRowActions({
     startTransition(async () => {
       const result = await setUserActive(userId, !isActive);
       if (!result.success) {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
         return;
       }
       router.refresh();

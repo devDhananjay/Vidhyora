@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import type { HomepageConfigData, HomepageSectionId } from "@/lib/validations/homepage";
+import { appConfirm } from "@/components/shared/app-dialog";
 import {
   DEFAULT_HOMEPAGE_SECTION_ORDER,
   DEFAULT_HOMEPAGE_VISIBILITY,
@@ -287,11 +288,11 @@ export function HomepageEditor({
     });
   }
 
-  function reset() {
+  async function reset() {
     if (
-      !confirm(
+      !(await appConfirm(
         "Reset homepage to the built-in default? Unsaved custom edits will be lost.",
-      )
+      ))
     ) {
       return;
     }

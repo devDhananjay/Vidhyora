@@ -8,6 +8,7 @@ import { deleteAddress } from "@/actions/address/delete-address";
 import { setDefaultAddress } from "@/actions/address/set-default-address";
 import { AddressFormSheet } from "@/components/address/address-form-sheet";
 import { Button } from "@/components/ui/button";
+import { appConfirm } from "@/components/shared/app-dialog";
 
 type AccountAddressBookProps = {
   addresses: Address[];
@@ -44,8 +45,8 @@ export function AccountAddressBook({
     router.refresh();
   }
 
-  function onDelete(addressId: string) {
-    if (!confirm("Delete this address?")) return;
+  async function onDelete(addressId: string) {
+    if (!(await appConfirm("Delete this address?"))) return;
     setError(null);
     startTransition(async () => {
       const result = await deleteAddress(addressId);

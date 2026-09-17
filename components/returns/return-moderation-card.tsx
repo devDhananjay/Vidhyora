@@ -22,6 +22,7 @@ import {
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 import { CheckCircle, Package, XCircle } from "lucide-react";
+import { appAlert } from "@/components/shared/app-dialog";
 
 export type ReturnRequestCardData = {
   id: string;
@@ -69,14 +70,14 @@ export function ReturnModerationCard({
       if (result.success) {
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };
 
-  const reject = () => {
+  const reject = async () => {
     if (!note.trim()) {
-      alert("Please provide a reason");
+      await appAlert("Please provide a reason");
       return;
     }
     startTransition(async () => {
@@ -85,7 +86,7 @@ export function ReturnModerationCard({
         setRejectOpen(false);
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };
@@ -96,7 +97,7 @@ export function ReturnModerationCard({
       if (result.success) {
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };
@@ -107,7 +108,7 @@ export function ReturnModerationCard({
       if (result.success) {
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };

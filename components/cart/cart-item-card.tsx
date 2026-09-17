@@ -13,6 +13,7 @@ import { toggleSaveForLater } from "@/actions/cart/save-for-later";
 import { setCartItemGiftPackaging } from "@/actions/cart/set-gift-packaging";
 import { Gift } from "lucide-react";
 import { GIFT_PACKAGING_FEE } from "@/lib/cart/gift-packaging";
+import { appAlert, appConfirm } from "@/components/shared/app-dialog";
 
 type CartItemCardProps = {
   item: CartItemWithDetails;
@@ -38,14 +39,14 @@ export function CartItemCard({ item }: CartItemCardProps) {
 
       const result = await updateCartItemQuantity(formData);
       if (!result.success) {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
         setQuantity(item.quantity);
       }
     });
   };
 
-  const handleRemove = () => {
-    if (!confirm("Remove this item from cart?")) return;
+  const handleRemove = async () => {
+    if (!(await appConfirm("Remove this item from cart?"))) return;
 
     startTransition(async () => {
       const formData = new FormData();
@@ -53,7 +54,7 @@ export function CartItemCard({ item }: CartItemCardProps) {
 
       const result = await removeCartItem(formData);
       if (!result.success) {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };
@@ -66,7 +67,7 @@ export function CartItemCard({ item }: CartItemCardProps) {
 
       const result = await toggleSaveForLater(formData);
       if (!result.success) {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };
@@ -145,7 +146,9 @@ export function CartItemCard({ item }: CartItemCardProps) {
                 item.id,
                 !item.giftPackaging,
               );
-              if (!result.success) alert(result.error);
+              if (!result.success) {
+                await appAlert(result.error, { variant: "error" });
+              }
             })
           }
           className={`inline-flex w-fit max-w-full items-center gap-1.5 self-start rounded-full border px-2.5 py-1 text-xs font-medium transition ${

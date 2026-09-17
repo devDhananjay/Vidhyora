@@ -17,6 +17,7 @@ import {
   activateProduct,
 } from "@/actions/admin/manage-products";
 import { CheckCircle, XCircle, Ban } from "lucide-react";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type ProductActionsProps = {
   productId: string;
@@ -36,46 +37,50 @@ export function ProductActions({
     startTransition(async () => {
       const result = await approveProduct(productId);
       if (result.success) {
-        alert("Product approved successfully!");
+        await appAlert("Product approved successfully!", {
+          variant: "success",
+        });
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };
 
-  const handleReject = () => {
+  const handleReject = async () => {
     if (!reason.trim()) {
-      alert("Please provide a reason for rejection");
+      await appAlert("Please provide a reason for rejection");
       return;
     }
 
     startTransition(async () => {
       const result = await rejectProduct(productId, reason);
       if (result.success) {
-        alert("Product rejected successfully!");
+        await appAlert("Product rejected successfully!", {
+          variant: "success",
+        });
         setRejectDialogOpen(false);
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };
 
-  const handleSuspend = () => {
+  const handleSuspend = async () => {
     if (!reason.trim()) {
-      alert("Please provide a reason for suspension");
+      await appAlert("Please provide a reason for suspension");
       return;
     }
 
     startTransition(async () => {
       const result = await suspendProduct(productId, reason);
       if (result.success) {
-        alert("Product deactivated.");
+        await appAlert("Product deactivated.", { variant: "success" });
         setSuspendDialogOpen(false);
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };
@@ -84,10 +89,10 @@ export function ProductActions({
     startTransition(async () => {
       const result = await activateProduct(productId);
       if (result.success) {
-        alert("Product activated.");
+        await appAlert("Product activated.", { variant: "success" });
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };

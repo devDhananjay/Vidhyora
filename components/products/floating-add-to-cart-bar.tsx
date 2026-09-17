@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Check, Scale, ShoppingBag } from "lucide-react";
 import { addToCart } from "@/actions/cart/add-to-cart";
 import { cn, formatCurrency } from "@/lib/utils";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type FloatingAddToCartBarProps = {
   productId: string;
@@ -74,9 +75,9 @@ export function FloatingAddToCartBar({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  function handleAdd() {
+  async function handleAdd() {
     if (!variantId) {
-      alert("Please select a variant");
+      await appAlert("Please select a variant");
       return;
     }
 
@@ -95,7 +96,9 @@ export function FloatingAddToCartBar({
         return;
       }
 
-      alert(result.error || "Failed to add to cart");
+      await appAlert(result.error || "Failed to add to cart", {
+        variant: "error",
+      });
     });
   }
 

@@ -17,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ImageUpload } from "@/components/shared/image-upload";
 import { formatCurrency } from "@/lib/utils";
 import { AlertCircle, CheckCircle } from "lucide-react";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type ReturnRequestFormProps = {
   orderItem: any;
@@ -57,11 +58,13 @@ export function ReturnRequestForm({ orderItem, order, eligibility }: ReturnReque
       });
 
       if (result.success) {
-        alert("Return/replacement request submitted successfully!");
+        await appAlert("Return/replacement request submitted successfully!", {
+          variant: "success",
+        });
         router.push(`/orders/${order.id}`);
         router.refresh();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };

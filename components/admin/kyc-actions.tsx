@@ -14,6 +14,7 @@ import {
   rejectSellerKyc,
   verifySellerKyc,
 } from "@/actions/admin/manage-kyc";
+import { appAlert } from "@/components/shared/app-dialog";
 
 export function KycActions({
   sellerId,
@@ -34,14 +35,14 @@ export function KycActions({
       if (result.success) {
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };
 
-  const reject = () => {
+  const reject = async () => {
     if (!reason.trim()) {
-      alert("Please provide a reason");
+      await appAlert("Please provide a reason");
       return;
     }
     startTransition(async () => {
@@ -50,7 +51,7 @@ export function KycActions({
         setOpen(false);
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };

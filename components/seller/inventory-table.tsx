@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { updateVariantStock } from "@/actions/seller/manage-inventory";
 import { Edit, AlertTriangle, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type InventoryTableProps = {
   inventory: any[];
@@ -30,7 +31,7 @@ export function InventoryTable({ inventory }: InventoryTableProps) {
       if (result.success) {
         setEditingVariant(null);
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };

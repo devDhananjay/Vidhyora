@@ -9,6 +9,7 @@ import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
 import Image from "next/image";
 import { Trash2, ShoppingCart } from "lucide-react";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type WishlistItemProps = {
   item: {
@@ -58,7 +59,7 @@ export function WishlistItem({ item }: WishlistItemProps) {
       if (result.success) {
         window.location.reload();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };

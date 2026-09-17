@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type CouponFormProps = {
   coupon?: any;
@@ -63,7 +64,7 @@ export function CouponForm({ coupon }: CouponFormProps) {
         router.push("/admin/coupons");
         router.refresh();
       } else {
-        alert(result.error);
+        await appAlert(result.error, { variant: "error" });
       }
     });
   };

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import { ChevronLeft, ChevronRight, Film, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isVideoUrl } from "@/lib/media/is-video-url";
 
@@ -224,8 +224,9 @@ export function ProductGallery({
                         }
                       }}
                     />
-                    <span className="relative z-[1] rounded bg-black/55 px-1.5 py-0.5 text-[9px] font-semibold tracking-wide text-white uppercase">
-                      Video
+                    <span className="relative z-[1] flex size-9 items-center justify-center rounded-full border border-[#8b2e2e]/35 bg-white/95 text-[#8b2e2e] shadow-sm">
+                      <Film className="size-4" strokeWidth={1.7} />
+                      <span className="sr-only">Video</span>
                     </span>
                   </div>
                 ) : (

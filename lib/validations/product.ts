@@ -84,6 +84,7 @@ export const createProductSchema = z.object({
     .array(
       z.object({
         url: z.string().min(1),
+        sourceUrl: z.string().optional(),
         altText: z.string().optional(),
         sortOrder: z.coerce.number().int().min(0),
       }),
@@ -138,8 +139,14 @@ export type CreateProductInput = z.infer<typeof createProductSchema>;
 
 export function normalizeProductFormValues(product: any): CreateProductInput {
   const images = (product.images ?? []).map(
-    (image: { url: string; altText?: string | null; sortOrder?: number }, index: number) => ({
+    (image: {
+      url: string;
+      sourceUrl?: string | null;
+      altText?: string | null;
+      sortOrder?: number;
+    }, index: number) => ({
       url: image.url,
+      sourceUrl: image.sourceUrl || image.url,
       altText: image.altText || undefined,
       sortOrder: image.sortOrder ?? index,
     }),

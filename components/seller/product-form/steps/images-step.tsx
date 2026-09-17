@@ -22,9 +22,20 @@ export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
   const [videoError, setVideoError] = useState<string | null>(null);
   const videoInputRef = useRef<HTMLInputElement>(null);
 
-  const syncImages = (urls: string[], nextThumbnail?: string) => {
+  const syncImages = (
+    urls: string[],
+    sources: Record<string, string>,
+    nextThumbnail?: string,
+  ) => {
+    const prevByUrl = Object.fromEntries(
+      (currentImages as Array<{ url: string; sourceUrl?: string }>).map((img) => [
+        img.url,
+        img,
+      ]),
+    );
     const images = urls.map((url, index) => ({
       url,
+      sourceUrl: sources[url] || prevByUrl[url]?.sourceUrl || url,
       altText: productName,
       sortOrder: index,
     }));
@@ -43,9 +54,31 @@ export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
     setValue("thumbnail", thumb, { shouldValidate: true, shouldDirty: true });
   };
 
-  const handleImagesChange = (urls: string[]) => {
+  const sourceByUrl = Object.fromEntries(
+    (currentImages as Array<{ url: string; sourceUrl?: string }>).map((img) => [
+      img.url,
+      img.sourceUrl || img.url,
+    ]),
+  );
+
+  const handleImagesChange = (
+    urls: string[],
+    sources?: Record<string, string>,
+  ) => {
     const keepCurrent = thumbnail && urls.includes(thumbnail);
-    syncImages(urls, keepCurrent ? thumbnail : urls[0] || "");
+    syncImages(
+      urls,
+      sources || sourceByUrl,
+      keepCurrent ? thumbnail : urls[0] || "",
+    );
+  };
+
+  const handleSourcesChange = (map: Record<string, string>) => {
+    const urls = (
+      (watch("images") as Array<{ url: string }> | undefined) || []
+    ).map((img) => img.url);
+    if (urls.length === 0) return;
+    syncImages(urls, map, thumbnail);
   };
 
   const handleThumbnailChange = (url: string) => {
@@ -98,6 +131,8 @@ export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
         <ImageUpload
           value={imageUrls}
           onChange={handleImagesChange}
+          sourceByUrl={sourceByUrl}
+          onSourceByUrlChange={handleSourcesChange}
           thumbnailUrl={thumbnail}
           onThumbnailChange={handleThumbnailChange}
           maxFiles={5}
@@ -194,8 +229,8 @@ export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
       <div className="rounded-xl border bg-muted/50 p-4">
         <h4 className="mb-2 font-medium">Media guidelines</h4>
         <ul className="space-y-1 text-sm text-muted-foreground">
-          <li>• Crop and zoom photos; upload your logo as watermark and drag it anywhere</li>
-          <li>• Click the pencil on any image to re-edit (add or edit product)</li>
+          <li>• Crop photos; drag watermark on the crop — Save places it exactly</li>
+          <li>• Edit again from the clean photo: turn watermark off to remove logo</li>
           <li>• Optional video helps customers see craftsmanship and fit</li>
           <li>• Keep videos short and steady; avoid heavy music overlays</li>
           <li>• Click “Set as thumbnail” on the photo you want as main</li>

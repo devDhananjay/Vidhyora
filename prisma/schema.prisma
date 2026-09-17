@@ -404,6 +404,8 @@ model ProductImage {
   productId String
   variantId String?
   url       String
+  /** Clean crop without watermark — used when re-editing logo placement. */
+  sourceUrl String?
   altText   String?
   sortOrder Int     @default(0)
 

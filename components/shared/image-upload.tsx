@@ -12,25 +12,34 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { uploadProductImage } from "@/actions/seller/upload-product-image";
-import { ProductImageEditor } from "@/components/shared/product-image-editor";
+import {
+  ProductImageEditor,
+  type EditedImageResult,
+} from "@/components/shared/product-image-editor";
+
+export type UploadImageItem = {
+  url: string;
+  /** Clean crop without watermark — used when re-editing. */
+  sourceUrl?: string;
+};
 
 type ImageUploadProps = {
   value?: string[];
-  onChange: (urls: string[]) => void;
-  /** Currently selected thumbnail URL (must be one of `value`). */
+  onChange: (urls: string[], sources?: Record<string, string>) => void;
+  /** Parallel map displayUrl → clean sourceUrl for watermark re-edit. */
+  sourceByUrl?: Record<string, string>;
+  onSourceByUrlChange?: (map: Record<string, string>) => void;
   thumbnailUrl?: string;
   onThumbnailChange?: (url: string) => void;
   maxFiles?: number;
   maxSize?: number;
   disabled?: boolean;
   className?: string;
-  /** Open crop / logo / zoom editor before upload (default true). */
   enableEditor?: boolean;
 };
 
 type EditorSession = {
   src: string;
-  /** When set, replace this URL after save; otherwise append. */
   replaceUrl?: string;
   revokeOnClose?: boolean;
   queue?: File[];
@@ -39,6 +48,8 @@ type EditorSession = {
 export function ImageUpload({
   value = [],
   onChange,
+  sourceByUrl = {},
+  onSourceByUrlChange,
   thumbnailUrl,
   onThumbnailChange,
   maxFiles = 5,
@@ -53,7 +64,9 @@ export function ImageUpload({
   const [editor, setEditor] = useState<EditorSession | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const valueRef = useRef(value);
+  const sourcesRef = useRef(sourceByUrl);
   valueRef.current = value;
+  sourcesRef.current = sourceByUrl;
 
   const activeThumbnail =
     thumbnailUrl && value.includes(thumbnailUrl) ? thumbnailUrl : value[0] || "";
@@ -66,6 +79,16 @@ export function ImageUpload({
       throw new Error(result.error || "Failed to upload image");
     }
     return result.data.url;
+  };
+
+  const patchSources = (
+    next: Record<string, string>,
+    removeKeys: string[] = [],
+  ) => {
+    const merged = { ...sourcesRef.current, ...next };
+    for (const key of removeKeys) delete merged[key];
+    sourcesRef.current = merged;
+    onSourceByUrlChange?.(merged);
   };
 
   const closeEditor = () => {
@@ -138,28 +161,39 @@ export function ImageUpload({
     }
   };
 
-  const handleEditorApply = async (file: File) => {
+  const handleEditorApply = async (result: EditedImageResult) => {
     setIsUploading(true);
     setError(null);
     try {
-      const url = await uploadFile(file);
+      const cleanUrl = await uploadFile(result.cleanFile);
+      const displayUrl = result.hasWatermark
+        ? await uploadFile(result.displayFile)
+        : cleanUrl;
+
       const current = valueRef.current;
       const replaceUrl = editor?.replaceUrl;
       const queue = editor?.queue || [];
 
       if (replaceUrl) {
-        const next = current.map((u) => (u === replaceUrl ? url : u));
-        onChange(next);
+        const next = current.map((u) => (u === replaceUrl ? displayUrl : u));
+        const nextSources = { ...sourcesRef.current, [displayUrl]: cleanUrl };
+        delete nextSources[replaceUrl];
+        sourcesRef.current = nextSources;
+        onChange(next, nextSources);
+        onSourceByUrlChange?.(nextSources);
         if (activeThumbnail === replaceUrl) {
-          onThumbnailChange?.(url);
+          onThumbnailChange?.(displayUrl);
         }
         if (editor?.revokeOnClose && editor.src.startsWith("blob:")) {
           URL.revokeObjectURL(editor.src);
         }
         setEditor(null);
       } else {
-        const next = [...current, url];
-        onChange(next);
+        const next = [...current, displayUrl];
+        const nextSources = { ...sourcesRef.current, [displayUrl]: cleanUrl };
+        sourcesRef.current = nextSources;
+        onChange(next, nextSources);
+        onSourceByUrlChange?.(nextSources);
         if (!activeThumbnail && next[0]) {
           onThumbnailChange?.(next[0]);
         }
@@ -183,8 +217,10 @@ export function ImageUpload({
 
   const handleEditExisting = (url: string) => {
     setError(null);
+    // Prefer clean source so watermark can be moved / removed
+    const src = sourcesRef.current[url] || sourceByUrl[url] || url;
     setEditor({
-      src: url,
+      src,
       replaceUrl: url,
       revokeOnClose: false,
     });
@@ -217,6 +253,9 @@ export function ImageUpload({
     const removed = value[index];
     const next = value.filter((_, i) => i !== index);
     onChange(next);
+    if (removed) {
+      patchSources({}, [removed]);
+    }
     if (removed === activeThumbnail) {
       onThumbnailChange?.(next[0] || "");
     }
@@ -364,10 +403,7 @@ export function ImageUpload({
               : "Edit product photo"
         }
         onOpenChange={(open) => {
-          if (!open) {
-            // Skip remaining queued files if user cancels
-            closeEditor();
-          }
+          if (!open) closeEditor();
         }}
         onApply={handleEditorApply}
       />

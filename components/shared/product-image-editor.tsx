@@ -34,15 +34,23 @@ import { BRAND_MONOGRAM_SRC } from "@/lib/constants";
 
 type LogoSource = "brand" | "custom";
 
-/** Normalized top-left of logo within the crop (0–1). */
+/** Normalized top-left of logo within the crop frame (0–1). */
 type LogoPos = { x: number; y: number };
+
+export type EditedImageResult = {
+  /** Final image shown on storefront (may include watermark). */
+  displayFile: File;
+  /** Clean crop without watermark — used for future edits. */
+  cleanFile: File;
+  hasWatermark: boolean;
+};
 
 type ProductImageEditorProps = {
   open: boolean;
   imageSrc: string | null;
   title?: string;
   onOpenChange: (open: boolean) => void;
-  onApply: (file: File) => Promise<void> | void;
+  onApply: (result: EditedImageResult) => Promise<void> | void;
 };
 
 const ASPECT_OPTIONS: Array<{ id: string; label: string; value: number }> = [
@@ -75,6 +83,17 @@ function clamp(n: number, min: number, max: number) {
   return Math.min(max, Math.max(min, n));
 }
 
+async function canvasToFile(canvas: HTMLCanvasElement, name: string) {
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (b) => (b ? resolve(b) : reject(new Error("Could not export image"))),
+      "image/jpeg",
+      0.92,
+    );
+  });
+  return new File([blob], name, { type: "image/jpeg" });
+}
+
 async function exportEditedImage(params: {
   imageSrc: string;
   crop: Area;
@@ -83,9 +102,8 @@ async function exportEditedImage(params: {
   logoPos: LogoPos;
   logoOpacity: number;
   logoSize: number;
-}): Promise<File> {
+}): Promise<EditedImageResult> {
   const image = await loadImage(params.imageSrc);
-  const canvas = document.createElement("canvas");
   const outputSize = Math.min(
     1600,
     Math.max(params.crop.width, params.crop.height, 800),
@@ -98,57 +116,66 @@ async function exportEditedImage(params: {
     outW = Math.round(outputSize * aspect);
   }
 
-  canvas.width = outW;
-  canvas.height = outH;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Canvas not supported");
+  const drawBase = (canvas: HTMLCanvasElement) => {
+    canvas.width = outW;
+    canvas.height = outH;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas not supported");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, outW, outH);
+    ctx.drawImage(
+      image,
+      params.crop.x,
+      params.crop.y,
+      params.crop.width,
+      params.crop.height,
+      0,
+      0,
+      outW,
+      outH,
+    );
+    return ctx;
+  };
 
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, outW, outH);
-  ctx.drawImage(
-    image,
-    params.crop.x,
-    params.crop.y,
-    params.crop.width,
-    params.crop.height,
-    0,
-    0,
-    outW,
-    outH,
+  const cleanCanvas = document.createElement("canvas");
+  drawBase(cleanCanvas);
+  const cleanFile = await canvasToFile(
+    cleanCanvas,
+    `product-clean-${Date.now()}.jpg`,
   );
 
-  if (params.withLogo && params.logoSrc) {
-    try {
-      const logo = await loadImage(params.logoSrc);
-      const target = Math.max(
-        16,
-        Math.round(Math.min(outW, outH) * params.logoSize),
-      );
-      const ratio = logo.width / Math.max(logo.height, 1);
-      const logoW = target;
-      const logoH = Math.round(target / ratio);
-      const maxX = Math.max(0, outW - logoW);
-      const maxY = Math.max(0, outH - logoH);
-      const x = clamp(Math.round(params.logoPos.x * outW), 0, maxX);
-      const y = clamp(Math.round(params.logoPos.y * outH), 0, maxY);
-      ctx.save();
-      ctx.globalAlpha = params.logoOpacity;
-      ctx.drawImage(logo, x, y, logoW, logoH);
-      ctx.restore();
-    } catch {
-      // Crop still applies if logo fails
-    }
+  if (!params.withLogo || !params.logoSrc) {
+    return { displayFile: cleanFile, cleanFile, hasWatermark: false };
   }
 
-  const blob = await new Promise<Blob>((resolve, reject) => {
-    canvas.toBlob(
-      (b) => (b ? resolve(b) : reject(new Error("Could not export image"))),
-      "image/jpeg",
-      0.92,
+  const displayCanvas = document.createElement("canvas");
+  const ctx = drawBase(displayCanvas);
+  try {
+    const logo = await loadImage(params.logoSrc);
+    const target = Math.max(
+      16,
+      Math.round(Math.min(outW, outH) * params.logoSize),
     );
-  });
+    const ratio = logo.width / Math.max(logo.height, 1);
+    const logoW = target;
+    const logoH = Math.round(target / ratio);
+    const maxX = Math.max(0, outW - logoW);
+    const maxY = Math.max(0, outH - logoH);
+    const x = clamp(Math.round(params.logoPos.x * outW), 0, maxX);
+    const y = clamp(Math.round(params.logoPos.y * outH), 0, maxY);
+    ctx.save();
+    ctx.globalAlpha = params.logoOpacity;
+    ctx.drawImage(logo, x, y, logoW, logoH);
+    ctx.restore();
+  } catch {
+    return { displayFile: cleanFile, cleanFile, hasWatermark: false };
+  }
 
-  return new File([blob], `product-${Date.now()}.jpg`, { type: "image/jpeg" });
+  const displayFile = await canvasToFile(
+    displayCanvas,
+    `product-${Date.now()}.jpg`,
+  );
+  return { displayFile, cleanFile, hasWatermark: true };
 }
 
 export function ProductImageEditor({
@@ -159,9 +186,10 @@ export function ProductImageEditor({
   onApply,
 }: ProductImageEditorProps) {
   const stageRef = useRef<HTMLDivElement>(null);
+  const cropFrameRef = useRef<HTMLDivElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const dragOffset = useRef({ x: 0, y: 0 });
-  const logoSizeRef = useRef(0.18);
+  const logoSizeRef = useRef(0.12);
   const draggingRef = useRef(false);
 
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
@@ -177,15 +205,23 @@ export function ProductImageEditor({
   const [draggingLogo, setDraggingLogo] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  logoSizeRef.current = logoSize;
-  draggingRef.current = draggingLogo;
+  /** Crop frame as % of stage — logo is positioned inside this. */
+  const [cropFrame, setCropFrame] = useState({
+    left: 0,
+    top: 0,
+    width: 100,
+    height: 100,
+  });
+  const [cropFramePx, setCropFramePx] = useState({ w: 0, h: 0 });
 
   const aspect = ASPECT_OPTIONS.find((a) => a.id === aspectId)?.value ?? 1;
   const activeLogoSrc =
     logoSource === "custom" && customLogoSrc
       ? customLogoSrc
       : BRAND_MONOGRAM_SRC;
+
+  logoSizeRef.current = logoSize;
+  draggingRef.current = draggingLogo;
 
   useEffect(() => {
     if (!open) return;
@@ -211,9 +247,48 @@ export function ProductImageEditor({
     };
   }, [customLogoSrc]);
 
-  const onCropComplete = useCallback((_: Area, pixels: Area) => {
-    setCroppedAreaPixels(pixels);
+  const syncCropFrame = useCallback(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const area = stage.querySelector(
+      ".reactEasyCrop_CropArea",
+    ) as HTMLElement | null;
+    if (!area) return;
+    const sr = stage.getBoundingClientRect();
+    const ar = area.getBoundingClientRect();
+    if (sr.width <= 0 || sr.height <= 0) return;
+    setCropFrame({
+      left: ((ar.left - sr.left) / sr.width) * 100,
+      top: ((ar.top - sr.top) / sr.height) * 100,
+      width: (ar.width / sr.width) * 100,
+      height: (ar.height / sr.height) * 100,
+    });
+    setCropFramePx({ w: ar.width, h: ar.height });
   }, []);
+
+  useEffect(() => {
+    if (!open || !imageSrc) return;
+    const id = window.setTimeout(syncCropFrame, 50);
+    const id2 = window.setTimeout(syncCropFrame, 200);
+    const stage = stageRef.current;
+    const ro = stage ? new ResizeObserver(() => syncCropFrame()) : null;
+    if (stage && ro) ro.observe(stage);
+    window.addEventListener("resize", syncCropFrame);
+    return () => {
+      window.clearTimeout(id);
+      window.clearTimeout(id2);
+      ro?.disconnect();
+      window.removeEventListener("resize", syncCropFrame);
+    };
+  }, [open, imageSrc, crop, zoom, aspect, syncCropFrame]);
+
+  const onCropComplete = useCallback(
+    (_: Area, pixels: Area) => {
+      setCroppedAreaPixels(pixels);
+      requestAnimationFrame(syncCropFrame);
+    },
+    [syncCropFrame],
+  );
 
   const handleCustomLogo = (file: File | null) => {
     if (!file) return;
@@ -245,24 +320,26 @@ export function ProductImageEditor({
   };
 
   const updateLogoFromClient = useCallback((clientX: number, clientY: number) => {
-    const stage = stageRef.current;
-    if (!stage) return;
-    const rect = stage.getBoundingClientRect();
+    const frame = cropFrameRef.current;
+    if (!frame) return;
+    const rect = frame.getBoundingClientRect();
     if (rect.width <= 0 || rect.height <= 0) return;
 
     const sizeFrac = logoSizeRef.current;
+    const short = Math.min(rect.width, rect.height);
+    const logoW = short * sizeFrac;
+    const logoH = short * sizeFrac;
     const rawX =
       (clientX - rect.left - dragOffset.current.x) / rect.width;
     const rawY =
       (clientY - rect.top - dragOffset.current.y) / rect.height;
 
     setLogoPos({
-      x: clamp(rawX, 0, Math.max(0, 1 - sizeFrac)),
-      y: clamp(rawY, 0, Math.max(0, 1 - sizeFrac)),
+      x: clamp(rawX, 0, Math.max(0, 1 - logoW / rect.width)),
+      y: clamp(rawY, 0, Math.max(0, 1 - logoH / rect.height)),
     });
   }, []);
 
-  // Keep drag alive even if pointer crosses Cropper layers under the logo
   useEffect(() => {
     if (!draggingLogo) return;
 
@@ -304,7 +381,7 @@ export function ProductImageEditor({
     setBusy(true);
     setError(null);
     try {
-      const file = await exportEditedImage({
+      const result = await exportEditedImage({
         imageSrc,
         crop: croppedAreaPixels,
         withLogo,
@@ -313,13 +390,18 @@ export function ProductImageEditor({
         logoOpacity,
         logoSize,
       });
-      await onApply(file);
+      await onApply(result);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not save image");
     } finally {
       setBusy(false);
     }
   };
+
+  const logoPreviewSizePx = Math.max(
+    16,
+    Math.min(cropFramePx.w || 200, cropFramePx.h || 200) * logoSize,
+  );
 
   return (
     <Dialog open={open} onOpenChange={(next) => !busy && onOpenChange(next)}>
@@ -330,8 +412,8 @@ export function ProductImageEditor({
             {title}
           </DialogTitle>
           <DialogDescription>
-            Crop, zoom, upload your logo as watermark, and drag it anywhere on
-            the photo.
+            Crop and place your watermark on the photo. Turn watermark off to
+            save a clean image (removes previous logo on re-edit).
           </DialogDescription>
         </DialogHeader>
 
@@ -343,10 +425,7 @@ export function ProductImageEditor({
             {imageSrc ? (
               <>
                 <div
-                  className={cn(
-                    "absolute inset-0 z-0",
-                    withLogo && "[&_.reactEasyCrop_Container]:!z-0",
-                  )}
+                  className="absolute inset-0 z-0"
                   style={draggingLogo ? { pointerEvents: "none" } : undefined}
                 >
                   <Cropper
@@ -371,8 +450,18 @@ export function ProductImageEditor({
                   />
                 </div>
 
-                {withLogo && (
-                  <div className="pointer-events-none absolute inset-0 z-[200]">
+                {/* Logo lives strictly inside the crop rectangle */}
+                <div
+                  ref={cropFrameRef}
+                  className="pointer-events-none absolute z-[200]"
+                  style={{
+                    left: `${cropFrame.left}%`,
+                    top: `${cropFrame.top}%`,
+                    width: `${cropFrame.width}%`,
+                    height: `${cropFrame.height}%`,
+                  }}
+                >
+                  {withLogo && (
                     <div
                       className={cn(
                         "pointer-events-auto absolute select-none will-change-transform",
@@ -381,11 +470,9 @@ export function ProductImageEditor({
                       style={{
                         left: `${logoPos.x * 100}%`,
                         top: `${logoPos.y * 100}%`,
-                        width: `${logoSize * 100}%`,
-                        minWidth: 16,
+                        width: logoPreviewSizePx,
                         opacity: logoOpacity,
                         touchAction: "none",
-                        zIndex: 200,
                       }}
                       onPointerDown={onLogoPointerDown}
                     >
@@ -401,8 +488,8 @@ export function ProductImageEditor({
                         Drag to place
                       </span>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </>
             ) : (
               <div className="flex h-full items-center justify-center text-neutral-400">
@@ -483,7 +570,7 @@ export function ProductImageEditor({
                     Watermark logo
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Use VIDYORA or upload your own — then drag it on the photo
+                    Off = clean photo. On = place logo, then drag on the crop.
                   </p>
                 </div>
                 <Switch
@@ -588,10 +675,6 @@ export function ProductImageEditor({
                         </button>
                       ))}
                     </div>
-                    <p className="mt-2 text-[11px] text-muted-foreground">
-                      Or drag the logo on the preview to place it exactly where
-                      you want.
-                    </p>
                   </div>
 
                   <div>
@@ -611,9 +694,6 @@ export function ProductImageEditor({
                       onChange={(e) => setLogoSize(Number(e.target.value))}
                       className="h-2 w-full cursor-pointer accent-[#8b2e2e]"
                     />
-                    <p className="mt-1 text-[11px] text-muted-foreground">
-                      Drag smaller for a subtle mark — down to 3% of the photo.
-                    </p>
                   </div>
                   <div>
                     <div className="mb-1.5 flex justify-between text-xs">
@@ -679,8 +759,10 @@ export function ProductImageEditor({
                 <Loader2 className="mr-1.5 size-4 animate-spin" />
                 Saving…
               </>
+            ) : withLogo ? (
+              "Save with logo"
             ) : (
-              "Save photo"
+              "Save clean photo"
             )}
           </Button>
         </div>

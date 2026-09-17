@@ -134,6 +134,7 @@ function draftToFormValues(
 
   const images = imageUrls.slice(0, MAX_AI_IMAGES).map((url, index) => ({
     url,
+    sourceUrl: url,
     altText: draft.imageAltText || name,
     sortOrder: index,
   }));

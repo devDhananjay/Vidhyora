@@ -67,6 +67,7 @@ export async function createProduct(
         images: {
           create: validated.images.map((img) => ({
             url: img.url,
+            sourceUrl: img.sourceUrl || img.url,
             altText: img.altText,
             sortOrder: img.sortOrder,
           })),
@@ -297,7 +298,12 @@ type DraftProductInput = {
   description?: string;
   thumbnail?: string;
   videoUrl?: string;
-  images?: Array<{ url?: string; altText?: string; sortOrder?: number }>;
+  images?: Array<{
+    url?: string;
+    sourceUrl?: string;
+    altText?: string;
+    sortOrder?: number;
+  }>;
   variants?: Array<{
     sku?: string;
     attributes?: Record<string, string>;
@@ -452,6 +458,7 @@ export async function saveProductDraft(
           productId,
           images.map((image, index) => ({
             url: image.url as string,
+            sourceUrl: (image as { sourceUrl?: string }).sourceUrl || (image.url as string),
             altText: image.altText,
             sortOrder: image.sortOrder ?? index,
           })),
@@ -490,6 +497,7 @@ export async function saveProductDraft(
         images: {
           create: images.map((image, index) => ({
             url: image.url as string,
+            sourceUrl: (image as { sourceUrl?: string }).sourceUrl || (image.url as string),
             altText: image.altText,
             sortOrder: image.sortOrder ?? index,
           })),

@@ -13,6 +13,7 @@ type VariantInput = {
 
 type ImageInput = {
   url: string;
+  sourceUrl?: string;
   altText?: string;
   sortOrder: number;
 };
@@ -48,6 +49,7 @@ export async function replaceProductImages(
     data: images.map((image, index) => ({
       productId,
       url: image.url,
+      sourceUrl: image.sourceUrl || image.url,
       altText: image.altText,
       sortOrder: image.sortOrder ?? index,
     })),

@@ -7,6 +7,7 @@ HOST="${HOST:-ec2-user@52.66.204.66}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 cd "$ROOT"
+npx prisma generate
 npm run build
 
 rm -rf .next/standalone/public .next/standalone/.next/static

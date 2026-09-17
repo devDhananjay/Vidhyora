@@ -3,7 +3,7 @@ export const APP_TAGLINE = "Beyond Ornaments";
 export const APP_DESCRIPTION =
   "VIDYORA — India's trusted destination for gold, diamond and fine jewellery.";
 export const BRAND_LOGO_SRC = "/brand/vidyora-logo.png";
-export const BRAND_MONOGRAM_SRC = "/brand/vidyora-monogram.png";
+export const BRAND_MONOGRAM_SRC = "/brand/vidyora-watermark.png";
 export const BRAND_FAVICON_SRC = "/favicon.ico";
 
 export const DEFAULT_CURRENCY = "INR";

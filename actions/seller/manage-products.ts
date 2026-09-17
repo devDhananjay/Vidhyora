@@ -62,6 +62,7 @@ export async function createProduct(
         tax: validated.tax,
         hsn: validated.hsn || null,
         certificateNumber: validated.certificateNumber || null,
+        certificateUrl: validated.certificateUrl || null,
         attributes: validated.attributes ?? {},
         status: needsApproval ? "DRAFT" : "ACTIVE",
         approvalStatus: needsApproval ? "PENDING_APPROVAL" : "APPROVED",
@@ -72,6 +73,12 @@ export async function createProduct(
             url: img.url,
             sourceUrl: img.sourceUrl || img.url,
             kind: img.kind === "VIDEO" ? "VIDEO" : "IMAGE",
+            role:
+              img.kind === "VIDEO"
+                ? "PRODUCT"
+                : img.role === "ON_MODEL" || img.role === "DETAIL"
+                  ? img.role
+                  : "PRODUCT",
             altText: img.altText,
             sortOrder: img.sortOrder,
           })),
@@ -216,6 +223,7 @@ export async function updateProduct(
           tax: validated.tax,
           hsn: validated.hsn || null,
           certificateNumber: validated.certificateNumber || null,
+          certificateUrl: validated.certificateUrl || null,
           attributes: validated.attributes ?? {},
           approvalStatus: needsApproval ? "PENDING_APPROVAL" : "APPROVED",
           status: needsApproval
@@ -335,6 +343,7 @@ type DraftProductInput = {
   tax?: number;
   hsn?: string;
   certificateNumber?: string;
+  certificateUrl?: string;
   attributes?: Record<string, string>;
 };
 
@@ -460,6 +469,14 @@ export async function saveProductDraft(
       tax: Number(data.tax) || 0,
       hsn: data.hsn?.trim() || null,
       certificateNumber: data.certificateNumber?.trim() || null,
+      certificateUrl: (() => {
+        const value = data.certificateUrl?.trim();
+        if (!value) return null;
+        if (/^https?:\/\//i.test(value) || value.startsWith("/uploads/")) {
+          return value;
+        }
+        return null;
+      })(),
       attributes: data.attributes ?? {},
       status: "DRAFT" as const,
       approvalStatus: "DRAFT" as const,
@@ -486,6 +503,7 @@ export async function saveProductDraft(
             sourceUrl: (image as { sourceUrl?: string }).sourceUrl || (image.url as string),
             kind:
               (image as { kind?: string }).kind === "VIDEO" ? "VIDEO" : "IMAGE",
+            role: (image as { role?: string }).role || "PRODUCT",
             altText: image.altText,
             sortOrder: image.sortOrder ?? index,
           })),
@@ -527,6 +545,7 @@ export async function saveProductDraft(
             sourceUrl: (image as { sourceUrl?: string }).sourceUrl || (image.url as string),
             kind:
               (image as { kind?: string }).kind === "VIDEO" ? "VIDEO" : "IMAGE",
+            role: (image as { role?: string }).role || "PRODUCT",
             altText: image.altText,
             sortOrder: image.sortOrder ?? index,
           })),

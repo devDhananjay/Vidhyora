@@ -1,29 +1,80 @@
 import { z } from "zod";
 
-export const createOrderSchema = z.object({
-  addressId: z.string().min(1, "Delivery address is required"),
-  paymentMethod: z.enum(["RAZORPAY", "COD"]),
-  hidePriceOnInvoice: z
-    .union([z.boolean(), z.literal("true"), z.literal("false")])
-    .optional()
-    .transform((value) => value === true || value === "true"),
-  giftMessage: z
+export const guestCheckoutAddressSchema = z.object({
+  fullName: z.string().trim().min(2, "Name is required"),
+  email: z.string().trim().email("Valid email is required"),
+  phone: z
     .string()
     .trim()
-    .max(500, "Gift message must be 500 characters or less")
-    .optional()
-    .transform((value) => (value ? value : undefined)),
-  occasionNote: z
+    .min(10, "Phone is required")
+    .max(15, "Phone looks invalid"),
+  line1: z.string().trim().min(5, "Address is required"),
+  line2: z.string().trim().max(120).optional().or(z.literal("")),
+  city: z.string().trim().min(2, "City is required"),
+  state: z.string().trim().min(2, "State is required"),
+  postalCode: z
     .string()
     .trim()
-    .max(200, "Occasion note must be 200 characters or less")
-    .optional()
-    .transform((value) => (value ? value : undefined)),
-  fastDelivery: z
-    .union([z.boolean(), z.literal("true"), z.literal("false")])
-    .optional()
-    .transform((value) => value === true || value === "true"),
+    .regex(/^\d{6}$/, "Enter a valid 6-digit pincode"),
+  country: z.string().trim().default("IN"),
 });
+
+export const createOrderSchema = z
+  .object({
+    addressId: z.string().optional(),
+    paymentMethod: z.enum(["RAZORPAY", "COD"]),
+    hidePriceOnInvoice: z
+      .union([z.boolean(), z.literal("true"), z.literal("false")])
+      .optional()
+      .transform((value) => value === true || value === "true"),
+    giftMessage: z
+      .string()
+      .trim()
+      .max(500, "Gift message must be 500 characters or less")
+      .optional()
+      .transform((value) => (value ? value : undefined)),
+    occasionNote: z
+      .string()
+      .trim()
+      .max(200, "Occasion note must be 200 characters or less")
+      .optional()
+      .transform((value) => (value ? value : undefined)),
+    fastDelivery: z
+      .union([z.boolean(), z.literal("true"), z.literal("false")])
+      .optional()
+      .transform((value) => value === true || value === "true"),
+    guestFullName: z.string().optional(),
+    guestEmail: z.string().optional(),
+    guestPhone: z.string().optional(),
+    guestLine1: z.string().optional(),
+    guestLine2: z.string().optional(),
+    guestCity: z.string().optional(),
+    guestState: z.string().optional(),
+    guestPostalCode: z.string().optional(),
+    guestCountry: z.string().optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.addressId?.trim()) return;
+    const guest = guestCheckoutAddressSchema.safeParse({
+      fullName: value.guestFullName,
+      email: value.guestEmail,
+      phone: value.guestPhone,
+      line1: value.guestLine1,
+      line2: value.guestLine2 || "",
+      city: value.guestCity,
+      state: value.guestState,
+      postalCode: value.guestPostalCode,
+      country: value.guestCountry || "IN",
+    });
+    if (guest.success) return;
+    guest.error.issues.forEach((issue) => {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: issue.message,
+        path: ["guest", ...issue.path],
+      });
+    });
+  });
 
 export const updateOrderStatusSchema = z.object({
   orderId: z.string().min(1, "Order ID is required"),

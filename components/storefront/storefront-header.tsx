@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Handshake, Heart, MapPin, Search, User } from "lucide-react";
+import { Handshake, Heart, MapPin, User } from "lucide-react";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { MegaNav } from "@/components/storefront/mega-nav";
+import { SearchTypeahead } from "@/components/storefront/search-typeahead";
 // Dark / light mode — on hold for now
 // import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { ROUTES } from "@/lib/constants";
@@ -83,44 +84,19 @@ export function StorefrontHeader({
         </Link>
 
         <div className="hidden flex-1 justify-center md:flex">
-          <form action={ROUTES.search} className="relative w-full max-w-xl">
-            <input
-              type="search"
-              name="q"
-              placeholder="Search for gold necklace, diamond jewellery"
-              className={cn(
-                "h-10 w-full rounded-full border border-border bg-card px-5 pr-11 text-sm text-foreground outline-none placeholder:text-muted-foreground transition-[padding,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] focus:border-brand",
-                compact && "shadow-sm",
-              )}
-              aria-label="Search jewellery"
-            />
-            <button
-              type="submit"
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground"
-              aria-label="Search"
-            >
-              <Search className="size-4" />
-            </button>
-          </form>
+          <SearchTypeahead
+            className="w-full max-w-xl"
+            compact={compact}
+            placeholder="Search for gold necklace, diamond jewellery"
+          />
         </div>
 
         {/* Mobile search */}
-        <form action={ROUTES.search} className="relative min-w-0 flex-1 md:hidden">
-          <input
-            type="search"
-            name="q"
-            placeholder="Search jewellery"
-            className="h-9 w-full rounded-full border border-border bg-card px-3 pr-9 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-brand"
-            aria-label="Search jewellery"
-          />
-          <button
-            type="submit"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            aria-label="Search"
-          >
-            <Search className="size-4" />
-          </button>
-        </form>
+        <SearchTypeahead
+          className="min-w-0 flex-1 md:hidden"
+          compact
+          placeholder="Search jewellery"
+        />
 
         <nav className="ml-auto flex items-center gap-1 text-brand">
           {/* Dark / light mode — on hold for now

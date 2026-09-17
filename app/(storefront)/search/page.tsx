@@ -13,6 +13,7 @@ import {
 import {
   imageUrlsForProduct,
   isBestSellerFlag,
+  jewelleryCardMeta,
 } from "@/lib/products/product-card-data";
 import { productSearch } from "@/lib/search/product-search";
 import { PAGINATION } from "@/lib/constants";
@@ -70,6 +71,7 @@ async function SearchResults({
               ...product,
               images: imageUrlsForProduct(product),
               isBestSeller: isBestSellerFlag(product.attributes),
+              metalLabel: jewelleryCardMeta(product.attributes).label ?? null,
             }}
           />
         ))}

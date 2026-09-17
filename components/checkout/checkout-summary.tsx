@@ -17,6 +17,7 @@ import {
 import { calculateCartSummary } from "@/lib/cart/cart-utils";
 import type { CartWithItems } from "@/types/cart";
 import { appAlert } from "@/components/shared/app-dialog";
+import type { GuestAddressDraft } from "@/components/checkout/guest-address-form";
 
 type AddressLite = {
   id: string;
@@ -28,6 +29,7 @@ type CheckoutSummaryProps = {
   cart?: CartWithItems;
   itemCount: number;
   selectedAddressId?: string;
+  guestAddress?: GuestAddressDraft;
   addresses?: AddressLite[];
   codEnabled?: boolean;
   giftNotesEnabled?: boolean;
@@ -74,6 +76,7 @@ export function CheckoutSummary({
   cart,
   itemCount,
   selectedAddressId,
+  guestAddress,
   addresses = [],
   codEnabled = true,
   giftNotesEnabled = true,
@@ -106,8 +109,10 @@ export function CheckoutSummary({
     () => addresses.find((address) => address.id === selectedAddressId),
     [addresses, selectedAddressId],
   );
+  const checkoutPincode =
+    selectedAddress?.postalCode || guestAddress?.postalCode || "";
   const codAvailable =
-    codEnabled && isCodAvailableForPincode(selectedAddress?.postalCode);
+    codEnabled && isCodAvailableForPincode(checkoutPincode);
 
   useEffect(() => {
     if (!codAvailable && paymentMethod === "COD") {
@@ -116,18 +121,46 @@ export function CheckoutSummary({
   }, [codAvailable, paymentMethod]);
 
   const handlePlaceOrder = async () => {
-    if (!selectedAddressId) {
+    const usingGuest = Boolean(guestAddress);
+    if (!usingGuest && !selectedAddressId) {
       await appAlert("Please select a delivery address");
       return;
     }
+    if (usingGuest) {
+      if (
+        !guestAddress?.fullName?.trim() ||
+        !guestAddress?.email?.trim() ||
+        !guestAddress?.phone?.trim() ||
+        !guestAddress?.line1?.trim() ||
+        !guestAddress?.city?.trim() ||
+        !guestAddress?.state?.trim() ||
+        !guestAddress?.postalCode?.trim()
+      ) {
+        await appAlert("Please fill in your delivery details");
+        return;
+      }
+    }
     if (paymentMethod === "COD" && !codAvailable) {
-      await appAlert(codUnavailableMessage(selectedAddress?.postalCode));
+      await appAlert(codUnavailableMessage(checkoutPincode));
       return;
     }
 
     startTransition(async () => {
       const formData = new FormData();
-      formData.append("addressId", selectedAddressId);
+      if (selectedAddressId) {
+        formData.append("addressId", selectedAddressId);
+      }
+      if (guestAddress) {
+        formData.append("guestFullName", guestAddress.fullName);
+        formData.append("guestEmail", guestAddress.email);
+        formData.append("guestPhone", guestAddress.phone);
+        formData.append("guestLine1", guestAddress.line1);
+        formData.append("guestLine2", guestAddress.line2 || "");
+        formData.append("guestCity", guestAddress.city);
+        formData.append("guestState", guestAddress.state);
+        formData.append("guestPostalCode", guestAddress.postalCode);
+        formData.append("guestCountry", "IN");
+      }
       formData.append("paymentMethod", paymentMethod);
       formData.append(
         "hidePriceOnInvoice",
@@ -153,7 +186,13 @@ export function CheckoutSummary({
           await appAlert("Failed to create order", { variant: "error" });
           return;
         }
-        router.push(`/orders/${result.data.orderId}?success=true`);
+        if (usingGuest && result.data.orderNumber) {
+          router.push(
+            `/order-confirmed?n=${encodeURIComponent(result.data.orderNumber)}`,
+          );
+        } else {
+          router.push(`/orders/${result.data.orderId}?success=true`);
+        }
         router.refresh();
         return;
       }
@@ -163,6 +202,14 @@ export function CheckoutSummary({
           "Online payment could not start. Please try Cash on Delivery.",
           { variant: "error" },
         );
+        return;
+      }
+
+      const payAddressId = result.data.addressId || selectedAddressId;
+      if (!payAddressId) {
+        await appAlert("Delivery address missing for payment", {
+          variant: "error",
+        });
         return;
       }
 
@@ -184,13 +231,20 @@ export function CheckoutSummary({
         name: "VIDYORA",
         description: "Jewellery order",
         order_id: result.data.razorpayOrderId,
+        prefill: guestAddress
+          ? {
+              name: guestAddress.fullName,
+              email: guestAddress.email,
+              contact: guestAddress.phone,
+            }
+          : undefined,
         handler: async (response: {
           razorpay_order_id: string;
           razorpay_payment_id: string;
           razorpay_signature: string;
         }) => {
           const confirmed = await confirmRazorpayOrder({
-            addressId: selectedAddressId,
+            addressId: payAddressId,
             razorpay_order_id: response.razorpay_order_id,
             razorpay_payment_id: response.razorpay_payment_id,
             razorpay_signature: response.razorpay_signature,
@@ -200,7 +254,13 @@ export function CheckoutSummary({
             fastDelivery,
           });
           if (confirmed.success) {
-            router.push(`/orders/${confirmed.data.orderId}?success=true`);
+            if (usingGuest && confirmed.data.orderNumber) {
+              router.push(
+                `/order-confirmed?n=${encodeURIComponent(confirmed.data.orderNumber)}`,
+              );
+            } else {
+              router.push(`/orders/${confirmed.data.orderId}?success=true`);
+            }
             router.refresh();
           } else {
             await appAlert(confirmed.error, { variant: "error" });

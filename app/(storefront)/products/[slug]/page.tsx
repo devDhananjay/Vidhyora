@@ -5,7 +5,6 @@ import { formatCurrency } from "@/lib/utils";
 import { getCommerceSettings } from "@/lib/content/commerce-settings";
 import { getSiteSettings } from "@/lib/content/get-site-settings";
 import { Breadcrumbs } from "@/components/products/breadcrumbs";
-import { VariantSelector } from "@/components/products/variant-selector";
 import { SellerInfo } from "@/components/products/seller-info";
 import { ProductPolicy } from "@/components/products/product-policy";
 import { RelatedProducts } from "@/components/products/related-products";
@@ -14,7 +13,8 @@ import { ProductTrustPanel } from "@/components/products/product-trust-panel";
 import { DeliveryPincodeChecker } from "@/components/products/delivery-pincode-checker";
 import { ProductGallery } from "@/components/products/product-gallery";
 import { ProductTrustStrip } from "@/components/products/product-trust-strip";
-import { ProductBuyActions } from "@/components/products/product-buy-actions";
+import { ProductPurchasePanel } from "@/components/products/product-purchase-panel";
+import { HowItSitsAid } from "@/components/products/how-it-sits-aid";
 import {
   RecentlyViewedRail,
   RecentlyViewedTracker,
@@ -123,7 +123,36 @@ export default async function ProductDetailPage({
     : 0;
 
   const defaultVariant = product.variants[0];
-  const inStock = defaultVariant ? defaultVariant.stock > 0 : false;
+  const inStock = product.variants.some((v) => v.stock > 0);
+  const jewelleryKind = (() => {
+    const hay = `${product.name} ${product.category.name}`.toLowerCase();
+    if (/ring|band/.test(hay)) return "ring" as const;
+    if (/bangle|bracelet|kada/.test(hay)) return "bangle" as const;
+    if (/earring|jhumka|stud|hoop/.test(hay)) return "earring" as const;
+    if (/necklace|chain|pendant|haar/.test(hay)) return "necklace" as const;
+    if (/nose|nath/.test(hay)) return "nose" as const;
+    return "jewellery" as const;
+  })();
+  const onModelImages = product.images
+    .filter(
+      (image) =>
+        image.role === "ON_MODEL" &&
+        image.kind?.toUpperCase() !== "VIDEO",
+    )
+    .map((image) => ({
+      id: image.id,
+      url: image.url,
+      altText: image.altText,
+    }));
+  const tryOnImageUrl =
+    product.images.find(
+      (image) =>
+        image.kind?.toUpperCase() !== "VIDEO" &&
+        (image.role === "PRODUCT" || !image.role),
+    )?.url ||
+    product.thumbnail ||
+    product.images[0]?.url ||
+    null;
   const [wishlistIds, reviews, commerce, siteSettings] = await Promise.all([
     getWishlistProductIds(),
     getProductReviews(product.id),
@@ -181,6 +210,7 @@ export default async function ProductDetailPage({
               images={product.images}
               videoUrl={product.videoUrl}
               discount={discount}
+              jewelleryKind={jewelleryKind}
             />
 
             <div className="space-y-5 md:space-y-6">
@@ -248,31 +278,25 @@ export default async function ProductDetailPage({
                 freeShippingThreshold={commerce.freeShippingThreshold}
               />
 
-              {product.variants.length > 0 ? (
-                <VariantSelector
-                  variants={product.variants}
-                  productId={product.id}
-                />
-              ) : null}
-
-              <ProductBuyActions
+              <ProductPurchasePanel
                 productId={product.id}
-                variantId={defaultVariant?.id}
-                inStock={inStock}
-                isInWishlist={isInWishlist}
+                variants={product.variants}
+                basePrice={basePrice}
                 productName={product.name}
                 productText={product.shortDescription || undefined}
+                isInWishlist={isInWishlist}
                 whatsappNumber={whatsappNumber}
-                price={
-                  defaultVariant ? Number(defaultVariant.price) : basePrice
-                }
-                weightLabel={
-                  defaultVariant?.weight
-                    ? `${Number(defaultVariant.weight)} g`
+                weightFallback={
+                  typeof (product.attributes as Record<string, unknown> | null)
+                    ?.weight === "string"
+                    ? String(
+                        (product.attributes as Record<string, unknown>).weight,
+                      )
                     : typeof (product.attributes as Record<string, unknown> | null)
-                        ?.weight === "string"
+                          ?.grossWeight === "string"
                       ? String(
-                          (product.attributes as Record<string, unknown>).weight,
+                          (product.attributes as Record<string, unknown>)
+                            .grossWeight,
                         )
                       : null
                 }
@@ -286,6 +310,9 @@ export default async function ProductDetailPage({
               <ProductTrustPanel
                 productId={product.id}
                 productName={product.name}
+                inStock={inStock}
+                baselinePrice={basePrice}
+                variantId={defaultVariant?.id}
               />
 
               <SellerInfo seller={product.seller} />
@@ -293,12 +320,20 @@ export default async function ProductDetailPage({
           </div>
 
           <div className="mt-14 space-y-6">
+            <HowItSitsAid
+              productName={product.name}
+              categoryName={product.category.name}
+              onModelImages={onModelImages}
+              tryOnImageUrl={tryOnImageUrl}
+            />
+
             <JewelleryDetails
               name={product.name}
               description={product.description}
               thumbnail={product.thumbnail}
               sku={defaultVariant?.sku}
               certificateNumber={product.certificateNumber}
+              certificateUrl={product.certificateUrl}
               basePrice={basePrice}
               compareAtPrice={compareAtPrice}
               taxPercent={Number(product.tax) || 3}

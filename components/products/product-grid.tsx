@@ -13,6 +13,7 @@ import {
 import {
   imageUrlsForProduct,
   isBestSellerFlag,
+  jewelleryCardMeta,
 } from "@/lib/products/product-card-data";
 
 export async function ProductGrid({
@@ -89,6 +90,7 @@ export async function ProductGrid({
                 : null,
               images: imageUrlsForProduct(product),
               isBestSeller: isBestSellerFlag(product.attributes),
+              metalLabel: jewelleryCardMeta(product.attributes).label ?? null,
             }}
           />
         ))}

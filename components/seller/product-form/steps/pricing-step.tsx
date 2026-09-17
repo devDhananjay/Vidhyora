@@ -1,9 +1,13 @@
 "use client";
 
-import type { ChangeEvent } from "react";
+import { useState, type ChangeEvent } from "react";
+import { FileText, Loader2, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { uploadProductCertificate } from "@/actions/seller/upload-product-certificate";
+import { appAlert } from "@/components/shared/app-dialog";
 
 type PricingStepProps = {
   register: any;
@@ -27,6 +31,8 @@ export function PricingStep({
   variants,
 }: PricingStepProps) {
   const singleVariant = variants.length === 1;
+  const certificateUrl = String(watch("certificateUrl") || "");
+  const [uploadingCert, setUploadingCert] = useState(false);
 
   const syncBaseToVariants = (price: number | undefined) => {
     if (price == null || Number.isNaN(price)) return;
@@ -179,6 +185,85 @@ export function PricingStep({
           <p className="mt-1 text-xs text-muted-foreground">
             Shown on product page and order invoice when set
           </p>
+        </div>
+
+        <div>
+          <Label htmlFor="certificateFile">Certificate / hallmark file</Label>
+          <input type="hidden" {...register("certificateUrl")} />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <Input
+              id="certificateFile"
+              type="file"
+              accept="application/pdf,image/jpeg,image/png,image/webp"
+              disabled={uploadingCert}
+              onChange={async (event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (!file) return;
+                setUploadingCert(true);
+                try {
+                  const formData = new FormData();
+                  formData.append("file", file);
+                  const result = await uploadProductCertificate(formData);
+                  if (!result.success || !result.data?.url) {
+                    await appAlert(result.error || "Upload failed", {
+                      variant: "error",
+                    });
+                    return;
+                  }
+                  setValue("certificateUrl", result.data.url, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  });
+                } finally {
+                  setUploadingCert(false);
+                }
+              }}
+            />
+            {uploadingCert ? (
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                <Loader2 className="size-3.5 animate-spin" />
+                Uploading…
+              </span>
+            ) : null}
+          </div>
+          {certificateUrl ? (
+            <div className="mt-2 flex flex-wrap items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm">
+              <FileText className="size-4 text-[#8b2e2e]" />
+              <a
+                href={certificateUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="min-w-0 flex-1 truncate text-[#8b2e2e] underline-offset-2 hover:underline"
+              >
+                {certificateUrl.split("/").pop() || "View certificate"}
+              </a>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-neutral-600"
+                onClick={() =>
+                  setValue("certificateUrl", "", {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+              >
+                <Trash2 className="size-3.5" />
+                <span className="sr-only">Remove certificate</span>
+              </Button>
+            </div>
+          ) : (
+            <p className="mt-1 text-xs text-muted-foreground">
+              PDF or image buyers can download from the product page
+            </p>
+          )}
+          {errors.certificateUrl ? (
+            <p className="mt-1 text-xs text-destructive">
+              {String(errors.certificateUrl.message || "Invalid file")}
+            </p>
+          ) : null}
         </div>
 
         <div>

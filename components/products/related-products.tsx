@@ -3,6 +3,7 @@ import { ProductCard } from "@/components/products/product-card";
 import {
   imageUrlsForProduct,
   isBestSellerFlag,
+  jewelleryCardMeta,
 } from "@/lib/products/product-card-data";
 
 export async function RelatedProducts({
@@ -56,6 +57,7 @@ export async function RelatedProducts({
                 : null,
               images: imageUrlsForProduct(product),
               isBestSeller: isBestSellerFlag(product.attributes),
+              metalLabel: jewelleryCardMeta(product.attributes).label ?? null,
             }}
           />
         ))}

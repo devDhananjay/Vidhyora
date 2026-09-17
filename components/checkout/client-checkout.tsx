@@ -4,6 +4,10 @@ import { useState } from "react";
 import { AddressSelection } from "@/components/checkout/address-selection";
 import { OrderReview } from "@/components/checkout/order-review";
 import { CheckoutSummary } from "@/components/checkout/checkout-summary";
+import {
+  GuestAddressForm,
+  type GuestAddressDraft,
+} from "@/components/checkout/guest-address-form";
 import type { Address } from "@prisma/client";
 import type { CartWithItems } from "@/types/cart";
 import type { CartSummary } from "@/types/cart";
@@ -14,6 +18,18 @@ type ClientCheckoutProps = {
   summary: CartSummary;
   codEnabled?: boolean;
   giftNotesEnabled?: boolean;
+  isGuest?: boolean;
+};
+
+const emptyGuest: GuestAddressDraft = {
+  fullName: "",
+  email: "",
+  phone: "",
+  line1: "",
+  line2: "",
+  city: "",
+  state: "",
+  postalCode: "",
 };
 
 export function ClientCheckout({
@@ -22,35 +38,42 @@ export function ClientCheckout({
   summary,
   codEnabled = true,
   giftNotesEnabled = true,
+  isGuest = false,
 }: ClientCheckoutProps) {
   const [selectedAddressId, setSelectedAddressId] = useState(
     addresses.find((a) => a.isDefault)?.id || addresses[0]?.id,
   );
+  const [guestAddress, setGuestAddress] = useState<GuestAddressDraft>(emptyGuest);
 
   const activeItems = cart.items.filter((item) => !item.savedForLater);
 
   return (
     <div className="mt-8 grid gap-8 lg:grid-cols-3">
-      {/* Main Checkout Content */}
-      <div className="lg:col-span-2 space-y-8">
-        {/* Step 1: Delivery Address */}
-        <AddressSelection
-          addresses={addresses}
-          onAddressSelect={setSelectedAddressId}
-        />
+      <div className="space-y-8 lg:col-span-2">
+        {isGuest || addresses.length === 0 ? (
+          <GuestAddressForm value={guestAddress} onChange={setGuestAddress} />
+        ) : (
+          <AddressSelection
+            addresses={addresses}
+            onAddressSelect={setSelectedAddressId}
+          />
+        )}
 
-        {/* Step 2: Order Review */}
         <OrderReview items={activeItems} />
       </div>
 
-      {/* Order Summary Sidebar */}
       <div className="lg:col-span-1">
         <div className="sticky top-24">
           <CheckoutSummary
             summary={summary}
             cart={cart}
             itemCount={activeItems.length}
-            selectedAddressId={selectedAddressId}
+            selectedAddressId={
+              isGuest || addresses.length === 0 ? undefined : selectedAddressId
+            }
+            guestAddress={
+              isGuest || addresses.length === 0 ? guestAddress : undefined
+            }
             addresses={addresses.map((address) => ({
               id: address.id,
               postalCode: address.postalCode,

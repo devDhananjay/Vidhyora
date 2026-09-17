@@ -167,6 +167,7 @@ function draftToFormValues(
     hsn: draft.hsn || "711319",
     certificateNumber: draft.certificateNumber || "",
     tax: 3,
+    certificateUrl: "",
     attributes,
     policy: {
       returnAllowed,

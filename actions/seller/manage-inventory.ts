@@ -46,6 +46,8 @@ export async function updateVariantStock(
       };
     }
 
+    const previousAvailable = variant.stock - variant.reservedStock;
+
     // Update stock
     const updated = await prisma.productVariant.update({
       where: { id: validated.variantId },
@@ -53,7 +55,9 @@ export async function updateVariantStock(
       include: {
         product: {
           select: {
+            id: true,
             name: true,
+            slug: true,
             sellerId: true,
           },
         },
@@ -74,6 +78,22 @@ export async function updateVariantStock(
       );
     } catch (error) {
       console.error("Low stock email failed:", error);
+    }
+
+    try {
+      const { notifyBackInStockIfNeeded } = await import(
+        "@/lib/email/product-alerts"
+      );
+      await notifyBackInStockIfNeeded({
+        productId: updated.product.id,
+        variantId: updated.id,
+        previousAvailable,
+        nextAvailable: updated.stock - updated.reservedStock,
+        productName: updated.product.name,
+        productSlug: updated.product.slug,
+      });
+    } catch (error) {
+      console.error("Back-in-stock notify failed:", error);
     }
 
     return {

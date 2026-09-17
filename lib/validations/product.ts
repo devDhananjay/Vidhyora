@@ -87,6 +87,10 @@ export const createProductSchema = z.object({
         sourceUrl: z.string().optional(),
         altText: z.string().optional(),
         kind: z.enum(["IMAGE", "VIDEO"]).optional().default("IMAGE"),
+        role: z
+          .enum(["PRODUCT", "ON_MODEL", "DETAIL"])
+          .optional()
+          .default("PRODUCT"),
         sortOrder: z.coerce.number().int().min(0),
       }),
     )
@@ -146,6 +150,19 @@ export const createProductSchema = z.object({
   tax: z.coerce.number().min(0).max(100).catch(3).default(3),
   hsn: z.string().trim().max(16).optional().default(""),
   certificateNumber: z.string().trim().max(64).optional().default(""),
+  certificateUrl: z
+    .string()
+    .trim()
+    .max(500)
+    .optional()
+    .default("")
+    .refine(
+      (value) =>
+        !value ||
+        /^https?:\/\//i.test(value) ||
+        value.startsWith("/uploads/"),
+      "Certificate file must be an uploaded URL",
+    ),
   attributes: z.record(z.string()).optional().default({}),
 });
 
@@ -160,6 +177,7 @@ export function normalizeProductFormValues(product: any): CreateProductInput {
     sourceUrl?: string;
     altText?: string;
     kind: "IMAGE" | "VIDEO";
+    role: "PRODUCT" | "ON_MODEL" | "DETAIL";
     sortOrder: number;
   };
 
@@ -170,6 +188,7 @@ export function normalizeProductFormValues(product: any): CreateProductInput {
         sourceUrl?: string | null;
         altText?: string | null;
         kind?: string | null;
+        role?: string | null;
         sortOrder?: number;
       },
       index: number,
@@ -178,6 +197,10 @@ export function normalizeProductFormValues(product: any): CreateProductInput {
       sourceUrl: image.sourceUrl || image.url,
       altText: image.altText || undefined,
       kind: image.kind === "VIDEO" ? "VIDEO" : "IMAGE",
+      role:
+        image.role === "ON_MODEL" || image.role === "DETAIL"
+          ? image.role
+          : "PRODUCT",
       sortOrder: image.sortOrder ?? index,
     }),
   );
@@ -191,6 +214,7 @@ export function normalizeProductFormValues(product: any): CreateProductInput {
             sourceUrl: product.videoUrl as string,
             altText: undefined,
             kind: "VIDEO",
+            role: "PRODUCT",
             sortOrder: 0,
           },
           ...rawImages.map((img, index) => ({
@@ -285,6 +309,7 @@ export function normalizeProductFormValues(product: any): CreateProductInput {
     tax: Number(product.tax) || 3,
     hsn: product.hsn || "",
     certificateNumber: product.certificateNumber || "",
+    certificateUrl: product.certificateUrl || "",
     attributes: {
       metal: "",
       karatage: "",

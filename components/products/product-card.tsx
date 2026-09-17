@@ -19,6 +19,7 @@ type ProductCardProps = {
     thumbnail: string | null;
     images?: string[];
     isBestSeller?: boolean;
+    metalLabel?: string | null;
   };
   isInWishlist?: boolean;
 };
@@ -127,6 +128,11 @@ export function ProductCard({ product, isInWishlist = false }: ProductCardProps)
         <h3 className="line-clamp-1 text-sm text-neutral-800 transition-colors duration-300 group-hover:text-[#8b2e2e]">
           {product.name}
         </h3>
+        {product.metalLabel ? (
+          <p className="mt-1 line-clamp-1 text-[11px] tracking-wide text-neutral-500 uppercase">
+            {product.metalLabel}
+          </p>
+        ) : null}
         <div className="mt-1 flex items-baseline gap-2">
           <span className="text-sm font-semibold text-neutral-900">
             {formatCurrency(product.basePrice)}

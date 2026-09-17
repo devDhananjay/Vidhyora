@@ -31,6 +31,7 @@ type MediaItem = {
   sourceUrl?: string;
   altText?: string;
   kind: "IMAGE" | "VIDEO";
+  role?: "PRODUCT" | "ON_MODEL" | "DETAIL";
   sortOrder: number;
 };
 
@@ -64,6 +65,12 @@ export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
       altText: img.altText,
       kind:
         img.kind === "VIDEO" || isVideoUrl(img.url) ? "VIDEO" : "IMAGE",
+      role:
+        img.kind === "VIDEO" || isVideoUrl(img.url)
+          ? "PRODUCT"
+          : img.role === "ON_MODEL" || img.role === "DETAIL"
+            ? img.role
+            : "PRODUCT",
       sortOrder: img.sortOrder ?? index,
     }),
   );
@@ -450,25 +457,55 @@ export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
                   </div>
 
                   {item.kind === "IMAGE" ? (
-                    isThumb ? (
-                      <div className="absolute bottom-2 left-2 flex items-center gap-1 rounded bg-[#8b2e2e] px-2 py-1 text-xs font-medium text-white">
-                        <Check className="size-3" />
-                        Thumbnail
+                    <div className="absolute inset-x-1 bottom-1 z-10 flex flex-col gap-1">
+                      <div className="flex gap-1">
+                        {(
+                          [
+                            ["PRODUCT", "Product"],
+                            ["ON_MODEL", "On model"],
+                            ["DETAIL", "Detail"],
+                          ] as const
+                        ).map(([role, label]) => (
+                          <button
+                            key={role}
+                            type="button"
+                            onClick={() => {
+                              const next = currentImages.map((row, i) =>
+                                i === index ? { ...row, role } : row,
+                              );
+                              commitMedia(next);
+                            }}
+                            className={cn(
+                              "flex-1 rounded px-1 py-1 text-[9px] font-medium transition",
+                              (item.role || "PRODUCT") === role
+                                ? "bg-[#8b2e2e] text-white"
+                                : "bg-black/55 text-white/90 hover:bg-black/75",
+                            )}
+                          >
+                            {label}
+                          </button>
+                        ))}
                       </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setValue("thumbnail", item.url, {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          })
-                        }
-                        className="absolute inset-x-2 bottom-2 rounded bg-black/70 px-2 py-1.5 text-[11px] font-medium text-white opacity-0 transition group-hover:opacity-100 hover:bg-black/85"
-                      >
-                        Set as thumbnail
-                      </button>
-                    )
+                      {isThumb ? (
+                        <div className="flex items-center justify-center gap-1 rounded bg-[#8b2e2e] px-2 py-1 text-[10px] font-medium text-white">
+                          <Check className="size-3" />
+                          Thumbnail
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setValue("thumbnail", item.url, {
+                              shouldValidate: true,
+                              shouldDirty: true,
+                            })
+                          }
+                          className="rounded bg-black/70 px-2 py-1.5 text-[11px] font-medium text-white opacity-90 transition hover:bg-black/85"
+                        >
+                          Set as thumbnail
+                        </button>
+                      )}
+                    </div>
                   ) : null}
                 </div>
               );

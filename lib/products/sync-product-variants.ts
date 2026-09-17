@@ -16,6 +16,7 @@ type ImageInput = {
   sourceUrl?: string;
   altText?: string;
   kind?: "IMAGE" | "VIDEO" | string;
+  role?: "PRODUCT" | "ON_MODEL" | "DETAIL" | string;
   sortOrder: number;
 };
 
@@ -52,6 +53,12 @@ export async function replaceProductImages(
       url: image.url,
       sourceUrl: image.sourceUrl || image.url,
       kind: image.kind === "VIDEO" ? "VIDEO" : "IMAGE",
+      role:
+        image.kind === "VIDEO"
+          ? "PRODUCT"
+          : image.role === "ON_MODEL" || image.role === "DETAIL"
+            ? image.role
+            : "PRODUCT",
       altText: image.altText,
       sortOrder: image.sortOrder ?? index,
     })),

@@ -125,6 +125,7 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         tax: 3,
         hsn: "",
         certificateNumber: "",
+        certificateUrl: "",
         attributes: {
           metal: "",
           karatage: "",

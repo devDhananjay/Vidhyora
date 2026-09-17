@@ -121,11 +121,12 @@ export async function getWishlistProductIds() {
 export async function getWishlist() {
   try {
     const wishlistId = await getWishlistSessionId();
-    if (!wishlistId) return [];
+    if (!wishlistId) return { items: [], shareToken: null as string | null };
 
     const wishlist = await prisma.wishlist.findUnique({
       where: { id: wishlistId },
-      include: {
+      select: {
+        shareToken: true,
         items: {
           include: {
             product: {
@@ -143,9 +144,95 @@ export async function getWishlist() {
       },
     });
 
-    return wishlist?.items || [];
+    return {
+      items: wishlist?.items || [],
+      shareToken: wishlist?.shareToken || null,
+    };
   } catch (error) {
     console.error("Get wishlist error:", error);
-    return [];
+    return { items: [], shareToken: null };
   }
+}
+
+export async function enableWishlistShare(): Promise<
+  ActionResult<{ shareUrl: string; shareToken: string }>
+> {
+  try {
+    const owner = await getOrCreateWishlistSession();
+    const existing = await prisma.wishlist.findUnique({
+      where: { id: owner.wishlistId },
+      select: { shareToken: true },
+    });
+
+    let token = existing?.shareToken;
+    if (!token) {
+      token = `w${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}`;
+      await prisma.wishlist.update({
+        where: { id: owner.wishlistId },
+        data: { shareToken: token },
+      });
+    }
+
+    const base =
+      process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") ||
+      "https://vidyora.co.in";
+
+    revalidatePath("/wishlist");
+    return {
+      success: true,
+      data: { shareToken: token, shareUrl: `${base}/w/${token}` },
+    };
+  } catch (error) {
+    console.error("Enable wishlist share error:", error);
+    return { success: false, error: "Failed to create share link" };
+  }
+}
+
+export async function disableWishlistShare(): Promise<ActionResult<void>> {
+  try {
+    const wishlistId = await getWishlistSessionId();
+    if (!wishlistId) {
+      return { success: false, error: "Wishlist not found" };
+    }
+    await prisma.wishlist.update({
+      where: { id: wishlistId },
+      data: { shareToken: null },
+    });
+    revalidatePath("/wishlist");
+    return { success: true, data: undefined };
+  } catch (error) {
+    console.error("Disable wishlist share error:", error);
+    return { success: false, error: "Failed to disable sharing" };
+  }
+}
+
+export async function getSharedWishlist(token: string) {
+  if (!token?.trim()) return null;
+  const wishlist = await prisma.wishlist.findUnique({
+    where: { shareToken: token.trim() },
+    select: {
+      id: true,
+      items: {
+        include: {
+          product: {
+            include: {
+              variants: {
+                where: { isActive: true },
+                orderBy: { price: "asc" },
+                take: 1,
+              },
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      },
+    },
+  });
+  if (!wishlist) return null;
+  const items = wishlist.items.filter(
+    (item) =>
+      item.product.status === "ACTIVE" &&
+      item.product.approvalStatus === "APPROVED",
+  );
+  return { items };
 }

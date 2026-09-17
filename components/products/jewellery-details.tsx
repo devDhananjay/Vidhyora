@@ -18,6 +18,7 @@ type JewelleryDetailsProps = {
   thumbnail: string | null;
   sku?: string | null;
   certificateNumber?: string | null;
+  certificateUrl?: string | null;
   basePrice: number;
   compareAtPrice?: number | null;
   taxPercent?: number;
@@ -89,6 +90,7 @@ export function JewelleryDetails({
   thumbnail,
   sku,
   certificateNumber,
+  certificateUrl,
   basePrice,
   compareAtPrice,
   taxPercent = 3,
@@ -173,6 +175,8 @@ export function JewelleryDetails({
       ? { label: "Certificate", value: certificateNumber }
       : null,
   ].filter(Boolean) as Array<{ label: string; value: string }>;
+
+  const hasCertificateFile = Boolean(certificateUrl?.trim());
 
   const metalItems = [
     { label: "Karatage", value: attrs.karatage },
@@ -271,6 +275,18 @@ export function JewelleryDetails({
                     Extra product attributes will appear here.
                   </p>
                 )}
+                {hasCertificateFile ? (
+                  <a
+                    href={certificateUrl!}
+                    target="_blank"
+                    rel="noreferrer"
+                    download
+                    className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#8b2e2e]/25 bg-[#faf4f0] px-4 py-2 text-sm font-medium text-[#8b2e2e] transition hover:bg-[#f3ebe4]"
+                  >
+                    <FileText className="size-4" strokeWidth={1.6} />
+                    Download certificate / hallmark
+                  </a>
+                ) : null}
               </AccordionCard>
 
               <AccordionCard

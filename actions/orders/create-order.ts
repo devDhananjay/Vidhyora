@@ -3,8 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { ZodError } from "zod";
 import prisma from "@/lib/prisma";
-import { AuthError, requireAuth } from "@/lib/auth-helpers";
-import { createOrderSchema } from "@/lib/validations/order";
+import { AuthError } from "@/lib/auth-helpers";
+import { auth } from "@/lib/auth";
+import { createOrderSchema, guestCheckoutAddressSchema } from "@/lib/validations/order";
+import { ensureGuestCheckoutUser } from "@/lib/checkout/guest-user";
+import { getGuestCartToken } from "@/lib/cart/cart-session";
 import { razorpayService } from "@/lib/payments/razorpay-service";
 import { fulfillRazorpayCheckout } from "@/lib/payments/fulfill-razorpay";
 import { cartTotals, createShopOrder, stockError } from "@/lib/orders/place-order";
@@ -28,6 +31,7 @@ type CreateOrderResult = {
   razorpayOrderId?: string;
   razorpayKeyId?: string;
   amount: number;
+  addressId?: string;
 };
 
 async function loadCheckoutCart(userId: string) {
@@ -56,34 +60,90 @@ export async function createOrder(
   formData: FormData,
 ): Promise<ActionResult<CreateOrderResult>> {
   try {
-    const session = await requireAuth();
+    const session = await auth();
     const ip = await getRequestIp();
-    const limited = rateLimit(`checkout:${session.user.id}:${ip}`, 20, 60_000);
+    const rateKey = session?.user?.id || (await getGuestCartToken()) || ip;
+    const limited = rateLimit(`checkout:${rateKey}:${ip}`, 20, 60_000);
     if (!limited.ok) {
       return { success: false, error: rateLimitMessage(limited.retryAfterSec) };
     }
 
     const validatedData = createOrderSchema.parse({
-      addressId: formData.get("addressId"),
+      addressId: formData.get("addressId") || undefined,
       paymentMethod: formData.get("paymentMethod") || "RAZORPAY",
       hidePriceOnInvoice: formData.get("hidePriceOnInvoice"),
       giftMessage: formData.get("giftMessage") || undefined,
       occasionNote: formData.get("occasionNote") || undefined,
       fastDelivery: formData.get("fastDelivery"),
+      guestFullName: formData.get("guestFullName") || undefined,
+      guestEmail: formData.get("guestEmail") || undefined,
+      guestPhone: formData.get("guestPhone") || undefined,
+      guestLine1: formData.get("guestLine1") || undefined,
+      guestLine2: formData.get("guestLine2") || undefined,
+      guestCity: formData.get("guestCity") || undefined,
+      guestState: formData.get("guestState") || undefined,
+      guestPostalCode: formData.get("guestPostalCode") || undefined,
+      guestCountry: formData.get("guestCountry") || "IN",
     });
 
     const commerce = await getCommerceSettings();
 
-    const cart = await loadCheckoutCart(session.user.id);
-    if (!cart || cart.items.length === 0) {
-      return { success: false, error: "Cart is empty" };
+    let userId = session?.user?.id ?? null;
+    let address: Awaited<ReturnType<typeof prisma.address.findUnique>> = null;
+
+    if (userId && validatedData.addressId) {
+      address = await prisma.address.findUnique({
+        where: { id: validatedData.addressId },
+      });
+      if (!address || address.userId !== userId) {
+        return { success: false, error: "Invalid address" };
+      }
+    } else {
+      const guest = guestCheckoutAddressSchema.parse({
+        fullName: validatedData.guestFullName,
+        email: validatedData.guestEmail,
+        phone: validatedData.guestPhone,
+        line1: validatedData.guestLine1,
+        line2: validatedData.guestLine2 || "",
+        city: validatedData.guestCity,
+        state: validatedData.guestState,
+        postalCode: validatedData.guestPostalCode,
+        country: validatedData.guestCountry || "IN",
+      });
+
+      const user = await ensureGuestCheckoutUser({
+        email: guest.email,
+        name: guest.fullName,
+        phone: guest.phone,
+      });
+      userId = user.id;
+
+      const { mergeGuestCartIntoUser } = await import("@/lib/cart/cart-session");
+      await mergeGuestCartIntoUser(userId);
+
+      address = await prisma.address.create({
+        data: {
+          userId,
+          name: guest.fullName,
+          phone: guest.phone,
+          addressLine1: guest.line1,
+          addressLine2: guest.line2 || null,
+          city: guest.city,
+          state: guest.state,
+          postalCode: guest.postalCode,
+          country: guest.country || "IN",
+          isDefault: true,
+        },
+      });
     }
 
-    const address = await prisma.address.findUnique({
-      where: { id: validatedData.addressId },
-    });
-    if (!address || address.userId !== session.user.id) {
-      return { success: false, error: "Invalid address" };
+    if (!userId || !address) {
+      return { success: false, error: "Delivery address is required" };
+    }
+
+    const cart = await loadCheckoutCart(userId);
+    if (!cart || cart.items.length === 0) {
+      return { success: false, error: "Cart is empty" };
     }
 
     if (!isIndiaAddress(address.country)) {
@@ -121,7 +181,7 @@ export async function createOrder(
     );
     const applied = await resolveCartCouponDiscount(
       cart.couponCode,
-      session.user.id,
+      userId,
       lineSubtotal,
     );
     const couponOptions = {
@@ -163,7 +223,7 @@ export async function createOrder(
         currency: "INR",
         receipt: `chk${Date.now()}`.slice(0, 40),
         notes: {
-          userId: session.user.id,
+          userId,
           addressId: address.id,
           couponCode: couponOptions.couponCode ?? "",
           hidePriceOnInvoice: hidePriceOnInvoice ? "1" : "0",
@@ -182,13 +242,14 @@ export async function createOrder(
             process.env.RAZORPAY_KEY_ID ||
             "",
           amount: totals.total,
+          addressId: address.id,
         },
       };
     }
 
     const { order } = await prisma.$transaction(async (tx) => {
       const placed = await createShopOrder(tx, {
-        userId: session.user.id,
+        userId,
         address,
         items: cart.items,
         cartId: cart.id,
@@ -267,7 +328,7 @@ export async function confirmRazorpayOrder(input: {
   fastDelivery?: boolean;
 }): Promise<ActionResult<{ orderId: string; orderNumber: string }>> {
   try {
-    const session = await requireAuth();
+    const session = await auth();
 
     const isValid = razorpayService.verifyPaymentSignature({
       razorpay_order_id: input.razorpay_order_id,
@@ -278,9 +339,19 @@ export async function confirmRazorpayOrder(input: {
       return { success: false, error: "Invalid payment signature" };
     }
 
+    const address = await prisma.address.findUnique({
+      where: { id: input.addressId },
+    });
+    if (!address) {
+      return { success: false, error: "Invalid address" };
+    }
+    if (session?.user?.id && session.user.id !== address.userId) {
+      return { success: false, error: "Invalid address" };
+    }
+
     const result = await fulfillRazorpayCheckout({
-      userId: session.user.id,
-      addressId: input.addressId,
+      userId: address.userId,
+      addressId: address.id,
       razorpayOrderId: input.razorpay_order_id,
       razorpayPaymentId: input.razorpay_payment_id,
       signature: input.razorpay_signature,

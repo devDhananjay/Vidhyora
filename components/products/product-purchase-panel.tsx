@@ -1,0 +1,177 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import type { ProductVariant } from "@prisma/client";
+import { Check, Ruler } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
+import { ProductBuyActions } from "@/components/products/product-buy-actions";
+import { SizeGuideDialog } from "@/components/products/size-guide-dialog";
+
+type ProductPurchasePanelProps = {
+  productId: string;
+  variants: ProductVariant[];
+  basePrice: number;
+  productName: string;
+  productText?: string;
+  isInWishlist: boolean;
+  whatsappNumber?: string;
+  weightFallback?: string | null;
+};
+
+function attrRecord(variant: ProductVariant | undefined) {
+  if (!variant?.attributes || typeof variant.attributes !== "object") return null;
+  return variant.attributes as Record<string, string>;
+}
+
+export function ProductPurchasePanel({
+  productId,
+  variants,
+  basePrice,
+  productName,
+  productText,
+  isInWishlist,
+  whatsappNumber,
+  weightFallback,
+}: ProductPurchasePanelProps) {
+  const [selectedVariantId, setSelectedVariantId] = useState(variants[0]?.id);
+  const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
+
+  const selectedVariant =
+    variants.find((v) => v.id === selectedVariantId) || variants[0];
+  const attributes = attrRecord(selectedVariant);
+
+  const attributeTypes = useMemo(() => {
+    const types = new Set<string>();
+    variants.forEach((v) => {
+      const attrs = attrRecord(v);
+      if (attrs) Object.keys(attrs).forEach((key) => types.add(key));
+    });
+    return Array.from(types);
+  }, [variants]);
+
+  const showSizeGuide = attributeTypes.some((key) =>
+    /size|ring|bangle|circumference|diameter/i.test(key),
+  ) || /ring|bangle|bracelet|chain|necklace/i.test(productName);
+
+  const price = selectedVariant ? Number(selectedVariant.price) : basePrice;
+  const inStock = selectedVariant ? selectedVariant.stock > 0 : false;
+  const weightLabel = selectedVariant?.weight
+    ? `${Number(selectedVariant.weight)} g`
+    : weightFallback || null;
+
+  return (
+    <div className="space-y-5">
+      {variants.length > 1 ? (
+        <div className="space-y-4">
+          {attributeTypes.map((attrType) => {
+            const uniqueValues = new Set(
+              variants
+                .map((v) => attrRecord(v)?.[attrType])
+                .filter(Boolean) as string[],
+            );
+
+            return (
+              <div key={attrType}>
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <div className="text-sm font-medium capitalize text-neutral-800">
+                    {attrType}:{" "}
+                    <span className="font-normal text-neutral-600">
+                      {attributes?.[attrType]}
+                    </span>
+                  </div>
+                  {showSizeGuide &&
+                  /size|ring|bangle|circumference|diameter/i.test(attrType) ? (
+                    <button
+                      type="button"
+                      onClick={() => setSizeGuideOpen(true)}
+                      className="inline-flex items-center gap-1 text-xs font-medium text-[#8b2e2e] underline-offset-2 hover:underline"
+                    >
+                      <Ruler className="size-3.5" strokeWidth={1.7} />
+                      Size guide
+                    </button>
+                  ) : null}
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {Array.from(uniqueValues).map((value) => {
+                    const variant = variants.find(
+                      (v) => attrRecord(v)?.[attrType] === value,
+                    );
+                    if (!variant) return null;
+                    const isSelected = variant.id === selectedVariantId;
+                    const stockOk = variant.stock > 0;
+
+                    return (
+                      <button
+                        key={`${attrType}-${value}`}
+                        type="button"
+                        onClick={() => setSelectedVariantId(variant.id)}
+                        disabled={!stockOk}
+                        className={`relative flex min-w-[80px] items-center justify-center rounded-xl border px-4 py-2 text-sm transition-colors ${
+                          isSelected
+                            ? "border-[#8b2e2e] bg-[#8b2e2e]/10 font-medium text-[#8b2e2e]"
+                            : stockOk
+                              ? "border-neutral-200 hover:border-[#8b2e2e]/50"
+                              : "cursor-not-allowed opacity-50"
+                        }`}
+                      >
+                        {value}
+                        {isSelected ? (
+                          <Check className="ml-2 size-4 text-[#8b2e2e]" />
+                        ) : null}
+                        {!stockOk ? (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="h-px w-full rotate-[-15deg] bg-destructive" />
+                          </div>
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+
+          {selectedVariant ? (
+            <div className="text-sm text-muted-foreground">
+              Price:{" "}
+              <span className="font-semibold text-foreground">
+                {formatCurrency(price)}
+              </span>
+              {" · "}
+              {inStock ? (
+                <span className="text-green-600">
+                  {selectedVariant.stock} in stock
+                </span>
+              ) : (
+                <span className="text-destructive">Out of stock</span>
+              )}
+            </div>
+          ) : null}
+        </div>
+      ) : showSizeGuide ? (
+        <button
+          type="button"
+          onClick={() => setSizeGuideOpen(true)}
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[#8b2e2e] underline-offset-2 hover:underline"
+        >
+          <Ruler className="size-4" strokeWidth={1.7} />
+          Size guide
+        </button>
+      ) : null}
+
+      <ProductBuyActions
+        productId={productId}
+        variantId={selectedVariant?.id}
+        inStock={inStock}
+        isInWishlist={isInWishlist}
+        productName={productName}
+        productText={productText}
+        whatsappNumber={whatsappNumber}
+        price={price}
+        weightLabel={weightLabel}
+      />
+
+      <SizeGuideDialog open={sizeGuideOpen} onOpenChange={setSizeGuideOpen} />
+    </div>
+  );
+}

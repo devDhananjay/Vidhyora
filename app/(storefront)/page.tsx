@@ -14,6 +14,7 @@ import { ProductCard } from "@/components/products/product-card";
 import {
   imageUrlsForProduct,
   isBestSellerFlag,
+  jewelleryCardMeta,
 } from "@/lib/products/product-card-data";
 import { getHomepageConfig } from "@/lib/content/get-homepage";
 import {
@@ -69,6 +70,7 @@ async function getFeaturedProducts() {
     thumbnail: p.thumbnail,
     images: imageUrlsForProduct(p),
     isBestSeller: isBestSellerFlag(p.attributes),
+    metalLabel: jewelleryCardMeta(p.attributes).label ?? null,
   }));
 }
 

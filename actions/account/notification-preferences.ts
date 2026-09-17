@@ -17,7 +17,7 @@ const DEFAULT_PREFS: NotificationPreferenceValues = {
   orderUpdates: true,
   promotions: true,
   priceDrops: true,
-  productBackInStock: false,
+  productBackInStock: true,
 };
 
 const saveSchema = z.object({

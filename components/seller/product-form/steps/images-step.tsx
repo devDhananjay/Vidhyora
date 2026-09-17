@@ -9,21 +9,41 @@ type ImagesStepProps = {
 
 export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
   const currentImages = watch("images") || [];
+  const thumbnail = watch("thumbnail") || "";
+  const productName = watch("name") || "Product image";
 
-  const handleImagesChange = (urls: string[]) => {
-    if (urls.length > 0) {
-      setValue("thumbnail", urls[0], { shouldValidate: true, shouldDirty: true });
-    } else {
-      setValue("thumbnail", "", { shouldValidate: true, shouldDirty: true });
-    }
-
+  const syncImages = (urls: string[], nextThumbnail?: string) => {
     const images = urls.map((url, index) => ({
       url,
-      altText: watch("name") || "Product image",
+      altText: productName,
       sortOrder: index,
     }));
-
     setValue("images", images, { shouldValidate: true, shouldDirty: true });
+
+    let thumb = nextThumbnail ?? thumbnail;
+    if (thumb && !urls.includes(thumb)) {
+      thumb = urls[0] || "";
+    }
+    if (!thumb && urls[0]) {
+      thumb = urls[0];
+    }
+    if (!urls.length) {
+      thumb = "";
+    }
+    setValue("thumbnail", thumb, { shouldValidate: true, shouldDirty: true });
+  };
+
+  const handleImagesChange = (urls: string[]) => {
+    const keepCurrent = thumbnail && urls.includes(thumbnail);
+    syncImages(urls, keepCurrent ? thumbnail : urls[0] || "");
+  };
+
+  const handleThumbnailChange = (url: string) => {
+    if (!url) {
+      setValue("thumbnail", "", { shouldValidate: true, shouldDirty: true });
+      return;
+    }
+    setValue("thumbnail", url, { shouldValidate: true, shouldDirty: true });
   };
 
   const imageUrls = currentImages.map((img: any) => img.url);
@@ -33,11 +53,15 @@ export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
       <div>
         <Label>Product Images *</Label>
         <p className="mb-4 text-sm text-muted-foreground">
-          Upload up to 5 high-quality images. The first image will be used as the thumbnail.
+          Upload up to 5 high-quality images. Hover an image and click{" "}
+          <span className="font-medium text-neutral-700">Set as thumbnail</span>{" "}
+          to choose the main photo (first image is default).
         </p>
         <ImageUpload
           value={imageUrls}
           onChange={handleImagesChange}
+          thumbnailUrl={thumbnail}
+          onThumbnailChange={handleThumbnailChange}
           maxFiles={5}
           maxSize={5}
         />
@@ -55,7 +79,7 @@ export function ImagesStep({ watch, setValue, errors }: ImagesStepProps) {
           <li>• Use high-resolution images (at least 1000x1000px)</li>
           <li>• Use white or neutral backgrounds</li>
           <li>• Show product from multiple angles</li>
-          <li>• Include close-ups of important features</li>
+          <li>• Click “Set as thumbnail” on the photo you want as main</li>
           <li>• Avoid watermarks or text overlays</li>
         </ul>
       </div>

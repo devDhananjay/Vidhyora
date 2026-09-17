@@ -2,7 +2,7 @@
 
 import { useState, useRef, type ChangeEvent, type DragEvent } from "react";
 import Image from "next/image";
-import { X, Upload, Image as ImageIcon } from "lucide-react";
+import { Check, X, Upload, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { uploadProductImage } from "@/actions/seller/upload-product-image";
@@ -10,6 +10,9 @@ import { uploadProductImage } from "@/actions/seller/upload-product-image";
 type ImageUploadProps = {
   value?: string[];
   onChange: (urls: string[]) => void;
+  /** Currently selected thumbnail URL (must be one of `value`). */
+  thumbnailUrl?: string;
+  onThumbnailChange?: (url: string) => void;
   maxFiles?: number;
   maxSize?: number;
   disabled?: boolean;
@@ -19,6 +22,8 @@ type ImageUploadProps = {
 export function ImageUpload({
   value = [],
   onChange,
+  thumbnailUrl,
+  onThumbnailChange,
   maxFiles = 5,
   maxSize = 5,
   disabled = false,
@@ -28,6 +33,9 @@ export function ImageUpload({
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const activeThumbnail =
+    thumbnailUrl && value.includes(thumbnailUrl) ? thumbnailUrl : value[0] || "";
 
   const handleFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -58,7 +66,11 @@ export function ImageUpload({
         uploadedUrls.push(result.data.url);
       }
 
-      onChange([...value, ...uploadedUrls]);
+      const next = [...value, ...uploadedUrls];
+      onChange(next);
+      if (!activeThumbnail && next[0]) {
+        onThumbnailChange?.(next[0]);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to upload images");
     } finally {
@@ -90,7 +102,12 @@ export function ImageUpload({
   };
 
   const handleRemove = (index: number) => {
-    onChange(value.filter((_, i) => i !== index));
+    const removed = value[index];
+    const next = value.filter((_, i) => i !== index);
+    onChange(next);
+    if (removed === activeThumbnail) {
+      onThumbnailChange?.(next[0] || "");
+    }
   };
 
   const canUploadMore = value.length < maxFiles;
@@ -147,36 +164,54 @@ export function ImageUpload({
 
       {value.length > 0 && (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {value.map((url, index) => (
-            <div
-              key={url}
-              className="group relative aspect-square overflow-hidden rounded-xl border bg-muted"
-            >
-              <Image
-                src={url}
-                alt={`Upload ${index + 1}`}
-                fill
-                unoptimized={url.startsWith("data:")}
-                className="object-cover"
-              />
-              {!disabled && (
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute right-2 top-2 size-6 opacity-0 transition-opacity group-hover:opacity-100"
-                  onClick={() => handleRemove(index)}
-                >
-                  <X className="size-4" />
-                </Button>
-              )}
-              {index === 0 && (
-                <div className="absolute bottom-2 left-2 rounded bg-primary px-2 py-1 text-xs font-medium text-primary-foreground">
-                  Thumbnail
-                </div>
-              )}
-            </div>
-          ))}
+          {value.map((url, index) => {
+            const isThumb = url === activeThumbnail;
+            return (
+              <div
+                key={url}
+                className={cn(
+                  "group relative aspect-square overflow-hidden rounded-xl border bg-muted",
+                  isThumb && "ring-2 ring-[#8b2e2e] ring-offset-2",
+                )}
+              >
+                <Image
+                  src={url}
+                  alt={`Upload ${index + 1}`}
+                  fill
+                  unoptimized={url.startsWith("data:")}
+                  className="object-cover"
+                />
+                {!disabled && (
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute right-2 top-2 z-10 size-6 opacity-0 transition-opacity group-hover:opacity-100"
+                    onClick={() => handleRemove(index)}
+                  >
+                    <X className="size-4" />
+                  </Button>
+                )}
+                {isThumb ? (
+                  <div className="absolute bottom-2 left-2 flex items-center gap-1 rounded bg-[#8b2e2e] px-2 py-1 text-xs font-medium text-white">
+                    <Check className="size-3" />
+                    Thumbnail
+                  </div>
+                ) : (
+                  !disabled &&
+                  onThumbnailChange && (
+                    <button
+                      type="button"
+                      onClick={() => onThumbnailChange(url)}
+                      className="absolute inset-x-2 bottom-2 rounded bg-black/70 px-2 py-1.5 text-[11px] font-medium text-white opacity-0 transition group-hover:opacity-100 hover:bg-black/85"
+                    >
+                      Set as thumbnail
+                    </button>
+                  )
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
 

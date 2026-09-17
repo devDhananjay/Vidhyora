@@ -37,16 +37,22 @@ export async function generateMetadata({
 
   if (!category) return { title: "Category Not Found" };
 
+  const title = category.metaTitle?.trim() || `${category.name} | VIDYORA`;
+  const description =
+    category.metaDescription?.trim() ||
+    category.description ||
+    `Shop the best ${category.name.toLowerCase()} jewellery on VIDYORA`;
+
   return {
-    title: `${category.name} | VIDYORA`,
-    description:
-      category.description ||
-      `Shop the best ${category.name.toLowerCase()} jewellery on VIDYORA`,
+    title,
+    description,
+    keywords: category.metaKeywords?.trim() || undefined,
     alternates: {
       canonical: `/categories/${slug}`,
     },
     openGraph: {
-      title: `${category.name} | VIDYORA`,
+      title,
+      description,
       url: `/categories/${slug}`,
     },
   };

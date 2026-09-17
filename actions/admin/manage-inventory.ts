@@ -76,13 +76,21 @@ export async function updateAdminVariantStock(
 
     const variant = await prisma.productVariant.findUnique({
       where: { id: validated.variantId },
-      select: { id: true, productId: true },
+      select: {
+        id: true,
+        productId: true,
+        stock: true,
+        reservedStock: true,
+        product: { select: { id: true, name: true, slug: true } },
+      },
     });
     if (!variant) {
       return { success: false, error: "Variant not found" };
     }
 
-    await prisma.productVariant.update({
+    const previousAvailable = variant.stock - variant.reservedStock;
+
+    const updated = await prisma.productVariant.update({
       where: { id: validated.variantId },
       data: { stock: validated.stock },
     });
@@ -91,6 +99,22 @@ export async function updateAdminVariantStock(
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${variant.productId}`);
     revalidatePath("/seller/inventory");
+
+    try {
+      const { notifyBackInStockIfNeeded } = await import(
+        "@/lib/email/product-alerts"
+      );
+      await notifyBackInStockIfNeeded({
+        productId: variant.product.id,
+        variantId: updated.id,
+        previousAvailable,
+        nextAvailable: updated.stock - variant.reservedStock,
+        productName: variant.product.name,
+        productSlug: variant.product.slug,
+      });
+    } catch (error) {
+      console.error("Admin back-in-stock notify failed:", error);
+    }
 
     return { success: true, data: undefined };
   } catch (error) {

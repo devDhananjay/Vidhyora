@@ -6,48 +6,13 @@ import prisma from "@/lib/prisma";
 import { ProductGrid } from "@/components/products/product-grid";
 import { TanishqFilterBar } from "@/components/products/tanishq-filter-bar";
 import { ProductListingSkeleton } from "@/components/products/product-listing-skeleton";
+import { COLLECTION_MAP } from "@/lib/catalog/collections";
 import {
   buildProductWhere,
   getListingTitle,
   type ProductListParams,
 } from "@/lib/products/product-query";
 import { getProductFacets } from "@/lib/products/product-facets";
-
-const COLLECTION_MAP: Record<
-  string,
-  { title: string; description: string; filters: ProductListParams }
-> = {
-  "under-50k": {
-    title: "Under 50K",
-    description: "Fine jewellery under ₹50,000",
-    filters: { maxPrice: "50000", collection: "Under 50K" },
-  },
-  wedding: {
-    title: "Wedding Jewellery",
-    description: "Bridal and wedding jewellery collections",
-    filters: { occasion: "wedding", collection: "Wedding Jewellery" },
-  },
-  diamond: {
-    title: "Diamond Jewellery",
-    description: "Shop diamond jewellery on VIDYORA",
-    filters: { type: "diamond", collection: "Diamond" },
-  },
-  gold: {
-    title: "Gold Jewellery",
-    description: "Shop gold jewellery on VIDYORA",
-    filters: { type: "gold", collection: "Gold" },
-  },
-  daily: {
-    title: "Daily Wear",
-    description: "Everyday jewellery for daily wear",
-    filters: { occasion: "daily", collection: "Daily Wear" },
-  },
-  gifting: {
-    title: "Gifting",
-    description: "Festive and gift-ready jewellery",
-    filters: { occasion: "festive", collection: "Gifting" },
-  },
-};
 
 type CollectionPageProps = {
   params: Promise<{ slug: string }>;

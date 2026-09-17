@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { BLOG_POSTS } from "@/lib/content/blog-posts";
+import { COLLECTION_SLUGS } from "@/lib/catalog/collections";
 import { getSiteUrl } from "@/lib/site-url";
 
 export type SitemapEntry = {
@@ -142,10 +143,18 @@ export async function getSitemapEntries(): Promise<SitemapEntry[]> {
     priority: 0.8,
   }));
 
+  const collectionPages: SitemapEntry[] = COLLECTION_SLUGS.map((slug) => ({
+    url: `${baseUrl}/collections/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.75,
+  }));
+
   return [
     ...staticPages,
     ...blogPages,
     ...categoryPages,
+    ...collectionPages,
     ...productPages,
   ];
 }

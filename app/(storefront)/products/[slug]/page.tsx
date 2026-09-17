@@ -82,21 +82,30 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${product.name} | VIDYORA`,
-    description: product.shortDescription || product.description.slice(0, 160),
+    title: product.metaTitle?.trim() || `${product.name} | VIDYORA`,
+    description:
+      product.metaDescription?.trim() ||
+      product.shortDescription ||
+      product.description.slice(0, 160),
     alternates: {
       canonical: `/products/${slug}`,
     },
     openGraph: {
-      title: product.name,
-      description: product.shortDescription || product.description.slice(0, 160),
+      title: product.metaTitle?.trim() || product.name,
+      description:
+        product.metaDescription?.trim() ||
+        product.shortDescription ||
+        product.description.slice(0, 160),
       url: `/products/${slug}`,
       images: product.thumbnail ? [product.thumbnail] : [],
     },
     twitter: {
       card: "summary_large_image",
-      title: product.name,
-      description: product.shortDescription || product.description.slice(0, 160),
+      title: product.metaTitle?.trim() || product.name,
+      description:
+        product.metaDescription?.trim() ||
+        product.shortDescription ||
+        product.description.slice(0, 160),
       images: product.thumbnail ? [product.thumbnail] : [],
     },
   };

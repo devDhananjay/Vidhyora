@@ -156,7 +156,11 @@ export async function updateProduct(
     // Check if product belongs to seller
     const existingProduct = await prisma.product.findUnique({
       where: { id },
-      include: { seller: true, policy: true },
+      include: {
+        seller: true,
+        policy: true,
+        variants: { select: { id: true, price: true } },
+      },
     });
 
     if (!existingProduct) {
@@ -175,6 +179,11 @@ export async function updateProduct(
         error: "You don't have permission to edit this product",
       };
     }
+
+    const previousBasePrice = Number(existingProduct.basePrice);
+    const previousVariantPrices = new Map(
+      existingProduct.variants.map((v) => [v.id, Number(v.price)]),
+    );
 
     // Check if slug is taken by another product
     if (validated.slug !== existingProduct.slug) {
@@ -264,6 +273,34 @@ export async function updateProduct(
     revalidatePath(`/seller/products/${id}/edit`);
     revalidatePath(`/products/${product.slug}`);
     revalidatePath("/admin/products");
+
+    try {
+      const { processPriceDropAlerts } = await import(
+        "@/lib/email/product-alerts"
+      );
+      const nextBase = Number(product.basePrice);
+      const priceDropped =
+        nextBase < previousBasePrice ||
+        (
+          await prisma.productVariant.findMany({
+            where: { productId: product.id },
+            select: { id: true, price: true },
+          })
+        ).some((variant) => {
+          const prev = previousVariantPrices.get(variant.id);
+          return prev != null && Number(variant.price) < prev;
+        });
+
+      if (priceDropped) {
+        await processPriceDropAlerts({
+          productId: product.id,
+          productName: product.name,
+          productSlug: product.slug,
+        });
+      }
+    } catch (error) {
+      console.error("Price-drop notify failed:", error);
+    }
 
     return {
       success: true,

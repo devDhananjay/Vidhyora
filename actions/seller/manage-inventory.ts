@@ -191,7 +191,12 @@ export async function bulkUpdateStock(
           },
         },
       },
-      select: { id: true },
+      select: {
+        id: true,
+        stock: true,
+        reservedStock: true,
+        product: { select: { id: true, name: true, slug: true } },
+      },
     });
 
     if (variants.length !== validated.length) {
@@ -200,6 +205,17 @@ export async function bulkUpdateStock(
         error: "Some variants not found or you don't have permission to update them",
       };
     }
+
+    const previousById = new Map(
+      variants.map((v) => [
+        v.id,
+        {
+          available: v.stock - v.reservedStock,
+          product: v.product,
+          reservedStock: v.reservedStock,
+        },
+      ]),
+    );
 
     // Perform bulk update using transaction
     await prisma.$transaction(
@@ -212,6 +228,27 @@ export async function bulkUpdateStock(
     );
 
     revalidatePath("/seller/inventory");
+
+    try {
+      const { notifyBackInStockIfNeeded } = await import(
+        "@/lib/email/product-alerts"
+      );
+      for (const update of validated) {
+        const prev = previousById.get(update.variantId);
+        if (!prev) continue;
+        const nextAvailable = update.stock - prev.reservedStock;
+        await notifyBackInStockIfNeeded({
+          productId: prev.product.id,
+          variantId: update.variantId,
+          previousAvailable: prev.available,
+          nextAvailable,
+          productName: prev.product.name,
+          productSlug: prev.product.slug,
+        });
+      }
+    } catch (error) {
+      console.error("Bulk back-in-stock notify failed:", error);
+    }
 
     return {
       success: true,

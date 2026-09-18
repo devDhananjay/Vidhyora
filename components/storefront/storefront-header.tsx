@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Handshake, Heart, MapPin, User } from "lucide-react";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { MegaNav } from "@/components/storefront/mega-nav";
+import { MobileSearchButton } from "@/components/storefront/mobile-search";
 import { SearchTypeahead } from "@/components/storefront/search-typeahead";
 // Dark / light mode — on hold for now
 // import { ThemeToggle } from "@/components/theme/theme-toggle";
@@ -69,17 +70,17 @@ export function StorefrontHeader({
           "shadow-[0_4px_18px_rgba(43,26,22,0.08)] dark:shadow-[0_4px_18px_rgba(0,0,0,0.35)]",
       )}
     >
-      <div className="mx-auto flex max-w-7xl items-center gap-3 px-3 py-1 sm:gap-6 sm:px-4 md:py-1.5">
+        <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-1 sm:gap-6 sm:px-4 md:py-1.5">
         <Link
           href={ROUTES.home}
-          className="relative flex h-14 w-14 shrink-0 items-center justify-center sm:h-[72px] sm:w-[72px] md:h-20 md:w-20"
+          className="relative flex h-12 w-12 shrink-0 items-center justify-center sm:h-[72px] sm:w-[72px] md:h-20 md:w-20"
           aria-label="VIDYORA home"
         >
           <BrandLogo
             size="md"
             priority
             className={cn(
-              "!absolute left-1/2 top-1/2 !h-14 !w-14 -translate-x-1/2 -translate-y-1/2 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform sm:!h-[72px] sm:!w-[72px] md:!h-20 md:!w-20",
+              "!absolute left-1/2 top-1/2 !h-12 !w-12 -translate-x-1/2 -translate-y-1/2 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform sm:!h-[72px] sm:!w-[72px] md:!h-20 md:!w-20",
               compact && "scale-[0.72] md:scale-[0.7]",
             )}
           />
@@ -93,17 +94,14 @@ export function StorefrontHeader({
           />
         </div>
 
-        {/* Mobile search */}
-        <SearchTypeahead
-          className="min-w-0 flex-1 md:hidden"
-          compact
-          placeholder="Search jewellery"
-        />
+        {/* Push icons right on mobile (search lives in the icon row) */}
+        <div className="min-w-0 flex-1 md:hidden" aria-hidden />
 
-        <nav className="ml-auto flex items-center gap-1 text-brand">
+        <nav className="ml-auto flex items-center gap-0.5 text-brand sm:gap-1">
           {/* Dark / light mode — on hold for now
           <ThemeToggle />
           */}
+          <MobileSearchButton />
           <Link
             href={ROUTES.partner}
             className="relative z-20 mr-1 hidden items-center gap-1.5 rounded-full border border-brand/20 bg-brand/5 px-3 py-1.5 text-[12px] font-medium text-brand transition duration-500 hover:bg-brand hover:text-primary-foreground sm:inline-flex"

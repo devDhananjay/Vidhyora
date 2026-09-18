@@ -22,8 +22,24 @@ interface UserMenuProps {
   user: SessionUser;
 }
 
+/** True only when the device can truly hover (desktop). Starts false to avoid mobile flash-close. */
+function useFineHover() {
+  const [fineHover, setFineHover] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const apply = () => setFineHover(mq.matches);
+    apply();
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, []);
+
+  return fineHover;
+}
+
 export function UserMenu({ user }: UserMenuProps) {
   const router = useRouter();
+  const fineHover = useFineHover();
   const [isLoading, setIsLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const closeTimer = useRef<number | null>(null);
@@ -46,9 +62,15 @@ export function UserMenu({ user }: UserMenuProps) {
     setOpen(true);
   };
 
+  const closeMenu = () => {
+    clearCloseTimer();
+    setOpen(false);
+  };
+
+  /** Desktop hover bridge — short delay so pointer can move into the panel. */
   const closeMenuSoon = () => {
     clearCloseTimer();
-    closeTimer.current = window.setTimeout(() => setOpen(false), 40);
+    closeTimer.current = window.setTimeout(() => setOpen(false), 120);
   };
 
   const handleLogout = async () => {
@@ -64,13 +86,22 @@ export function UserMenu({ user }: UserMenuProps) {
     }
   };
 
+  const hoverProps = fineHover
+    ? {
+        onPointerEnter: openMenu,
+        onPointerLeave: closeMenuSoon,
+      }
+    : undefined;
+
   return (
     <DropdownMenu
       open={open}
-      modal={false}
+      // Mobile needs modal so the opening tap doesn't immediately dismiss.
+      // Desktop stays non-modal so hover can bridge into the panel.
+      modal={!fineHover}
       onOpenChange={(next) => {
         if (next) openMenu();
-        else closeMenuSoon();
+        else closeMenu();
       }}
     >
       <DropdownMenuTrigger asChild>
@@ -78,10 +109,9 @@ export function UserMenu({ user }: UserMenuProps) {
           variant="ghost"
           size="icon"
           disabled={isLoading}
-          onPointerEnter={openMenu}
-          onPointerLeave={closeMenuSoon}
           aria-label="Account menu"
           className="relative z-[10001]"
+          {...hoverProps}
         >
           <User className="size-5 text-[#8b2e2e]" />
         </Button>
@@ -97,8 +127,7 @@ export function UserMenu({ user }: UserMenuProps) {
           "before:absolute before:-top-2 before:right-0 before:left-0 before:h-2 before:content-['']",
         )}
         onCloseAutoFocus={(event) => event.preventDefault()}
-        onPointerEnter={openMenu}
-        onPointerLeave={closeMenuSoon}
+        {...hoverProps}
       >
         <DropdownMenuLabel>
           <div className="flex flex-col space-y-1">

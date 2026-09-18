@@ -197,12 +197,12 @@ export function ProductCardQuickAdd({
   if (soldOut) {
     return (
       <div ref={wrapRef} className={cn("relative mt-2.5", className)}>
-        <div className="flex h-9 items-stretch gap-1.5">
-          <div className="flex min-w-0 flex-1 items-center justify-center rounded-full bg-neutral-100 px-2 text-[11px] font-medium text-neutral-500">
+        <div className="flex flex-col gap-1.5 sm:flex-row sm:items-stretch">
+          <div className="flex h-10 items-center justify-center rounded-full bg-neutral-100 px-2 text-[11px] font-medium text-neutral-500 sm:h-11 sm:min-w-0 sm:flex-1">
             Out of stock
           </div>
           <div
-            className="min-w-0 flex-1"
+            className="sm:min-w-0 sm:flex-1"
             onClick={(event) => event.stopPropagation()}
           >
             <ProductAlertNotify
@@ -212,7 +212,7 @@ export function ProductCardQuickAdd({
               variantId={variants[0]?.id}
               asButton
               triggerLabel="Notify"
-              triggerClassName="h-9 w-full rounded-full border-2 border-[#8b2e2e] bg-white px-2 text-[11px] font-semibold text-[#8b2e2e] hover:bg-[#8b2e2e] hover:text-white"
+              triggerClassName="h-10 w-full rounded-full border-2 border-[#8b2e2e] bg-white px-2 text-[12px] font-semibold text-[#8b2e2e] hover:bg-[#8b2e2e] hover:text-white sm:h-11"
             />
           </div>
         </div>
@@ -222,19 +222,20 @@ export function ProductCardQuickAdd({
 
   return (
     <div ref={wrapRef} className={cn("relative mt-2.5", className)}>
-      <div className="flex h-9 items-stretch gap-1.5">
+      {/* Stack on narrow PLP cards so − / qty / + stay usable */}
+      <div className="flex flex-col gap-1.5 sm:h-11 sm:flex-row sm:items-stretch">
         {inCart ? (
-          <div className="flex min-w-0 flex-1 items-center overflow-hidden rounded-full border border-[#2f5d50]/30 bg-[#2f5d50] text-white">
+          <div className="flex h-10 w-full items-center overflow-hidden rounded-full border border-[#2f5d50]/30 bg-[#2f5d50] text-white sm:h-full sm:min-w-0 sm:flex-1">
             <button
               type="button"
               aria-label="Decrease quantity"
               disabled={isPending}
               onClick={onMinus}
-              className="flex h-full w-8 shrink-0 items-center justify-center hover:bg-black/10 disabled:opacity-50"
+              className="flex h-full w-11 shrink-0 items-center justify-center hover:bg-black/10 disabled:opacity-50 sm:w-9"
             >
-              <Minus className="size-3.5" strokeWidth={2} />
+              <Minus className="size-4" strokeWidth={2} />
             </button>
-            <span className="min-w-0 flex-1 text-center text-[12px] font-semibold tabular-nums">
+            <span className="min-w-0 flex-1 text-center text-[13px] font-semibold tabular-nums">
               {isPending ? "…" : totalQty}
             </span>
             <button
@@ -247,9 +248,9 @@ export function ProductCardQuickAdd({
                   primaryLine.quantity >= primaryLine.availableStock)
               }
               onClick={onPlus}
-              className="flex h-full w-8 shrink-0 items-center justify-center hover:bg-black/10 disabled:opacity-50"
+              className="flex h-full w-11 shrink-0 items-center justify-center hover:bg-black/10 disabled:opacity-50 sm:w-9"
             >
-              <Plus className="size-3.5" strokeWidth={2} />
+              <Plus className="size-4" strokeWidth={2} />
             </button>
           </div>
         ) : (
@@ -257,7 +258,7 @@ export function ProductCardQuickAdd({
             type="button"
             disabled={isPending}
             onClick={onClickAdd}
-            className="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full bg-[#8b2e2e] px-2 text-[11px] font-medium tracking-wide text-white transition hover:bg-[#7a2727]"
+            className="flex h-10 w-full items-center justify-center gap-1 rounded-full bg-[#8b2e2e] px-2 text-[12px] font-medium tracking-wide text-white transition hover:bg-[#7a2727] sm:h-full sm:min-w-0 sm:flex-1"
           >
             {isPending ? (
               "Adding…"
@@ -274,7 +275,7 @@ export function ProductCardQuickAdd({
           type="button"
           disabled={isPending}
           onClick={onClickBuy}
-          className="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full border-2 border-[#8b2e2e] bg-white px-2 text-[11px] font-semibold tracking-wide text-[#8b2e2e] transition hover:bg-[#8b2e2e] hover:text-white"
+          className="flex h-10 w-full items-center justify-center gap-1 rounded-full border-2 border-[#8b2e2e] bg-white px-2 text-[12px] font-semibold tracking-wide text-[#8b2e2e] transition hover:bg-[#8b2e2e] hover:text-white sm:h-full sm:min-w-0 sm:flex-1"
         >
           <Zap className="size-3.5 shrink-0" strokeWidth={2} />
           <span className="truncate">{isPending ? "…" : "Buy now"}</span>

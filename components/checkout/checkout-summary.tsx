@@ -505,7 +505,9 @@ export function CheckoutSummary({
         size="lg"
         className="mt-2 w-full"
         onClick={handlePlaceOrder}
-        disabled={isPending || !selectedAddressId}
+        disabled={
+          isPending || (!selectedAddressId && !guestAddress)
+        }
       >
         {isPending
           ? "Processing..."

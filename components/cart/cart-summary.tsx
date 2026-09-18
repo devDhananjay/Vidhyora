@@ -132,7 +132,7 @@ export function CartSummary({
       {checkoutBlocked ? (
         <Button
           size="lg"
-          className="mt-6 w-full"
+          className="mt-6 hidden w-full lg:inline-flex"
           disabled
           aria-disabled="true"
         >
@@ -140,7 +140,7 @@ export function CartSummary({
           Proceed to Checkout
         </Button>
       ) : (
-        <Button asChild size="lg" className="mt-6 w-full">
+        <Button asChild size="lg" className="mt-6 hidden w-full lg:inline-flex">
           <Link href="/checkout">
             <ShoppingBag className="mr-2 size-5" />
             Proceed to Checkout
@@ -148,8 +148,36 @@ export function CartSummary({
         </Button>
       )}
 
-      <div className="mt-4 text-center text-xs text-muted-foreground">
+      <div className="mt-4 hidden text-center text-xs text-muted-foreground lg:block">
         Secure checkout powered by Razorpay
+      </div>
+
+      {/* Mobile sticky checkout bar */}
+      <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 lg:hidden">
+        <div className="pointer-events-auto border-t border-border bg-white/95 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(43,26,22,0.12)] backdrop-blur-md">
+          <div className="mx-auto flex max-w-lg items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] text-muted-foreground">Total</p>
+              <p className="font-serif text-lg font-semibold text-[#8b2e2e]">
+                {formatCurrency(summary.total)}
+              </p>
+            </div>
+            {checkoutBlocked ? (
+              <Button size="lg" className="shrink-0 px-5" disabled>
+                Checkout
+              </Button>
+            ) : (
+              <Button asChild size="lg" className="shrink-0 px-5">
+                <Link href="/checkout">Checkout</Link>
+              </Button>
+            )}
+          </div>
+          {checkoutBlocked && stockIssue ? (
+            <p className="mx-auto mt-2 max-w-lg text-[11px] text-red-700">
+              {stockIssue}
+            </p>
+          ) : null}
+        </div>
       </div>
     </div>
   );

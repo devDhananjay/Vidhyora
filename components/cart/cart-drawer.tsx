@@ -15,6 +15,7 @@ import { ShoppingBag, X } from "lucide-react";
 import { getCart } from "@/actions/cart/get-cart";
 import { openCartDrawer } from "@/lib/cart/open-cart-drawer";
 import { signalNavStart } from "@/lib/nav/signal-nav-start";
+import { useCoarsePointer } from "@/lib/hooks/use-coarse-pointer";
 import { formatCurrency } from "@/lib/utils";
 import type { CartItemWithDetails, CartWithItems } from "@/types/cart";
 
@@ -131,7 +132,10 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
       clearTimer();
       if (ms <= 0) return;
       closeTimer.current = window.setTimeout(() => {
-        if (!hovering.current && !pinned.current) setOpen(false);
+        // Timed ATC preview always dismisses unless the user is still hovering.
+        if (hovering.current) return;
+        pinned.current = false;
+        setOpen(false);
       }, ms);
     },
     [clearTimer],
@@ -212,11 +216,11 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
             className="pointer-events-none fixed inset-0 z-[9999]"
             aria-live="polite"
           >
-            {/* click-away below header so bag / profile stay hoverable */}
+            {/* click-away — full screen on mobile sheet, below header on desktop */}
             <button
               type="button"
               aria-label="Dismiss mini cart"
-              className="pointer-events-auto absolute inset-x-0 bottom-0 top-[5.75rem] cursor-default bg-transparent sm:top-[6.75rem]"
+              className="pointer-events-auto absolute inset-0 cursor-default bg-black/20 md:inset-x-0 md:bottom-0 md:top-[5.75rem] md:bg-transparent lg:top-[6.75rem]"
               onClick={close}
             />
             <aside
@@ -234,8 +238,16 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
                   scheduleClose(Math.min(autoCloseMs.current, 2500));
                 }
               }}
-              className="pointer-events-auto absolute top-[5.75rem] right-3 flex max-h-[min(70vh,520px)] w-[min(100vw-1.5rem,340px)] flex-col overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-md sm:right-6 sm:top-[6.75rem]"
+              onPointerDown={() => {
+                // User engaging with sheet — pause auto-close
+                hovering.current = true;
+                clearTimer();
+              }}
+              className="pointer-events-auto absolute inset-x-0 bottom-0 flex max-h-[min(78vh,560px)] w-full flex-col overflow-hidden rounded-t-2xl border border-border bg-popover text-popover-foreground shadow-[0_-12px_40px_rgba(43,26,22,0.18)] md:inset-x-auto md:top-[5.75rem] md:right-3 md:bottom-auto md:max-h-[min(70vh,520px)] md:w-[min(100vw-1.5rem,340px)] md:rounded-xl md:shadow-md lg:right-6 lg:top-[6.75rem]"
             >
+              <div className="flex shrink-0 justify-center pt-2 md:hidden">
+                <span className="h-1 w-10 rounded-full bg-neutral-300" />
+              </div>
               <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
                 <h2 className="font-serif text-lg text-[#8b2e2e]">
                   Your Mini Cart
@@ -249,9 +261,9 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
                   type="button"
                   aria-label="Close"
                   onClick={close}
-                  className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
+                  className="rounded-full p-2 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
                 >
-                  <X className="size-4" strokeWidth={1.8} />
+                  <X className="size-5" strokeWidth={1.8} />
                 </button>
               </div>
 
@@ -328,10 +340,11 @@ export function CartDrawerProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/** Header bag — hover opens mini cart; click opens full cart page. */
+/** Header bag — desktop: hover mini / click full cart. Mobile: tap opens sheet. */
 export function CartBagButton({ itemCount }: { itemCount: number }) {
   const router = useRouter();
   const pathname = usePathname();
+  const coarse = useCoarsePointer();
 
   useEffect(() => {
     router.prefetch("/cart");
@@ -341,19 +354,24 @@ export function CartBagButton({ itemCount }: { itemCount: number }) {
     <button
       type="button"
       onPointerEnter={() => {
+        if (coarse) return;
         openCartDrawer({ autoCloseMs: 0, fromHover: true });
       }}
       onPointerLeave={() => {
+        if (coarse) return;
         window.dispatchEvent(new Event("vidyora-close-cart-drawer-soon"));
       }}
       onClick={() => {
+        if (coarse) {
+          openCartDrawer({ autoCloseMs: 0, pinned: true });
+          return;
+        }
         window.dispatchEvent(new Event("vidyora-close-cart-drawer"));
-        // Already on cart — don't push / show loader (would spin forever)
         if (pathname === "/cart") return;
         signalNavStart("/cart");
         router.push("/cart");
       }}
-      className="relative z-[10001] rounded-full p-2 hover:bg-accent"
+      className="relative z-[10001] rounded-full p-2.5 hover:bg-accent md:p-2"
       aria-label={
         itemCount > 0
           ? `Shopping cart with ${itemCount} items`
@@ -362,7 +380,7 @@ export function CartBagButton({ itemCount }: { itemCount: number }) {
     >
       <ShoppingBag className="size-5 text-[#8b2e2e]" strokeWidth={1.5} />
       {itemCount > 0 ? (
-        <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-red-600 p-0 text-xs text-white">
+        <span className="absolute -top-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-red-600 p-0 text-[10px] text-white md:-top-1 md:-right-1 md:text-xs">
           {itemCount > 9 ? "9+" : itemCount}
         </span>
       ) : null}

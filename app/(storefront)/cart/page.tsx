@@ -68,9 +68,9 @@ export default async function CartPage({
   const redirectedForStock = params.stock === "1";
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 pb-28 lg:pb-8">
       <div className="mb-6 flex items-center gap-3">
-        <ShoppingBag className="size-8" />
+        <ShoppingBag className="size-8 text-[#8b2e2e]" />
         <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
           Shopping Cart
         </h1>
@@ -104,7 +104,7 @@ export default async function CartPage({
           </div>
 
           <div className="lg:col-span-1">
-            <div className="sticky top-24">
+            <div className="lg:sticky lg:top-28">
               <CartSummary
                 summary={summary}
                 availablePromos={availablePromos}

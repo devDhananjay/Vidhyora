@@ -156,14 +156,14 @@ export function MegaNav({
                 setMobileOpenId(item.id);
               }}
               className={cn(
-                "flex min-w-[64px] shrink-0 flex-col items-center gap-1 rounded-lg px-1.5 py-1.5 transition sm:min-w-[72px] sm:px-2",
+                "flex min-w-[72px] shrink-0 flex-col items-center gap-1 rounded-xl px-2 py-2 transition sm:min-w-[76px]",
                 selected
                   ? "bg-[#8b2e2e]/10 text-[#8b2e2e]"
                   : "text-[#8b2e2e] hover:bg-[#8b2e2e]/5",
               )}
             >
               <Icon className="size-5 text-[#8b2e2e]" />
-              <span className="max-w-[4.5rem] truncate text-center text-[8px] font-semibold tracking-[0.06em] text-[#8b2e2e] uppercase sm:max-w-none sm:text-[9px] sm:tracking-[0.08em]">
+              <span className="max-w-[4.75rem] truncate text-center text-[10px] font-semibold tracking-[0.04em] text-[#8b2e2e] uppercase sm:max-w-none sm:text-[10px] sm:tracking-[0.06em]">
                 {item.label}
               </span>
             </button>

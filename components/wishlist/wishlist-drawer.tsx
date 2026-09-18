@@ -18,6 +18,7 @@ import {
   openWishlistDrawer,
 } from "@/lib/wishlist/open-wishlist-drawer";
 import { signalNavStart } from "@/lib/nav/signal-nav-start";
+import { useCoarsePointer } from "@/lib/hooks/use-coarse-pointer";
 import { formatCurrency } from "@/lib/utils";
 
 export { openWishlistDrawer, closeWishlistDrawer };
@@ -198,7 +199,7 @@ export function WishlistDrawerProvider({ children }: { children: ReactNode }) {
             <button
               type="button"
               aria-label="Dismiss mini wishlist"
-              className="pointer-events-auto absolute inset-x-0 bottom-0 top-[5.75rem] cursor-default bg-transparent sm:top-[6.75rem]"
+              className="pointer-events-auto absolute inset-0 cursor-default bg-black/20 md:inset-x-0 md:bottom-0 md:top-[5.75rem] md:bg-transparent lg:top-[6.75rem]"
               onClick={close}
             />
             <aside
@@ -216,8 +217,11 @@ export function WishlistDrawerProvider({ children }: { children: ReactNode }) {
                   scheduleClose(Math.min(autoCloseMs.current, 2500));
                 }
               }}
-              className="pointer-events-auto absolute top-[5.75rem] right-3 flex max-h-[min(70vh,520px)] w-[min(100vw-1.5rem,340px)] flex-col overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-md sm:right-14 sm:top-[6.75rem]"
+              className="pointer-events-auto absolute inset-x-0 bottom-0 flex max-h-[min(78vh,560px)] w-full flex-col overflow-hidden rounded-t-2xl border border-border bg-popover text-popover-foreground shadow-[0_-12px_40px_rgba(43,26,22,0.18)] md:inset-x-auto md:top-[5.75rem] md:right-14 md:bottom-auto md:max-h-[min(70vh,520px)] md:w-[min(100vw-1.5rem,340px)] md:rounded-xl md:shadow-md lg:top-[6.75rem]"
             >
+              <div className="flex shrink-0 justify-center pt-2 md:hidden">
+                <span className="h-1 w-10 rounded-full bg-neutral-300" />
+              </div>
               <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
                 <h2 className="font-serif text-lg text-[#8b2e2e]">
                   Your Wishlist
@@ -231,9 +235,9 @@ export function WishlistDrawerProvider({ children }: { children: ReactNode }) {
                   type="button"
                   aria-label="Close"
                   onClick={close}
-                  className="rounded p-1 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
+                  className="rounded-full p-2 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
                 >
-                  <X className="size-4" strokeWidth={1.8} />
+                  <X className="size-5" strokeWidth={1.8} />
                 </button>
               </div>
 
@@ -288,6 +292,7 @@ export function WishlistDrawerProvider({ children }: { children: ReactNode }) {
 export function WishlistHeartButton({ itemCount }: { itemCount: number }) {
   const router = useRouter();
   const pathname = usePathname();
+  const coarse = useCoarsePointer();
 
   useEffect(() => {
     router.prefetch("/wishlist");
@@ -297,20 +302,26 @@ export function WishlistHeartButton({ itemCount }: { itemCount: number }) {
     <button
       type="button"
       onPointerEnter={() => {
+        if (coarse) return;
         openWishlistDrawer({ autoCloseMs: 0, fromHover: true });
       }}
       onPointerLeave={() => {
+        if (coarse) return;
         window.dispatchEvent(
           new Event("vidyora-close-wishlist-drawer-soon"),
         );
       }}
       onClick={() => {
+        if (coarse) {
+          openWishlistDrawer({ autoCloseMs: 0, pinned: true });
+          return;
+        }
         closeWishlistDrawer();
         if (pathname === "/wishlist") return;
         signalNavStart("/wishlist");
         router.push("/wishlist");
       }}
-      className="relative z-[10001] rounded-full p-2 text-brand hover:bg-brand/5"
+      className="relative z-[10001] rounded-full p-2.5 text-brand hover:bg-brand/5 md:p-2"
       aria-label={
         itemCount > 0
           ? `Wishlist with ${itemCount} items`
@@ -319,7 +330,7 @@ export function WishlistHeartButton({ itemCount }: { itemCount: number }) {
     >
       <Heart className="size-5" strokeWidth={1.5} />
       {itemCount > 0 ? (
-        <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-red-600 p-0 text-xs text-white">
+        <span className="absolute -top-0.5 -right-0.5 flex size-5 items-center justify-center rounded-full bg-red-600 p-0 text-[10px] text-white md:-top-1 md:-right-1 md:text-xs">
           {itemCount > 9 ? "9+" : itemCount}
         </span>
       ) : null}

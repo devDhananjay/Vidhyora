@@ -55,11 +55,45 @@ export async function notifyOrderConfirmed(orderId: string) {
     const orderLink = `${getEmailAppUrl()}/orders/${order.id}`;
 
     if (allowBuyer) {
+      const shipping = order.shippingAddress as {
+        name?: string;
+        addressLine1?: string;
+        addressLine2?: string | null;
+        city?: string;
+        state?: string;
+        postalCode?: string;
+        phone?: string;
+      } | null;
+
+      const shippingLines = shipping
+        ? [
+            shipping.name,
+            shipping.addressLine1,
+            shipping.addressLine2 || undefined,
+            [shipping.city, shipping.state, shipping.postalCode]
+              .filter(Boolean)
+              .join(", "),
+            shipping.phone ? `Phone: ${shipping.phone}` : undefined,
+          ].filter((line): line is string => Boolean(line && String(line).trim()))
+        : undefined;
+
       const template = EMAIL_TEMPLATES.orderConfirmation({
         customerName: order.user.name || "Customer",
         orderNumber: order.orderNumber,
         orderTotal: total,
         orderLink,
+        items: order.items.map((item) => ({
+          name: item.productName,
+          quantity: item.quantity,
+          lineTotal: formatCurrency(Number(item.total)),
+          variantLabel: item.variantLabel,
+        })),
+        subtotal: formatCurrency(Number(order.subtotal)),
+        discount: formatCurrency(Number(order.discount)),
+        shippingFee: formatCurrency(Number(order.shippingFee)),
+        giftPackagingFee: formatCurrency(Number(order.giftPackagingFee)),
+        tax: formatCurrency(Number(order.tax)),
+        shippingLines,
       });
 
       await sendEmail({

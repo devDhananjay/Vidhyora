@@ -107,7 +107,7 @@ export function FloatingAddToCartBar({
   return (
     <div
       className={cn(
-        "pointer-events-none fixed inset-x-0 bottom-4 z-[60] flex justify-center px-3 transition-all duration-300 md:bottom-6 [[data-gallery-lightbox=open]_&]:hidden",
+        "pointer-events-none fixed inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom))] z-[60] flex justify-center px-3 transition-all duration-300 md:bottom-6 [[data-gallery-lightbox=open]_&]:hidden",
         show
           ? "translate-y-0 opacity-100"
           : "translate-y-6 opacity-0",

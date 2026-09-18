@@ -6,6 +6,7 @@ import {
   addToWishlist,
   removeFromWishlist,
 } from "@/actions/wishlist/manage-wishlist";
+import { showActionToast } from "@/components/shared/action-toast";
 import { cn } from "@/lib/utils";
 
 type ProductFavoriteButtonProps = {
@@ -29,7 +30,6 @@ export function ProductFavoriteButton({
         const result = await removeFromWishlist(productId);
         if (result.success) {
           setSaved(false);
-          return;
         }
         return;
       }
@@ -37,7 +37,17 @@ export function ProductFavoriteButton({
       const result = await addToWishlist(productId);
       if (result.success) {
         setSaved(true);
+        showActionToast({
+          message: "Added to favourites",
+          href: "/wishlist",
+          linkLabel: "View favourites →",
+        });
+        return;
       }
+      const { appAlert } = await import("@/components/shared/app-dialog");
+      await appAlert(result.error || "Could not save favourite", {
+        variant: "error",
+      });
     });
   }
 

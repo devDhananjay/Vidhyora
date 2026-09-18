@@ -49,6 +49,7 @@ export async function updateCartItemQuantity(
     });
 
     revalidatePath("/cart");
+    revalidatePath("/", "layout");
 
     return { success: true, data: undefined };
   } catch (error) {

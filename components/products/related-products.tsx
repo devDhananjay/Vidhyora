@@ -4,7 +4,9 @@ import {
   imageUrlsForProduct,
   isBestSellerFlag,
   jewelleryCardMeta,
+  mapCardVariants,
 } from "@/lib/products/product-card-data";
+import { getCartLinesForPlp } from "@/actions/cart/get-cart";
 
 export async function RelatedProducts({
   categoryId,
@@ -13,30 +15,42 @@ export async function RelatedProducts({
   categoryId: string;
   currentProductId: string;
 }) {
-  const relatedProducts = await prisma.product.findMany({
-    where: {
-      categoryId,
-      id: { not: currentProductId },
-      status: "ACTIVE",
-      approvalStatus: "APPROVED",
-    },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      brand: true,
-      basePrice: true,
-      compareAtPrice: true,
-      thumbnail: true,
-      attributes: true,
-      images: {
-        select: { url: true },
-        orderBy: { sortOrder: "asc" },
+  const [relatedProducts, cartLines] = await Promise.all([
+    prisma.product.findMany({
+      where: {
+        categoryId,
+        id: { not: currentProductId },
+        status: "ACTIVE",
+        approvalStatus: "APPROVED",
       },
-    },
-    take: 4,
-    orderBy: { createdAt: "desc" },
-  });
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        brand: true,
+        basePrice: true,
+        compareAtPrice: true,
+        thumbnail: true,
+        attributes: true,
+        images: {
+          select: { url: true },
+          orderBy: { sortOrder: "asc" },
+        },
+        variants: {
+          where: { isActive: true },
+          select: {
+            id: true,
+            stock: true,
+            attributes: true,
+          },
+          orderBy: { price: "asc" },
+        },
+      },
+      take: 4,
+      orderBy: { createdAt: "desc" },
+    }),
+    getCartLinesForPlp(),
+  ]);
 
   if (relatedProducts.length === 0) {
     return null;
@@ -49,6 +63,7 @@ export async function RelatedProducts({
         {relatedProducts.map((product) => (
           <ProductCard
             key={product.id}
+            cartLines={cartLines}
             product={{
               ...product,
               basePrice: Number(product.basePrice),
@@ -58,6 +73,7 @@ export async function RelatedProducts({
               images: imageUrlsForProduct(product),
               isBestSeller: isBestSellerFlag(product.attributes),
               metalLabel: jewelleryCardMeta(product.attributes).label ?? null,
+              variants: mapCardVariants(product.variants),
             }}
           />
         ))}

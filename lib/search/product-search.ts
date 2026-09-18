@@ -20,6 +20,11 @@ export type SearchResult = {
   compareAtPrice: number | null;
   attributes: unknown;
   images: { url: string }[];
+  variants: Array<{
+    id: string;
+    stock: number;
+    attributes: unknown;
+  }>;
 };
 
 /**
@@ -85,6 +90,15 @@ export class ProductSearchService {
             select: { url: true },
             orderBy: { sortOrder: "asc" },
           },
+          variants: {
+            where: { isActive: true },
+            select: {
+              id: true,
+              stock: true,
+              attributes: true,
+            },
+            orderBy: { price: "asc" },
+          },
         },
         skip: fetchSkip,
         take: fetchTake,
@@ -129,6 +143,15 @@ export class ProductSearchService {
         images: {
           select: { url: true },
           orderBy: { sortOrder: "asc" },
+        },
+        variants: {
+          where: { isActive: true },
+          select: {
+            id: true,
+            stock: true,
+            attributes: true,
+          },
+          orderBy: { price: "asc" },
         },
       },
       take: Math.max(limit * 2, 16),

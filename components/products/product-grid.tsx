@@ -3,6 +3,7 @@ import { ProductCard } from "@/components/products/product-card";
 import { Pagination } from "@/components/products/pagination";
 import { PAGINATION } from "@/lib/constants";
 import { getWishlistProductIds } from "@/actions/wishlist/manage-wishlist";
+import { getCartLinesForPlp } from "@/actions/cart/get-cart";
 import {
   buildProductWhere,
   getProductOrderBy,
@@ -14,6 +15,7 @@ import {
   imageUrlsForProduct,
   isBestSellerFlag,
   jewelleryCardMeta,
+  mapCardVariants,
 } from "@/lib/products/product-card-data";
 
 export async function ProductGrid({
@@ -29,7 +31,7 @@ export async function ProductGrid({
   const useRelevance = isRelevanceSort(params.sort, params.q);
   const orderBy = getProductOrderBy(useRelevance ? "relevance" : params.sort);
 
-  const [rawProducts, total, wishlistIds] = await Promise.all([
+  const [rawProducts, total, wishlistIds, cartLines] = await Promise.all([
     prisma.product.findMany({
       where,
       select: {
@@ -45,6 +47,15 @@ export async function ProductGrid({
           select: { url: true },
           orderBy: { sortOrder: "asc" },
         },
+        variants: {
+          where: { isActive: true },
+          select: {
+            id: true,
+            stock: true,
+            attributes: true,
+          },
+          orderBy: { price: "asc" },
+        },
       },
       orderBy,
       skip: useRelevance ? 0 : skip,
@@ -54,6 +65,7 @@ export async function ProductGrid({
     }),
     prisma.product.count({ where }),
     getWishlistProductIds(),
+    getCartLinesForPlp(),
   ]);
   const products = useRelevance
     ? rankBySearchRelevance(rawProducts, params.q).slice(skip, skip + pageSize)
@@ -82,6 +94,7 @@ export async function ProductGrid({
           <ProductCard
             key={product.id}
             isInWishlist={savedIds.has(product.id)}
+            cartLines={cartLines}
             product={{
               ...product,
               basePrice: Number(product.basePrice),
@@ -91,6 +104,7 @@ export async function ProductGrid({
               images: imageUrlsForProduct(product),
               isBestSeller: isBestSellerFlag(product.attributes),
               metalLabel: jewelleryCardMeta(product.attributes).label ?? null,
+              variants: mapCardVariants(product.variants),
             }}
           />
         ))}

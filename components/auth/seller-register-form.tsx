@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -9,6 +9,8 @@ import {
   type SellerRegistrationInput,
 } from "@/lib/validations/auth";
 import { registerSellerAction } from "@/actions/auth/register-seller";
+import { lookupAddressByPincode } from "@/actions/maps/google-places";
+import { AddressAutocomplete } from "@/components/address/address-autocomplete";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,14 +22,20 @@ export function SellerRegisterForm() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [pinPending, startPin] = useTransition();
 
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<SellerRegistrationInput>({
     resolver: zodResolver(sellerRegistrationSchema),
   });
+
+  const addressValue = watch("address") || "";
+  const postalValue = watch("postalCode") || "";
 
   const onSubmit = async (data: SellerRegistrationInput) => {
     setError("");
@@ -44,12 +52,28 @@ export function SellerRegisterForm() {
 
       setSuccess(true);
       setTimeout(() => router.push("/login"), 5000);
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred");
     } finally {
       setIsLoading(false);
     }
   };
+
+  function onPinChange(raw: string) {
+    const pin = raw.replace(/\D/g, "").slice(0, 6);
+    setValue("postalCode", pin, { shouldValidate: true });
+    if (pin.length !== 6) return;
+    startPin(async () => {
+      const result = await lookupAddressByPincode(pin);
+      if (!result.success) return;
+      if (result.data.city) {
+        setValue("city", result.data.city, { shouldValidate: true });
+      }
+      if (result.data.state) {
+        setValue("state", result.data.state, { shouldValidate: true });
+      }
+    });
+  }
 
   if (success) {
     return (
@@ -237,11 +261,35 @@ export function SellerRegisterForm() {
         <h3 className="text-lg font-semibold">Business Address</h3>
 
         <div className="space-y-2">
-          <Label htmlFor="address">Address</Label>
-          <Input
-            id="address"
-            {...register("address")}
+          <AddressAutocomplete
+            value={addressValue}
             disabled={isLoading}
+            onChange={(next) =>
+              setValue("address", next, { shouldValidate: true })
+            }
+            onResolved={(place) => {
+              if (place.line1 || place.formattedAddress) {
+                setValue(
+                  "address",
+                  place.line1 || place.formattedAddress || addressValue,
+                  { shouldValidate: true },
+                );
+              }
+              if (place.city) {
+                setValue("city", place.city, { shouldValidate: true });
+              }
+              if (place.state) {
+                setValue("state", place.state, { shouldValidate: true });
+              }
+              const pin = (place.postalCode || "").replace(/\D/g, "").slice(0, 6);
+              if (pin.length === 6) {
+                setValue("postalCode", pin, {
+                  shouldValidate: true,
+                });
+              }
+            }}
+            label="Address"
+            placeholder="Search shop, building or area"
           />
           {errors.address && (
             <p className="text-sm text-destructive">{errors.address.message}</p>
@@ -275,12 +323,20 @@ export function SellerRegisterForm() {
 
           <div className="space-y-2">
             <Label htmlFor="postalCode">PIN Code</Label>
-            <Input
-              id="postalCode"
-              placeholder="400001"
-              {...register("postalCode")}
-              disabled={isLoading}
-            />
+            <div className="relative">
+              <Input
+                id="postalCode"
+                placeholder="400001"
+                value={postalValue}
+                onChange={(e) => onPinChange(e.target.value)}
+                disabled={isLoading}
+                maxLength={6}
+                inputMode="numeric"
+              />
+              {pinPending ? (
+                <Loader2 className="absolute top-1/2 right-3 size-4 -translate-y-1/2 animate-spin text-neutral-400" />
+              ) : null}
+            </div>
             {errors.postalCode && (
               <p className="text-sm text-destructive">
                 {errors.postalCode.message}

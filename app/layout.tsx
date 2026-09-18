@@ -3,8 +3,7 @@ import { Bodoni_Moda, Caveat, Montserrat } from "next/font/google";
 import "./globals.css";
 import { FirebaseAnalytics } from "@/components/firebase/firebase-analytics";
 import { AppDialogProvider } from "@/components/shared/app-dialog";
-// Dark / light mode — on hold for now
-// import { ThemeProvider } from "@/components/theme/theme-provider";
+import { ActionToastProvider } from "@/components/shared/action-toast";
 import { APP_NAME, APP_DESCRIPTION, APP_TAGLINE, BRAND_LOGO_SRC } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -79,8 +78,10 @@ export default function RootLayout({
         </ThemeProvider>
         */}
         <AppDialogProvider>
-          {children}
-          <FirebaseAnalytics />
+          <ActionToastProvider>
+            {children}
+            <FirebaseAnalytics />
+          </ActionToastProvider>
         </AppDialogProvider>
       </body>
     </html>

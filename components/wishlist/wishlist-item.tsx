@@ -12,6 +12,7 @@ import { removeFromWishlist } from "@/actions/wishlist/manage-wishlist";
 import { addToCart } from "@/actions/cart/add-to-cart";
 import { formatCurrency } from "@/lib/utils";
 import { appAlert } from "@/components/shared/app-dialog";
+import { showActionToast } from "@/components/shared/action-toast";
 
 type WishlistItemProps = {
   item: {
@@ -90,8 +91,12 @@ export function WishlistItem({ item, readOnly = false }: WishlistItemProps) {
         await appAlert(result.error, { variant: "error" });
         return;
       }
+      showActionToast({
+        message: "Added to cart",
+        href: "/cart",
+        linkLabel: "View cart →",
+      });
       router.refresh();
-      await appAlert("Added to cart", { variant: "success" });
     });
   };
 

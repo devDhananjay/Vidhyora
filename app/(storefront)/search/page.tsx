@@ -6,6 +6,7 @@ import { Pagination } from "@/components/products/pagination";
 import { TanishqFilterBar } from "@/components/products/tanishq-filter-bar";
 import { ProductListingSkeleton } from "@/components/products/product-listing-skeleton";
 import { getWishlistProductIds } from "@/actions/wishlist/manage-wishlist";
+import { getCartLinesForPlp } from "@/actions/cart/get-cart";
 import {
   buildProductWhere,
   type ProductListParams,
@@ -14,6 +15,7 @@ import {
   imageUrlsForProduct,
   isBestSellerFlag,
   jewelleryCardMeta,
+  mapCardVariants,
 } from "@/lib/products/product-card-data";
 import { getProductFacets } from "@/lib/products/product-facets";
 import { productSearch } from "@/lib/search/product-search";
@@ -42,9 +44,10 @@ async function SearchResults({
         : params.sort,
   });
 
-  const [result, wishlistIds] = await Promise.all([
+  const [result, wishlistIds, cartLines] = await Promise.all([
     productSearch.search(query, filters, page, pageSize),
     getWishlistProductIds(),
+    getCartLinesForPlp(),
   ]);
   const savedIds = new Set(wishlistIds);
 
@@ -68,11 +71,13 @@ async function SearchResults({
           <ProductCard
             key={product.id}
             isInWishlist={savedIds.has(product.id)}
+            cartLines={cartLines}
             product={{
               ...product,
               images: imageUrlsForProduct(product),
               isBestSeller: isBestSellerFlag(product.attributes),
               metalLabel: jewelleryCardMeta(product.attributes).label ?? null,
+              variants: mapCardVariants(product.variants ?? []),
             }}
           />
         ))}

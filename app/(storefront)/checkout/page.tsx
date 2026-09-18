@@ -19,11 +19,32 @@ export const metadata: Metadata = {
   description: "Complete your purchase",
 };
 
-export default async function CheckoutPage() {
+export default async function CheckoutPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ buyNow?: string }>;
+}) {
+  const { buyNow: buyNowParam } = await searchParams;
+  const buyNowItemId = buyNowParam?.trim() || "";
+
   const session = await auth();
   const cart = await getCart();
 
   if (!cart || cart.items.filter((i) => !i.savedForLater).length === 0) {
+    redirect("/cart");
+  }
+
+  const checkoutCart =
+    buyNowItemId.length > 0
+      ? {
+          ...cart,
+          items: cart.items.filter(
+            (item) => !item.savedForLater && item.id === buyNowItemId,
+          ),
+        }
+      : cart;
+
+  if (buyNowItemId && checkoutCart.items.length === 0) {
     redirect("/cart");
   }
 
@@ -36,7 +57,7 @@ export default async function CheckoutPage() {
       })
     : [];
 
-  const subtotal = calculateCartSubtotal(cart);
+  const subtotal = calculateCartSubtotal(checkoutCart);
   const [applied, commerce, integrations] = await Promise.all([
     resolveCartCouponDiscount(
       cart.couponCode,
@@ -46,7 +67,7 @@ export default async function CheckoutPage() {
     getCommerceSettings(),
     getIntegrationsSettings(),
   ]);
-  const summary = calculateCartSummary(cart, {
+  const summary = calculateCartSummary(checkoutCart, {
     discount: applied?.discount ?? 0,
     couponCode: applied?.code ?? null,
     freeShippingThreshold: commerce.freeShippingThreshold,
@@ -61,6 +82,11 @@ export default async function CheckoutPage() {
       <h1 className="mb-2 font-serif text-3xl text-neutral-900 sm:text-4xl">
         Checkout
       </h1>
+      {buyNowItemId ? (
+        <p className="mb-4 text-sm text-neutral-500">
+          Buying this item only — other cart items stay in your bag.
+        </p>
+      ) : null}
       {isGuest ? (
         <p className="mb-6 text-sm text-neutral-500">
           Checking out as guest.{" "}
@@ -80,11 +106,12 @@ export default async function CheckoutPage() {
 
       <ClientCheckout
         addresses={addresses}
-        cart={cart}
+        cart={checkoutCart}
         summary={summary}
         codEnabled={commerce.codEnabled}
         giftNotesEnabled={integrations.giftNotesEnabled}
         isGuest={isGuest}
+        buyNowItemId={buyNowItemId || undefined}
       />
     </div>
   );

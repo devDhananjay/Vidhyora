@@ -2,10 +2,10 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { AddressAutocomplete } from "@/components/address/address-autocomplete";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   createStore,
   updateStore,
@@ -21,19 +21,28 @@ export function StoreForm({ store, onSaved }: StoreFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [address, setAddress] = useState(store?.address ?? "");
+  const [city, setCity] = useState(store?.city ?? "");
+  const [state, setState] = useState(store?.state ?? "");
+  const [postalCode, setPostalCode] = useState(store?.postalCode ?? "");
+  const [mapUrl, setMapUrl] = useState(store?.mapUrl ?? "");
 
   const handleSubmit = (formData: FormData) => {
     setError(null);
+    if (!address.trim()) {
+      setError("Address is required");
+      return;
+    }
     const payload: StoreLocationInput = {
       name: String(formData.get("name") ?? ""),
-      city: String(formData.get("city") ?? ""),
-      state: String(formData.get("state") ?? ""),
-      address: String(formData.get("address") ?? ""),
-      postalCode: String(formData.get("postalCode") ?? ""),
+      city: city.trim(),
+      state: state.trim(),
+      address: address.trim(),
+      postalCode: postalCode.trim(),
       phone: String(formData.get("phone") ?? ""),
       email: String(formData.get("email") ?? ""),
       hours: String(formData.get("hours") ?? ""),
-      mapUrl: String(formData.get("mapUrl") ?? ""),
+      mapUrl: mapUrl.trim(),
       isActive: formData.get("isActive") === "on",
       sortOrder: Number(formData.get("sortOrder") || 0),
     };
@@ -61,25 +70,67 @@ export function StoreForm({ store, onSaved }: StoreFormProps) {
         <Label htmlFor="phone">Phone</Label>
         <Input id="phone" name="phone" defaultValue={store?.phone} required />
       </div>
+      <div className="space-y-2 md:col-span-2">
+        <AddressAutocomplete
+          value={address}
+          onChange={setAddress}
+          onResolved={(place) => {
+            if (place.line1 || place.formattedAddress) {
+              setAddress(place.line1 || place.formattedAddress || address);
+            }
+            if (place.city) setCity(place.city);
+            if (place.state) setState(place.state);
+            const pin = (place.postalCode || "").replace(/\D/g, "").slice(0, 6);
+            if (pin.length === 6) setPostalCode(pin);
+            if (place.lat != null && place.lng != null) {
+              setMapUrl(
+                `https://www.google.com/maps?q=${place.lat},${place.lng}`,
+              );
+            }
+          }}
+          label="Address"
+          placeholder="Search store address, landmark or area"
+        />
+      </div>
       <div className="space-y-2">
         <Label htmlFor="city">City</Label>
-        <Input id="city" name="city" defaultValue={store?.city} required />
+        <Input
+          id="city"
+          name="city"
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          required
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="state">State</Label>
-        <Input id="state" name="state" defaultValue={store?.state} required />
-      </div>
-      <div className="space-y-2 md:col-span-2">
-        <Label htmlFor="address">Address</Label>
-        <Textarea id="address" name="address" defaultValue={store?.address} required />
+        <Input
+          id="state"
+          name="state"
+          value={state}
+          onChange={(e) => setState(e.target.value)}
+          required
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="postalCode">Pincode</Label>
-        <Input id="postalCode" name="postalCode" defaultValue={store?.postalCode ?? ""} />
+        <Input
+          id="postalCode"
+          name="postalCode"
+          value={postalCode}
+          onChange={(e) =>
+            setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 6))
+          }
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
-        <Input id="email" name="email" type="email" defaultValue={store?.email ?? ""} />
+        <Input
+          id="email"
+          name="email"
+          type="email"
+          defaultValue={store?.email ?? ""}
+        />
       </div>
       <div className="space-y-2 md:col-span-2">
         <Label htmlFor="hours">Hours</Label>
@@ -92,7 +143,12 @@ export function StoreForm({ store, onSaved }: StoreFormProps) {
       </div>
       <div className="space-y-2 md:col-span-2">
         <Label htmlFor="mapUrl">Google Maps URL (optional)</Label>
-        <Input id="mapUrl" name="mapUrl" defaultValue={store?.mapUrl ?? ""} />
+        <Input
+          id="mapUrl"
+          name="mapUrl"
+          value={mapUrl}
+          onChange={(e) => setMapUrl(e.target.value)}
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="sortOrder">Sort order</Label>

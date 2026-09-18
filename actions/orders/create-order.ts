@@ -146,6 +146,20 @@ export async function createOrder(
       return { success: false, error: "Cart is empty" };
     }
 
+    const buyNowItemId = String(formData.get("buyNowItemId") || "").trim();
+    const checkoutItems = buyNowItemId
+      ? cart.items.filter((item) => item.id === buyNowItemId)
+      : cart.items;
+
+    if (checkoutItems.length === 0) {
+      return {
+        success: false,
+        error: buyNowItemId
+          ? "Buy now item is no longer in your cart"
+          : "Cart is empty",
+      };
+    }
+
     if (!isIndiaAddress(address.country)) {
       return {
         success: false,
@@ -170,12 +184,12 @@ export async function createOrder(
       }
     }
 
-    const availability = stockError(cart.items);
+    const availability = stockError(checkoutItems);
     if (availability) {
       return { success: false, error: availability };
     }
 
-    const lineSubtotal = cart.items.reduce(
+    const lineSubtotal = checkoutItems.reduce(
       (sum, item) => sum + Number(item.variant.price) * item.quantity,
       0,
     );
@@ -197,8 +211,24 @@ export async function createOrder(
           ? commerce.fastDeliveryFee
           : 0,
     };
-    const totals = cartTotals(cart.items, {
+
+    let distanceKm: number | undefined;
+    try {
+      const { distanceKmBetweenPins, deliveryOriginPin } = await import(
+        "@/lib/google/maps"
+      );
+      const km = await distanceKmBetweenPins(
+        deliveryOriginPin(),
+        address.postalCode,
+      );
+      if (km != null) distanceKm = km;
+    } catch {
+      // Flat shipping fee fallback when Maps is unavailable
+    }
+
+    const totals = cartTotals(checkoutItems, {
       discount: couponOptions.discount,
+      distanceKm,
       ...commerceShipping,
     });
 
@@ -230,6 +260,7 @@ export async function createOrder(
           giftMessage: giftMessage ?? "",
           occasionNote: occasionNote ?? "",
           fastDelivery: commerceShipping.fastDeliveryFee > 0 ? "1" : "0",
+          buyNowItemId: buyNowItemId || "",
         },
       });
 
@@ -251,7 +282,7 @@ export async function createOrder(
       const placed = await createShopOrder(tx, {
         userId,
         address,
-        items: cart.items,
+        items: checkoutItems,
         cartId: cart.id,
         paymentStatus: "PENDING",
         orderStatus: "ORDERED",
@@ -260,6 +291,7 @@ export async function createOrder(
         giftMessage,
         occasionNote,
         commerce: commerceShipping,
+        distanceKm,
         ...couponOptions,
       });
 
@@ -326,6 +358,7 @@ export async function confirmRazorpayOrder(input: {
   giftMessage?: string;
   occasionNote?: string;
   fastDelivery?: boolean;
+  buyNowItemId?: string;
 }): Promise<ActionResult<{ orderId: string; orderNumber: string }>> {
   try {
     const session = await auth();
@@ -359,6 +392,7 @@ export async function confirmRazorpayOrder(input: {
       giftMessage: input.giftMessage,
       occasionNote: input.occasionNote,
       fastDelivery: Boolean(input.fastDelivery),
+      buyNowItemId: input.buyNowItemId?.trim() || undefined,
     });
 
     if (result.created) {

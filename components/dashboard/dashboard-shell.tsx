@@ -45,9 +45,11 @@ const ADMIN_NAV = [
   { label: "Mega Menu", href: "/admin/mega-menu", icon: PanelTop },
   { label: "Homepage", href: "/admin/homepage", icon: Home },
   { label: "Website Settings", href: "/admin/settings", icon: Globe },
+  { label: "Stores", href: "/admin/stores", icon: MapPin },
   { label: "Blog", href: "/admin/blog", icon: BookOpen },
   { label: "Emails", href: "/admin/emails", icon: Mail },
   { label: "Contact", href: "/admin/contact-messages", icon: MessageSquare },
+  { label: "Help", href: "/admin/help", icon: CircleHelp },
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { label: "Order SLA", href: "/admin/orders/sla", icon: Clock },
   { label: "Returns", href: "/admin/returns", icon: RotateCcw },
@@ -55,8 +57,6 @@ const ADMIN_NAV = [
   { label: "Coupons", href: "/admin/coupons", icon: Tag },
   { label: "Payments", href: "/admin/payments", icon: DollarSign },
   { label: "Payouts", href: "/admin/payouts", icon: Wallet },
-  { label: "Stores", href: "/admin/stores", icon: MapPin },
-  { label: "Help", href: "/admin/help", icon: CircleHelp },
   { label: "Analytics", href: "/admin/analytics", icon: BarChart3 },
 ];
 
@@ -222,7 +222,7 @@ export function DashboardShell({
       ) : null}
 
       <div className="flex">
-        <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-64 border-r border-border bg-background lg:block">
+        <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-64 overflow-y-auto border-r border-border bg-background lg:block">
           <nav className="space-y-1 p-4">
             {items.map((item) => (
               <NavLink key={item.href} item={item} />

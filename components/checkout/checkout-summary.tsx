@@ -33,6 +33,7 @@ type CheckoutSummaryProps = {
   addresses?: AddressLite[];
   codEnabled?: boolean;
   giftNotesEnabled?: boolean;
+  buyNowItemId?: string;
 };
 
 declare global {
@@ -80,6 +81,7 @@ export function CheckoutSummary({
   addresses = [],
   codEnabled = true,
   giftNotesEnabled = true,
+  buyNowItemId,
 }: CheckoutSummaryProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -173,6 +175,9 @@ export function CheckoutSummary({
       if (occasionNote.trim()) {
         formData.append("occasionNote", occasionNote.trim());
       }
+      if (buyNowItemId) {
+        formData.append("buyNowItemId", buyNowItemId);
+      }
 
       const result = await createOrder(formData);
 
@@ -252,6 +257,7 @@ export function CheckoutSummary({
             giftMessage: giftMessage.trim() || undefined,
             occasionNote: occasionNote.trim() || undefined,
             fastDelivery,
+            buyNowItemId,
           });
           if (confirmed.success) {
             if (usingGuest && confirmed.data.orderNumber) {

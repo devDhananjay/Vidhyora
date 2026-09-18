@@ -6,6 +6,7 @@ import { Check, Scale, ShoppingBag } from "lucide-react";
 import { addToCart } from "@/actions/cart/add-to-cart";
 import { cn, formatCurrency } from "@/lib/utils";
 import { appAlert } from "@/components/shared/app-dialog";
+import { showActionToast } from "@/components/shared/action-toast";
 
 type FloatingAddToCartBarProps = {
   productId: string;
@@ -92,6 +93,11 @@ export function FloatingAddToCartBar({
       if (result.success) {
         setAdded(true);
         window.setTimeout(() => setAdded(false), 2000);
+        showActionToast({
+          message: "Added to cart",
+          href: "/cart",
+          linkLabel: "View cart →",
+        });
         router.refresh();
         return;
       }

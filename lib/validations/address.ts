@@ -33,6 +33,8 @@ export const addressFormSchema = z.object({
     .trim()
     .regex(/^\d{6}$/, "Enter a valid 6-digit PIN code"),
   landmark: z.string().trim().max(120, "Landmark is too long"),
+  latitude: z.number().finite().optional().nullable(),
+  longitude: z.number().finite().optional().nullable(),
   type: z.enum(["SHIPPING", "BILLING", "BOTH"]),
   label: z.enum(["HOME", "WORK", "OTHER"]),
   isDefault: z.boolean(),
@@ -43,6 +45,8 @@ export const addressSchema = addressFormSchema.transform((data) => ({
   addressLine2: data.addressLine2 || undefined,
   landmark: data.landmark || undefined,
   country: data.country || "IN",
+  latitude: data.latitude ?? undefined,
+  longitude: data.longitude ?? undefined,
 }));
 
 export const selectAddressSchema = z.object({

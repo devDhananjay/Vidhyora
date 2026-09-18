@@ -15,6 +15,7 @@ import {
   imageUrlsForProduct,
   isBestSellerFlag,
   jewelleryCardMeta,
+  mapCardVariants,
 } from "@/lib/products/product-card-data";
 import { getHomepageConfig } from "@/lib/content/get-homepage";
 import {
@@ -35,43 +36,56 @@ import {
   generateWebSiteStructuredData,
 } from "@/lib/structured-data";
 import { getSiteSettings } from "@/lib/content/get-site-settings";
+import { getCartLinesForPlp } from "@/actions/cart/get-cart";
 import type { ReactNode } from "react";
 
 const ASSURANCE_ICONS = [Hammer, HeartHandshake, Gem] as const;
 const EXCHANGE_ICONS = [RefreshCcw, Shield, Sparkles, Award] as const;
 
 async function getFeaturedProducts() {
-  const products = await prisma.product.findMany({
-    where: {
-      status: "ACTIVE",
-      approvalStatus: "APPROVED",
-    },
-    include: {
-      variants: {
-        where: { isActive: true },
-        take: 1,
+  const [products, cartLines] = await Promise.all([
+    prisma.product.findMany({
+      where: {
+        status: "ACTIVE",
+        approvalStatus: "APPROVED",
       },
-      images: {
-        select: { url: true },
-        orderBy: { sortOrder: "asc" },
+      include: {
+        variants: {
+          where: { isActive: true },
+          select: {
+            id: true,
+            stock: true,
+            attributes: true,
+          },
+          orderBy: { price: "asc" as const },
+        },
+        images: {
+          select: { url: true },
+          orderBy: { sortOrder: "asc" },
+        },
       },
-    },
-    orderBy: { createdAt: "desc" },
-    take: 8,
-  });
+      orderBy: { createdAt: "desc" },
+      take: 8,
+    }),
+    getCartLinesForPlp(),
+  ]);
 
-  return products.map((p) => ({
-    id: p.id,
-    name: p.name,
-    slug: p.slug,
-    brand: p.brand,
-    basePrice: Number(p.basePrice),
-    compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
-    thumbnail: p.thumbnail,
-    images: imageUrlsForProduct(p),
-    isBestSeller: isBestSellerFlag(p.attributes),
-    metalLabel: jewelleryCardMeta(p.attributes).label ?? null,
-  }));
+  return {
+    cartLines,
+    products: products.map((p) => ({
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      brand: p.brand,
+      basePrice: Number(p.basePrice),
+      compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
+      thumbnail: p.thumbnail,
+      images: imageUrlsForProduct(p),
+      isBestSeller: isBestSellerFlag(p.attributes),
+      metalLabel: jewelleryCardMeta(p.attributes).label ?? null,
+      variants: mapCardVariants(p.variants),
+    })),
+  };
 }
 
 function SectionHeading({
@@ -328,10 +342,14 @@ export default async function HomePage() {
     featured: (
       <section className="mx-auto max-w-6xl px-4 py-16">
         <SectionHeading title={featured.title} subtitle={featured.subtitle} />
-        {featuredProducts.length > 0 ? (
+        {featuredProducts.products.length > 0 ? (
           <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-4">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+            {featuredProducts.products.map((product) => (
+              <ProductCard
+                key={product.id}
+                cartLines={featuredProducts.cartLines}
+                product={product}
+              />
             ))}
           </div>
         ) : null}

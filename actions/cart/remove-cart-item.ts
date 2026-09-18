@@ -35,6 +35,7 @@ export async function removeCartItem(
     });
 
     revalidatePath("/cart");
+    revalidatePath("/", "layout");
 
     return { success: true, data: undefined };
   } catch (error) {

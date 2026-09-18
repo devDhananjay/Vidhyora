@@ -12,6 +12,17 @@ export async function createAddress(
   try {
     const session = await requireAuth();
 
+    const latRaw = formData.get("latitude");
+    const lngRaw = formData.get("longitude");
+    const latNum =
+      latRaw != null && String(latRaw).trim() !== ""
+        ? Number(latRaw)
+        : null;
+    const lngNum =
+      lngRaw != null && String(lngRaw).trim() !== ""
+        ? Number(lngRaw)
+        : null;
+
     const rawData = {
       name: formData.get("name"),
       phone: formData.get("phone"),
@@ -25,6 +36,8 @@ export async function createAddress(
       type: (formData.get("type") as "SHIPPING" | "BILLING" | "BOTH") || "SHIPPING",
       label: (formData.get("label") as "HOME" | "WORK" | "OTHER") || "HOME",
       isDefault: formData.get("isDefault") === "true",
+      latitude: Number.isFinite(latNum) ? latNum : null,
+      longitude: Number.isFinite(lngNum) ? lngNum : null,
     };
 
     const parsed = addressSchema.safeParse(rawData);
@@ -35,6 +48,27 @@ export async function createAddress(
       };
     }
     const validatedData = parsed.data;
+
+    let latitude = validatedData.latitude ?? null;
+    let longitude = validatedData.longitude ?? null;
+    if (latitude == null || longitude == null) {
+      try {
+        const { geocodeFullAddress } = await import("@/lib/google/maps");
+        const place = await geocodeFullAddress({
+          line1: validatedData.addressLine1,
+          line2: validatedData.addressLine2,
+          city: validatedData.city,
+          state: validatedData.state,
+          postalCode: validatedData.postalCode,
+        });
+        if (place?.lat != null && place?.lng != null) {
+          latitude = place.lat;
+          longitude = place.lng;
+        }
+      } catch {
+        // Geocode optional — don't block address save
+      }
+    }
 
     // If this is default address, unset other default addresses
     if (validatedData.isDefault) {
@@ -47,9 +81,13 @@ export async function createAddress(
       });
     }
 
+    const { latitude: _lat, longitude: _lng, ...rest } = validatedData;
+
     const address = await prisma.address.create({
       data: {
-        ...validatedData,
+        ...rest,
+        latitude,
+        longitude,
         userId: session.user.id,
       },
     });

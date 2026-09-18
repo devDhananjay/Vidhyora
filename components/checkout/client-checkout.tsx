@@ -19,6 +19,7 @@ type ClientCheckoutProps = {
   codEnabled?: boolean;
   giftNotesEnabled?: boolean;
   isGuest?: boolean;
+  buyNowItemId?: string;
 };
 
 const emptyGuest: GuestAddressDraft = {
@@ -39,6 +40,7 @@ export function ClientCheckout({
   codEnabled = true,
   giftNotesEnabled = true,
   isGuest = false,
+  buyNowItemId,
 }: ClientCheckoutProps) {
   const [selectedAddressId, setSelectedAddressId] = useState(
     addresses.find((a) => a.isDefault)?.id || addresses[0]?.id,
@@ -80,6 +82,7 @@ export function ClientCheckout({
             }))}
             codEnabled={codEnabled}
             giftNotesEnabled={giftNotesEnabled}
+            buyNowItemId={buyNowItemId}
           />
         </div>
       </div>

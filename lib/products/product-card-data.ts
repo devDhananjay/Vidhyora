@@ -94,3 +94,47 @@ export function imageUrlsForProduct(input: {
   );
   return [...new Set(urls)];
 }
+
+/** Prisma select fragment for PLP quick-add variants. */
+export const productCardVariantSelect = {
+  id: true,
+  stock: true,
+  attributes: true,
+  price: true,
+} as const;
+
+export function variantOptionLabel(attributes: unknown, fallback = "Default") {
+  if (!attributes || typeof attributes !== "object" || Array.isArray(attributes)) {
+    return fallback;
+  }
+  const source = attributes as Record<string, unknown>;
+  const sizeKey = Object.keys(source).find((key) =>
+    /size|ring|bangle|circumference|diameter/i.test(key),
+  );
+  if (sizeKey) {
+    const value = asAttrString(source[sizeKey]);
+    if (value) return value;
+  }
+  for (const value of Object.values(source)) {
+    const text = asAttrString(value);
+    if (text) return text;
+  }
+  return fallback;
+}
+
+export function mapCardVariants(
+  variants: Array<{
+    id: string;
+    stock: number;
+    attributes: unknown;
+  }>,
+) {
+  return variants.map((variant, index) => ({
+    id: variant.id,
+    stock: variant.stock,
+    label: variantOptionLabel(
+      variant.attributes,
+      variants.length === 1 ? "Standard" : `Option ${index + 1}`,
+    ),
+  }));
+}

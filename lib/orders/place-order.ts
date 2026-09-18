@@ -89,6 +89,7 @@ export async function createShopOrder(
       CommerceSettings,
       "freeShippingThreshold" | "shippingFee" | "fastDeliveryFee"
     >;
+    distanceKm?: number;
   },
 ) {
   const commerce = {
@@ -101,6 +102,7 @@ export async function createShopOrder(
   };
   const totals = cartTotals(options.items, {
     discount: options.discount,
+    distanceKm: options.distanceKm,
     ...commerce,
   });
   const orderNumber = generateOrderNumber();
@@ -189,16 +191,20 @@ export async function createShopOrder(
 
   await tx.cartItem.deleteMany({
     where: {
-      cartId: options.cartId,
-      savedForLater: false,
+      id: { in: options.items.map((item) => item.id) },
     },
   });
 
-  await tx.cart.update({
-    where: { id: options.cartId },
-    data: { couponCode: null },
+  // Clear coupon only when the cart has no remaining checkout lines
+  const remaining = await tx.cartItem.count({
+    where: { cartId: options.cartId, savedForLater: false },
   });
-
+  if (remaining === 0) {
+    await tx.cart.update({
+      where: { id: options.cartId },
+      data: { couponCode: null },
+    });
+  }
   await tx.orderStatusHistory.create({
     data: {
       orderId: order.id,

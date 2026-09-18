@@ -1,7 +1,11 @@
 "use client";
 
+import { useTransition } from "react";
+import { AddressAutocomplete } from "@/components/address/address-autocomplete";
+import { lookupAddressByPincode } from "@/actions/maps/google-places";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
 
 export type GuestAddressDraft = {
   fullName: string;
@@ -12,6 +16,8 @@ export type GuestAddressDraft = {
   city: string;
   state: string;
   postalCode: string;
+  lat?: number | null;
+  lng?: number | null;
 };
 
 type GuestAddressFormProps = {
@@ -20,8 +26,27 @@ type GuestAddressFormProps = {
 };
 
 export function GuestAddressForm({ value, onChange }: GuestAddressFormProps) {
+  const [pinPending, startPin] = useTransition();
+
   function patch(partial: Partial<GuestAddressDraft>) {
     onChange({ ...value, ...partial });
+  }
+
+  function fillFromPin(raw: string) {
+    const pin = raw.replace(/\D/g, "").slice(0, 6);
+    patch({ postalCode: pin });
+    if (pin.length !== 6) return;
+    startPin(async () => {
+      const result = await lookupAddressByPincode(pin);
+      if (!result.success) return;
+      patch({
+        postalCode: result.data.postalCode || pin,
+        city: result.data.city || value.city,
+        state: result.data.state || value.state,
+        lat: result.data.lat,
+        lng: result.data.lng,
+      });
+    });
   }
 
   return (
@@ -65,14 +90,24 @@ export function GuestAddressForm({ value, onChange }: GuestAddressFormProps) {
             autoComplete="tel"
           />
         </div>
+
         <div className="sm:col-span-2">
-          <Label htmlFor="guestLine1">Address line 1</Label>
-          <Input
-            id="guestLine1"
+          <AddressAutocomplete
             value={value.line1}
-            onChange={(e) => patch({ line1: e.target.value })}
-            className="mt-1.5"
-            autoComplete="address-line1"
+            onChange={(line1) => patch({ line1 })}
+            onResolved={(place) => {
+              const pin = (place.postalCode || "").replace(/\D/g, "").slice(0, 6);
+              patch({
+                line1: place.line1 || value.line1,
+                city: place.city || value.city,
+                state: place.state || value.state,
+                postalCode: pin.length === 6 ? pin : value.postalCode,
+                lat: place.lat,
+                lng: place.lng,
+              });
+            }}
+            label="Address line 1"
+            placeholder="Search building, street or landmark"
           />
         </div>
         <div className="sm:col-span-2">
@@ -86,6 +121,23 @@ export function GuestAddressForm({ value, onChange }: GuestAddressFormProps) {
           />
         </div>
         <div>
+          <Label htmlFor="guestPostalCode">Pincode</Label>
+          <div className="relative mt-1.5">
+            <Input
+              id="guestPostalCode"
+              value={value.postalCode}
+              onChange={(e) => fillFromPin(e.target.value)}
+              autoComplete="postal-code"
+              inputMode="numeric"
+              maxLength={6}
+              placeholder="Auto-filled — editable"
+            />
+            {pinPending ? (
+              <Loader2 className="absolute top-1/2 right-3 size-4 -translate-y-1/2 animate-spin text-neutral-400" />
+            ) : null}
+          </div>
+        </div>
+        <div>
           <Label htmlFor="guestCity">City</Label>
           <Input
             id="guestCity"
@@ -95,7 +147,7 @@ export function GuestAddressForm({ value, onChange }: GuestAddressFormProps) {
             autoComplete="address-level2"
           />
         </div>
-        <div>
+        <div className="sm:col-span-2">
           <Label htmlFor="guestState">State</Label>
           <Input
             id="guestState"
@@ -103,17 +155,6 @@ export function GuestAddressForm({ value, onChange }: GuestAddressFormProps) {
             onChange={(e) => patch({ state: e.target.value })}
             className="mt-1.5"
             autoComplete="address-level1"
-          />
-        </div>
-        <div>
-          <Label htmlFor="guestPostalCode">Pincode</Label>
-          <Input
-            id="guestPostalCode"
-            value={value.postalCode}
-            onChange={(e) => patch({ postalCode: e.target.value })}
-            className="mt-1.5"
-            autoComplete="postal-code"
-            maxLength={6}
           />
         </div>
       </div>

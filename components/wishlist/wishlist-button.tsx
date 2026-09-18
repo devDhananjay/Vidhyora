@@ -5,6 +5,7 @@ import { Heart } from "lucide-react";
 import { addToWishlist, removeFromWishlist } from "@/actions/wishlist/manage-wishlist";
 import { cn } from "@/lib/utils";
 import { appAlert } from "@/components/shared/app-dialog";
+import { showActionToast } from "@/components/shared/action-toast";
 
 type WishlistButtonProps = {
   productId: string;
@@ -33,6 +34,11 @@ export function WishlistButton({
       const result = await addToWishlist(productId);
       if (result.success) {
         setInWishlist(true);
+        showActionToast({
+          message: "Added to favourites",
+          href: "/wishlist",
+          linkLabel: "View favourites →",
+        });
         return;
       }
       await appAlert(result.error, { variant: "error" });

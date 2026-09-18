@@ -3,9 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Star } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { ProductFavoriteButton } from "@/components/products/product-favorite-button";
+import {
+  ProductCardQuickAdd,
+  type CardVariantOption,
+} from "@/components/products/product-card-quick-add";
+import type { CartPlpLine } from "@/actions/cart/get-cart";
 import { isVideoUrl } from "@/lib/media/is-video-url";
 
 type ProductCardProps = {
@@ -20,8 +26,10 @@ type ProductCardProps = {
     images?: string[];
     isBestSeller?: boolean;
     metalLabel?: string | null;
+    variants?: CardVariantOption[];
   };
   isInWishlist?: boolean;
+  cartLines?: CartPlpLine[];
 };
 
 function hasValidImage(src: string | null | undefined) {
@@ -40,7 +48,13 @@ function galleryFor(product: ProductCardProps["product"]) {
     : [];
 }
 
-export function ProductCard({ product, isInWishlist = false }: ProductCardProps) {
+export function ProductCard({
+  product,
+  isInWishlist = false,
+  cartLines = [],
+}: ProductCardProps) {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const discount = product.compareAtPrice
     ? Math.round(
         ((product.compareAtPrice - product.basePrice) /
@@ -52,6 +66,10 @@ export function ProductCard({ product, isInWishlist = false }: ProductCardProps)
   const gallery = galleryFor(product);
   const [index, setIndex] = useState(0);
   const [hovering, setHovering] = useState(false);
+
+  const listingQuery = searchParams?.toString() || "";
+  const fromPath = listingQuery ? `${pathname}?${listingQuery}` : pathname;
+  const productHref = `/products/${product.slug}?from=${encodeURIComponent(fromPath)}`;
 
   useEffect(() => {
     if (!hovering || gallery.length < 2) return;
@@ -72,7 +90,7 @@ export function ProductCard({ product, isInWishlist = false }: ProductCardProps)
       onMouseLeave={() => setHovering(false)}
     >
       <div className="relative aspect-square overflow-hidden rounded-2xl bg-[#eef3f2] shadow-none transition duration-500 ease-out group-hover:-translate-y-1.5 group-hover:shadow-[0_18px_40px_rgba(43,26,22,0.16)]">
-        <Link href={`/products/${product.slug}`} className="absolute inset-0">
+        <Link href={productHref} className="absolute inset-0">
           {gallery.length > 0 ? (
             <div
               className="flex h-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]"
@@ -124,31 +142,41 @@ export function ProductCard({ product, isInWishlist = false }: ProductCardProps)
         />
       </div>
 
-      <Link href={`/products/${product.slug}`} className="block pt-3">
-        <h3 className="line-clamp-1 text-sm text-neutral-800 transition-colors duration-300 group-hover:text-[#8b2e2e]">
-          {product.name}
-        </h3>
-        {product.metalLabel ? (
-          <p className="mt-1 line-clamp-1 text-[11px] tracking-wide text-neutral-500 uppercase">
-            {product.metalLabel}
-          </p>
-        ) : null}
-        <div className="mt-1 flex items-baseline gap-2">
-          <span className="text-sm font-semibold text-neutral-900">
-            {formatCurrency(product.basePrice)}
-          </span>
-          {product.compareAtPrice ? (
-            <span className="text-xs text-neutral-400 line-through">
-              {formatCurrency(product.compareAtPrice)}
-            </span>
+      <div className="pt-3">
+        <Link href={productHref} className="block">
+          <h3 className="line-clamp-1 text-sm text-neutral-800 transition-colors duration-300 group-hover:text-[#8b2e2e]">
+            {product.name}
+          </h3>
+          {product.metalLabel ? (
+            <p className="mt-1 line-clamp-1 text-[11px] tracking-wide text-neutral-500 uppercase">
+              {product.metalLabel}
+            </p>
           ) : null}
-        </div>
-        {discount > 0 ? (
-          <p className="mt-2 rounded-md bg-[#f6ead7] px-2 py-1 text-[11px] text-[#8b2e2e]">
-            Save {discount}% instantly
-          </p>
+          <div className="mt-1 flex items-baseline gap-2">
+            <span className="text-sm font-semibold text-neutral-900">
+              {formatCurrency(product.basePrice)}
+            </span>
+            {product.compareAtPrice ? (
+              <span className="text-xs text-neutral-400 line-through">
+                {formatCurrency(product.compareAtPrice)}
+              </span>
+            ) : null}
+          </div>
+          {discount > 0 ? (
+            <p className="mt-2 rounded-md bg-[#f6ead7] px-2 py-1 text-[11px] text-[#8b2e2e]">
+              Save {discount}% instantly
+            </p>
+          ) : null}
+        </Link>
+
+        {product.variants && product.variants.length > 0 ? (
+          <ProductCardQuickAdd
+            productId={product.id}
+            variants={product.variants}
+            cartLines={cartLines.filter((line) => line.productId === product.id)}
+          />
         ) : null}
-      </Link>
+      </div>
     </div>
   );
 }

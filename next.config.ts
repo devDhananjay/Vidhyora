@@ -38,7 +38,7 @@ const securityHeaders = [
       "img-src 'self' data: blob: https: http:",
       "font-src 'self' data: https://fonts.gstatic.com",
       "connect-src 'self' https://*.razorpay.com https://api.razorpay.com https://*.googleapis.com https://*.google-analytics.com https://*.googletagmanager.com https://*.firebaseio.com https://*.firebaseapp.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss: https://storage.googleapis.com",
-      "frame-src 'self' https://api.razorpay.com https://*.razorpay.com https://accounts.google.com https://*.firebaseapp.com",
+      "frame-src 'self' https://api.razorpay.com https://*.razorpay.com https://accounts.google.com https://*.firebaseapp.com https://www.google.com https://maps.google.com https://www.google.co.in https://*.google.com https://www.openstreetmap.org",
       "media-src 'self' blob: https: data:",
       "worker-src 'self' blob:",
       "upgrade-insecure-requests",

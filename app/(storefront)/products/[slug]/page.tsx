@@ -5,6 +5,7 @@ import { formatCurrency } from "@/lib/utils";
 import { getCommerceSettings } from "@/lib/content/commerce-settings";
 import { getSiteSettings } from "@/lib/content/get-site-settings";
 import { Breadcrumbs } from "@/components/products/breadcrumbs";
+import { ProductBackNav } from "@/components/products/product-back-nav";
 import { SellerInfo } from "@/components/products/seller-info";
 import { ProductPolicy } from "@/components/products/product-policy";
 import { RelatedProducts } from "@/components/products/related-products";
@@ -113,10 +114,13 @@ export async function generateMetadata({
 
 export default async function ProductDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ from?: string }>;
 }) {
   const { slug } = await params;
+  const { from } = await searchParams;
   const product = await getProduct(slug);
 
   if (!product) {
@@ -201,6 +205,11 @@ export default async function ProductDetailPage({
 
       <div className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-6 md:py-8">
+          <ProductBackNav
+            from={from}
+            categoryHref={`/categories/${product.category.slug}`}
+            categoryLabel={product.category.name}
+          />
           <Breadcrumbs
             items={[
               { label: "Home", href: "/" },

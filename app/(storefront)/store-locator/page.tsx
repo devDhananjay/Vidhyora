@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { MapPin, Phone, Clock } from "lucide-react";
 import { getPublicStores, getStoreCities } from "@/actions/content/get-stores";
-import { storeDirectionsUrl } from "@/lib/content/maps";
+import { StoreLocatorResults } from "@/components/storefront/store-locator-results";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
@@ -89,50 +88,7 @@ export default async function StoreLocatorPage({
             No stores match this search. Try another city or clear the filters.
           </div>
         ) : (
-          <div className="mt-6 grid gap-5 md:grid-cols-2">
-            {stores.map((store) => (
-              <article
-                key={store.id}
-                className="rounded-xl border border-neutral-100 bg-white p-6"
-              >
-                <h2 className="font-serif text-2xl text-neutral-900">{store.name}</h2>
-                <p className="mt-1 text-sm font-medium text-[#8b2e2e]">{store.city}</p>
-                <div className="mt-4 space-y-2 text-sm text-neutral-600">
-                  <p className="flex gap-2">
-                    <MapPin className="mt-0.5 size-4 shrink-0" />
-                    {store.address}, {store.city}, {store.state}
-                    {store.postalCode ? ` ${store.postalCode}` : ""}
-                  </p>
-                  <p className="flex gap-2">
-                    <Phone className="mt-0.5 size-4 shrink-0" />
-                    <a href={`tel:${store.phone}`} className="hover:text-[#8b2e2e]">
-                      {store.phone}
-                    </a>
-                  </p>
-                  <p className="flex gap-2">
-                    <Clock className="mt-0.5 size-4 shrink-0" />
-                    {store.hours}
-                  </p>
-                </div>
-                <div className="mt-5 flex flex-wrap gap-3">
-                  <a
-                    href={storeDirectionsUrl(store)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex h-10 items-center rounded-full bg-[#8b2e2e] px-4 text-sm text-white hover:bg-[#7a2727]"
-                  >
-                    Get directions
-                  </a>
-                  <a
-                    href={`tel:${store.phone}`}
-                    className="inline-flex h-10 items-center rounded-full border px-4 text-sm hover:border-[#8b2e2e] hover:text-[#8b2e2e]"
-                  >
-                    Call store
-                  </a>
-                </div>
-              </article>
-            ))}
-          </div>
+          <StoreLocatorResults stores={stores} />
         )}
       </div>
     </div>

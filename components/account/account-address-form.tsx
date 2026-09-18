@@ -8,6 +8,7 @@ import {
 } from "@/actions/maps/google-places";
 import { createAddress } from "@/actions/address/create-address";
 import { updateAddress } from "@/actions/address/update-address";
+import { AddressAutocomplete } from "@/components/address/address-autocomplete";
 import {
   AddressMapPreview,
   type MapCoords,
@@ -40,6 +41,8 @@ function emptyValues(): AddressFormInput {
     country: "IN",
     postalCode: "",
     landmark: "",
+    latitude: null,
+    longitude: null,
     type: "SHIPPING",
     label: "HOME",
     isDefault: false,
@@ -58,6 +61,8 @@ function toFormValues(address?: Address | null): AddressFormInput {
     country: address.country || "IN",
     postalCode: address.postalCode ?? "",
     landmark: address.landmark ?? "",
+    latitude: address.latitude ?? null,
+    longitude: address.longitude ?? null,
     type: address.type ?? "SHIPPING",
     label: (address as { label?: "HOME" | "WORK" | "OTHER" }).label ?? "HOME",
     isDefault: address.isDefault ?? false,
@@ -102,11 +107,19 @@ export function AccountAddressForm({
   const isEdit = Boolean(address);
 
   useEffect(() => {
-    setValues(toFormValues(address));
+    const next = toFormValues(address);
+    setValues(next);
     setFieldErrors({});
     setFormError(null);
     setLookupHint(null);
-    setMapCoords(null);
+    if (
+      typeof next.latitude === "number" &&
+      typeof next.longitude === "number"
+    ) {
+      setMapCoords({ lat: next.latitude, lng: next.longitude });
+    } else {
+      setMapCoords(null);
+    }
     setMapLabel(null);
     initialMapLoaded.current = null;
   }, [address]);
@@ -188,20 +201,27 @@ export function AccountAddressForm({
 
     setValues((prev) => ({
       ...prev,
-      postalCode: place.postalCode || prev.postalCode,
+      postalCode: /^\d{6}$/.test(place.postalCode)
+        ? place.postalCode
+        : place.postalCode || prev.postalCode,
       city: place.city || prev.city,
       state: place.state || prev.state,
       country: "IN",
+      latitude: place.lat ?? prev.latitude,
+      longitude: place.lng ?? prev.longitude,
       addressLine1:
         options?.skipOverwriteAddressLines || prev.addressLine1.trim()
           ? prev.addressLine1
-          : place.formattedAddress?.split(",")[0]?.trim() || prev.addressLine1,
+          : place.line1 ||
+            place.formattedAddress?.split(",")[0]?.trim() ||
+            prev.addressLine1,
     }));
     setFieldErrors((prev) => {
       const next = { ...prev };
       delete next.postalCode;
       delete next.city;
       delete next.state;
+      delete next.addressLine1;
       return next;
     });
   }
@@ -278,9 +298,15 @@ export function AccountAddressForm({
 
     startTransition(async () => {
       const formData = new FormData();
-      Object.entries(parsed.data).forEach(([key, value]) => {
+      const payload = {
+        ...parsed.data,
+        latitude: mapCoords?.lat ?? parsed.data.latitude ?? null,
+        longitude: mapCoords?.lng ?? parsed.data.longitude ?? null,
+      };
+      for (const [key, value] of Object.entries(payload)) {
+        if (value == null) continue;
         formData.append(key, String(value));
-      });
+      }
 
       const result = address
         ? await updateAddress(address.id, formData)
@@ -330,7 +356,7 @@ export function AccountAddressForm({
           hint={
             lookingUp === "pin"
               ? "Looking up city…"
-              : "6 digits — city, state & country auto-fill"
+              : "Auto-fills from address — you can edit anytime"
           }
         >
           <Input
@@ -458,22 +484,55 @@ export function AccountAddressForm({
         </Field>
       </div>
 
-      <Field
-        id="addr-line1"
-        label="Address line 1"
-        required
-        error={fieldErrors.addressLine1}
-        hint="House / flat no., building name"
-      >
-        <Input
+      <div className="space-y-1.5">
+        <AddressAutocomplete
           id="addr-line1"
           value={values.addressLine1}
-          onChange={(e) => setField("addressLine1", e.target.value)}
-          onBlur={() => validateField("addressLine1")}
-          placeholder="House No., Building Name"
-          aria-invalid={Boolean(fieldErrors.addressLine1)}
+          onChange={(next) => setField("addressLine1", next)}
+          onResolved={(place) => {
+            const pin = (place.postalCode || "").replace(/\D/g, "").slice(0, 6);
+            applyPlaceToForm({
+              city: place.city,
+              state: place.state,
+              postalCode: pin,
+              formattedAddress: place.formattedAddress || "",
+              lat: place.lat ?? null,
+              lng: place.lng ?? null,
+              line1: place.line1,
+            });
+            if (pin.length === 6) {
+              setField("postalCode", pin);
+            }
+            if (place.line1) {
+              setField("addressLine1", place.line1);
+            } else if (place.formattedAddress) {
+              setField(
+                "addressLine1",
+                place.formattedAddress.split(",")[0]?.trim() ||
+                  values.addressLine1,
+              );
+            }
+            setLookupHint(
+              [
+                place.city ? `City: ${place.city}` : null,
+                pin ? `PIN: ${pin}` : null,
+                place.state ? `State: ${place.state}` : null,
+              ]
+                .filter(Boolean)
+                .join(" · ") || "Address selected",
+            );
+          }}
+          label="Address line 1"
+          placeholder="Search house, building or landmark"
         />
-      </Field>
+        {fieldErrors.addressLine1 ? (
+          <p className="text-sm text-red-600">{fieldErrors.addressLine1}</p>
+        ) : (
+          <p className="text-xs text-neutral-500">
+            Start typing to search, or enter house / building manually
+          </p>
+        )}
+      </div>
 
       <Field
         id="addr-line2"

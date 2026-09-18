@@ -13,6 +13,17 @@ export async function updateAddress(
   try {
     const session = await requireAuth();
 
+    const latRaw = formData.get("latitude");
+    const lngRaw = formData.get("longitude");
+    const latNum =
+      latRaw != null && String(latRaw).trim() !== ""
+        ? Number(latRaw)
+        : null;
+    const lngNum =
+      lngRaw != null && String(lngRaw).trim() !== ""
+        ? Number(lngRaw)
+        : null;
+
     const rawData = {
       name: formData.get("name"),
       phone: formData.get("phone"),
@@ -26,6 +37,8 @@ export async function updateAddress(
       type: (formData.get("type") as "SHIPPING" | "BILLING" | "BOTH") || "SHIPPING",
       label: (formData.get("label") as "HOME" | "WORK" | "OTHER") || "HOME",
       isDefault: formData.get("isDefault") === "true",
+      latitude: Number.isFinite(latNum) ? latNum : null,
+      longitude: Number.isFinite(lngNum) ? lngNum : null,
     };
 
     const parsed = addressSchema.safeParse(rawData);
@@ -36,6 +49,27 @@ export async function updateAddress(
       };
     }
     const validatedData = parsed.data;
+
+    let latitude = validatedData.latitude ?? null;
+    let longitude = validatedData.longitude ?? null;
+    if (latitude == null || longitude == null) {
+      try {
+        const { geocodeFullAddress } = await import("@/lib/google/maps");
+        const place = await geocodeFullAddress({
+          line1: validatedData.addressLine1,
+          line2: validatedData.addressLine2,
+          city: validatedData.city,
+          state: validatedData.state,
+          postalCode: validatedData.postalCode,
+        });
+        if (place?.lat != null && place?.lng != null) {
+          latitude = place.lat;
+          longitude = place.lng;
+        }
+      } catch {
+        // optional
+      }
+    }
 
     // Verify address belongs to user
     const address = await prisma.address.findUnique({
@@ -61,9 +95,15 @@ export async function updateAddress(
       });
     }
 
+    const { latitude: _lat, longitude: _lng, ...rest } = validatedData;
+
     await prisma.address.update({
       where: { id: addressId },
-      data: validatedData,
+      data: {
+        ...rest,
+        latitude,
+        longitude,
+      },
     });
 
     revalidatePath("/account");

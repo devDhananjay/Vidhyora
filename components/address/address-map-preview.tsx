@@ -127,8 +127,16 @@ export function AddressMapPreview({
   }
 
   const mapCoords = localCoords ?? INDIA_FALLBACK;
-  const query = encodeURIComponent(`${mapCoords.lat},${mapCoords.lng}`);
-  const src = `https://www.google.com/maps?q=${query}&z=15&hl=en&output=embed`;
+  // OpenStreetMap embed — no client Maps API key; Google Embed API needs a public key.
+  const delta = 0.02;
+  const bbox = [
+    mapCoords.lng - delta,
+    mapCoords.lat - delta,
+    mapCoords.lng + delta,
+    mapCoords.lat + delta,
+  ].join(",");
+  const src = `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(`${mapCoords.lat},${mapCoords.lng}`)}`;
+  const googleMapsUrl = `https://www.google.com/maps?q=${encodeURIComponent(`${mapCoords.lat},${mapCoords.lng}`)}&z=15`;
 
   return (
     <div
@@ -196,6 +204,7 @@ export function AddressMapPreview({
           </div>
         ) : null}
         <iframe
+          key={`${mapCoords.lat.toFixed(5)},${mapCoords.lng.toFixed(5)}`}
           title={localLabel || "Address location map"}
           src={src}
           className="absolute inset-0 h-full w-full border-0"
@@ -205,13 +214,23 @@ export function AddressMapPreview({
         />
       </div>
 
-      <div className="flex items-start gap-2 border-t border-neutral-100 px-3 py-2">
-        <MapPin className="mt-0.5 size-3.5 shrink-0 text-[#8b2e2e]" />
-        <p className="text-xs text-neutral-500">
-          {status ||
-            localLabel ||
-            "Map shows the selected location. Search or use current location."}
-        </p>
+      <div className="flex items-start justify-between gap-2 border-t border-neutral-100 px-3 py-2">
+        <div className="flex min-w-0 items-start gap-2">
+          <MapPin className="mt-0.5 size-3.5 shrink-0 text-[#8b2e2e]" />
+          <p className="text-xs text-neutral-500">
+            {status ||
+              localLabel ||
+              "Map shows the selected location. Search or use current location."}
+          </p>
+        </div>
+        <a
+          href={googleMapsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="shrink-0 text-xs font-medium text-[#8b2e2e] hover:underline"
+        >
+          Open in Maps
+        </a>
       </div>
     </div>
   );

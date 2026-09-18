@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AddToCartButton } from "@/components/products/add-to-cart-button";
+import { BuyNowButton } from "@/components/products/buy-now-button";
 import { GiftPackagingOption } from "@/components/products/gift-packaging-option";
 import { FloatingAddToCartBar } from "@/components/products/floating-add-to-cart-bar";
 import { WishlistButton } from "@/components/wishlist/wishlist-button";
@@ -39,20 +40,31 @@ export function ProductBuyActions({
         onChange={setGiftPackaging}
       />
 
-      <div id="product-main-actions" className="flex items-center gap-3">
-        <AddToCartButton
-          productId={productId}
-          variantId={variantId}
-          inStock={inStock}
-          giftPackaging={giftPackaging}
-          className="flex-1 shadow-[0_10px_28px_rgba(139,46,46,0.28)]"
-        />
-        <WishlistButton productId={productId} isInWishlist={isInWishlist} />
-        <ProductShareButton
-          title={productName}
-          text={productText}
-          whatsappNumber={whatsappNumber}
-        />
+      <div id="product-main-actions" className="space-y-3">
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+          <AddToCartButton
+            productId={productId}
+            variantId={variantId}
+            inStock={inStock}
+            giftPackaging={giftPackaging}
+            className="w-full shadow-[0_10px_28px_rgba(139,46,46,0.28)]"
+          />
+          <BuyNowButton
+            productId={productId}
+            variantId={variantId}
+            inStock={inStock}
+            giftPackaging={giftPackaging}
+            className="w-full"
+          />
+        </div>
+        <div className="flex items-center gap-3">
+          <WishlistButton productId={productId} isInWishlist={isInWishlist} />
+          <ProductShareButton
+            title={productName}
+            text={productText}
+            whatsappNumber={whatsappNumber}
+          />
+        </div>
       </div>
 
       <FloatingAddToCartBar

@@ -554,6 +554,8 @@ model Address {
   country      String       @default("IN")
   postalCode   String
   landmark     String?
+  latitude     Float?
+  longitude    Float?
   type         AddressType  @default(SHIPPING)
   label        AddressLabel @default(HOME)
   isDefault    Boolean      @default(false)
@@ -864,6 +866,8 @@ model StoreLocation {
   email      String?
   hours      String
   mapUrl     String?
+  latitude   Float?
+  longitude  Float?
   isActive   Boolean  @default(true)
   sortOrder  Int      @default(0)
   createdAt  DateTime @default(now())

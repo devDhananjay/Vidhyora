@@ -407,7 +407,7 @@ export function CheckoutSummary({
       <label className="mt-4 flex cursor-pointer items-start gap-3 rounded-xl border border-neutral-200 px-3 py-3">
         <input
           type="checkbox"
-          className="mt-1 size-4"
+          className="mt-1 size-4 accent-[#8b2e2e]"
           checked={hidePriceOnInvoice}
           onChange={(event) => setHidePriceOnInvoice(event.target.checked)}
         />
@@ -468,7 +468,7 @@ export function CheckoutSummary({
             value="RAZORPAY"
             checked={paymentMethod === "RAZORPAY"}
             onChange={() => setPaymentMethod("RAZORPAY")}
-            className="size-4"
+            className="size-4 accent-[#8b2e2e]"
           />
           <span className="text-sm">Online Payment (Razorpay)</span>
         </label>
@@ -484,7 +484,7 @@ export function CheckoutSummary({
             checked={paymentMethod === "COD"}
             disabled={!codAvailable}
             onChange={() => setPaymentMethod("COD")}
-            className="size-4"
+            className="size-4 accent-[#8b2e2e]"
           />
           <span className="text-sm">
             Cash on Delivery

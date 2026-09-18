@@ -13,9 +13,10 @@ import prisma from "@/lib/prisma";
 import { ProductCard } from "@/components/products/product-card";
 import {
   imageUrlsForProduct,
-  isBestSellerFlag,
   jewelleryCardMeta,
   mapCardVariants,
+  getProductBadgeSets,
+  resolveProductBadge,
 } from "@/lib/products/product-card-data";
 import { getHomepageConfig } from "@/lib/content/get-homepage";
 import {
@@ -43,7 +44,7 @@ const ASSURANCE_ICONS = [Hammer, HeartHandshake, Gem] as const;
 const EXCHANGE_ICONS = [RefreshCcw, Shield, Sparkles, Award] as const;
 
 async function getFeaturedProducts() {
-  const [products, cartLines] = await Promise.all([
+  const [products, cartLines, badgeSets] = await Promise.all([
     prisma.product.findMany({
       where: {
         status: "ACTIVE",
@@ -68,6 +69,7 @@ async function getFeaturedProducts() {
       take: 8,
     }),
     getCartLinesForPlp(),
+    getProductBadgeSets(),
   ]);
 
   return {
@@ -81,7 +83,7 @@ async function getFeaturedProducts() {
       compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
       thumbnail: p.thumbnail,
       images: imageUrlsForProduct(p),
-      isBestSeller: isBestSellerFlag(p.attributes),
+      badge: resolveProductBadge(p, badgeSets),
       metalLabel: jewelleryCardMeta(p.attributes).label ?? null,
       variants: mapCardVariants(p.variants),
     })),

@@ -4,6 +4,7 @@ import { getPublicOffers } from "@/actions/content/get-offers";
 import {
   calculateCartSubtotal,
   calculateCartSummary,
+  cartStockIssueMessage,
 } from "@/lib/cart/cart-utils";
 import { resolveCartCouponDiscount } from "@/lib/coupons/coupon-utils";
 import { getCommerceSettings } from "@/lib/content/commerce-settings";
@@ -18,7 +19,12 @@ export const metadata: Metadata = {
   description: "Review your cart and proceed to checkout",
 };
 
-export default async function CartPage() {
+export default async function CartPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ stock?: string }>;
+}) {
+  const params = searchParams ? await searchParams : {};
   const cart = await getCart();
 
   if (!cart) {
@@ -58,6 +64,8 @@ export default async function CartPage() {
       ? Number(offer.maximumDiscount)
       : null,
   }));
+  const stockIssue = cartStockIssueMessage(cart);
+  const redirectedForStock = params.stock === "1";
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -67,6 +75,13 @@ export default async function CartPage() {
           Shopping Cart
         </h1>
       </div>
+
+      {redirectedForStock || stockIssue ? (
+        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+          {stockIssue ||
+            "Some items in your cart are out of stock. Remove or update them before checkout."}
+        </div>
+      ) : null}
 
       {activeItems.length === 0 ? (
         <div className="mb-8 rounded-xl border border-orange-200 bg-orange-50 p-6 text-center">
@@ -93,6 +108,7 @@ export default async function CartPage() {
               <CartSummary
                 summary={summary}
                 availablePromos={availablePromos}
+                stockIssue={stockIssue}
               />
             </div>
           </div>

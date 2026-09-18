@@ -9,7 +9,8 @@ import { updateCartItemQuantity } from "@/actions/cart/update-cart-item";
 import { removeCartItem } from "@/actions/cart/remove-cart-item";
 import type { CartPlpLine } from "@/actions/cart/get-cart";
 import { appAlert } from "@/components/shared/app-dialog";
-import { showActionToast } from "@/components/shared/action-toast";
+import { openCartDrawer } from "@/lib/cart/open-cart-drawer";
+import { ProductAlertNotify } from "@/components/products/product-alert-notify";
 import { cn } from "@/lib/utils";
 
 export type CardVariantOption = {
@@ -20,6 +21,7 @@ export type CardVariantOption = {
 
 type ProductCardQuickAddProps = {
   productId: string;
+  productName: string;
   variants: CardVariantOption[];
   /** Cart lines for this product only */
   cartLines?: CartPlpLine[];
@@ -30,6 +32,7 @@ type PickerMode = "cart" | "buy" | null;
 
 export function ProductCardQuickAdd({
   productId,
+  productName,
   variants,
   cartLines = [],
   className,
@@ -40,6 +43,7 @@ export function ProductCardQuickAdd({
   const wrapRef = useRef<HTMLDivElement>(null);
 
   const inStock = variants.filter((v) => v.stock > 0);
+  const soldOut = inStock.length === 0;
   const single = inStock.length === 1 ? inStock[0] : null;
   const needsPick = inStock.length > 1;
   const totalQty = cartLines.reduce((sum, line) => sum + line.quantity, 0);
@@ -75,12 +79,8 @@ export function ProductCardQuickAdd({
         return;
       }
       setPickerMode(null);
-      showActionToast({
-        message: "Added to cart",
-        href: "/cart",
-        linkLabel: "View cart →",
-      });
-      refresh();
+      openCartDrawer();
+      window.setTimeout(() => refresh(), 150);
     });
   }
 
@@ -142,7 +142,7 @@ export function ProductCardQuickAdd({
   function onClickAdd(event: React.MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
-    if (isPending || inStock.length === 0) return;
+    if (isPending || soldOut) return;
     if (single) {
       addVariant(single.id);
       return;
@@ -153,7 +153,7 @@ export function ProductCardQuickAdd({
   function onClickBuy(event: React.MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
-    if (isPending || inStock.length === 0) return;
+    if (isPending || soldOut) return;
     if (single) {
       buyVariant(single.id);
       return;
@@ -171,7 +171,7 @@ export function ProductCardQuickAdd({
   function onPlus(event: React.MouseEvent) {
     event.preventDefault();
     event.stopPropagation();
-    if (isPending) return;
+    if (isPending || soldOut) return;
 
     if (needsPick && cartLines.length !== 1) {
       setPickerMode("cart");
@@ -192,6 +192,32 @@ export function ProductCardQuickAdd({
 
   if (variants.length === 0) {
     return null;
+  }
+
+  if (soldOut) {
+    return (
+      <div ref={wrapRef} className={cn("relative mt-2.5", className)}>
+        <div className="flex h-9 items-stretch gap-1.5">
+          <div className="flex min-w-0 flex-1 items-center justify-center rounded-full bg-neutral-100 px-2 text-[11px] font-medium text-neutral-500">
+            Out of stock
+          </div>
+          <div
+            className="min-w-0 flex-1"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <ProductAlertNotify
+              productId={productId}
+              productName={productName}
+              type="BACK_IN_STOCK"
+              variantId={variants[0]?.id}
+              asButton
+              triggerLabel="Notify"
+              triggerClassName="h-9 w-full rounded-full border-2 border-[#8b2e2e] bg-white px-2 text-[11px] font-semibold text-[#8b2e2e] hover:bg-[#8b2e2e] hover:text-white"
+            />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -229,18 +255,11 @@ export function ProductCardQuickAdd({
         ) : (
           <button
             type="button"
-            disabled={inStock.length === 0 || isPending}
+            disabled={isPending}
             onClick={onClickAdd}
-            className={cn(
-              "flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full px-2 text-[11px] font-medium tracking-wide transition",
-              inStock.length === 0
-                ? "cursor-not-allowed bg-neutral-100 text-neutral-400"
-                : "bg-[#8b2e2e] text-white hover:bg-[#7a2727]",
-            )}
+            className="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full bg-[#8b2e2e] px-2 text-[11px] font-medium tracking-wide text-white transition hover:bg-[#7a2727]"
           >
-            {inStock.length === 0 ? (
-              "Out of stock"
-            ) : isPending ? (
+            {isPending ? (
               "Adding…"
             ) : (
               <>
@@ -253,19 +272,12 @@ export function ProductCardQuickAdd({
 
         <button
           type="button"
-          disabled={inStock.length === 0 || isPending}
+          disabled={isPending}
           onClick={onClickBuy}
-          className={cn(
-            "flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full border-2 px-2 text-[11px] font-semibold tracking-wide transition",
-            inStock.length === 0
-              ? "cursor-not-allowed border-neutral-100 text-neutral-400"
-              : "border-[#8b2e2e] bg-white text-[#8b2e2e] hover:bg-[#8b2e2e] hover:text-white",
-          )}
+          className="flex min-w-0 flex-1 items-center justify-center gap-1 rounded-full border-2 border-[#8b2e2e] bg-white px-2 text-[11px] font-semibold tracking-wide text-[#8b2e2e] transition hover:bg-[#8b2e2e] hover:text-white"
         >
           <Zap className="size-3.5 shrink-0" strokeWidth={2} />
-          <span className="truncate">
-            {isPending ? "…" : "Buy now"}
-          </span>
+          <span className="truncate">{isPending ? "…" : "Buy now"}</span>
         </button>
       </div>
 

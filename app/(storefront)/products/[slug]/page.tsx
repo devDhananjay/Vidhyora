@@ -22,14 +22,18 @@ import {
 } from "@/components/products/recently-viewed";
 import { ReviewStatsCard } from "@/components/reviews/review-stats-card";
 import { ReviewsList } from "@/components/reviews/reviews-list";
-import { Sparkles, Star } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import {
   generateProductStructuredData,
   generateBreadcrumbStructuredData,
 } from "@/lib/structured-data";
 import { getProductReviews } from "@/actions/reviews/get-reviews";
 import { getWishlistProductIds } from "@/actions/wishlist/manage-wishlist";
-import { isBestSellerFlag } from "@/lib/products/product-card-data";
+import {
+  getProductBadgeSets,
+  productBadgeLabel,
+  resolveProductBadge,
+} from "@/lib/products/product-card-data";
 
 async function getProduct(slug: string) {
   const product = await prisma.product.findUnique({
@@ -166,14 +170,17 @@ export default async function ProductDetailPage({
     product.thumbnail ||
     product.images[0]?.url ||
     null;
-  const [wishlistIds, reviews, commerce, siteSettings] = await Promise.all([
-    getWishlistProductIds(),
-    getProductReviews(product.id),
-    getCommerceSettings(),
-    getSiteSettings(),
-  ]);
+  const [wishlistIds, reviews, commerce, siteSettings, badgeSets] =
+    await Promise.all([
+      getWishlistProductIds(),
+      getProductReviews(product.id),
+      getCommerceSettings(),
+      getSiteSettings(),
+      getProductBadgeSets(),
+    ]);
   const isInWishlist = wishlistIds.includes(product.id);
   const whatsappNumber = siteSettings.contact.whatsappNumber || undefined;
+  const cardBadge = resolveProductBadge(product, badgeSets);
 
   const productStructuredData = generateProductStructuredData(product);
   const breadcrumbStructuredData = generateBreadcrumbStructuredData([
@@ -245,10 +252,10 @@ export default async function ProductDetailPage({
                 <h1 className="mt-2 font-serif text-3xl leading-tight text-neutral-900 md:text-[2.5rem]">
                   {product.name}
                 </h1>
-                {isBestSellerFlag(product.attributes) ? (
-                  <span className="mt-3 inline-flex items-center gap-1 rounded-md bg-[#c5a46e] px-2.5 py-1 text-[10px] font-semibold tracking-[0.12em] text-white">
-                    <Star className="size-2.5 fill-white" strokeWidth={0} />
-                    BESTSELLER
+                {cardBadge ? (
+                  <span className="mt-3 inline-flex items-center gap-1 rounded-md bg-gradient-to-r from-[#8b2e2e] via-[#a34444] to-[#c5a46e] px-2.5 py-1 text-[10px] font-semibold tracking-[0.06em] text-white uppercase shadow-sm">
+                    <Sparkles className="size-2.5" strokeWidth={2.2} />
+                    {productBadgeLabel(cardBadge)}
                   </span>
                 ) : null}
                 {product.shortDescription ? (

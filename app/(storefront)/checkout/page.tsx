@@ -4,6 +4,7 @@ import { getCart } from "@/actions/cart/get-cart";
 import {
   calculateCartSubtotal,
   calculateCartSummary,
+  cartHasStockIssue,
 } from "@/lib/cart/cart-utils";
 import { resolveCartCouponDiscount } from "@/lib/coupons/coupon-utils";
 import { getCommerceSettings } from "@/lib/content/commerce-settings";
@@ -46,6 +47,10 @@ export default async function CheckoutPage({
 
   if (buyNowItemId && checkoutCart.items.length === 0) {
     redirect("/cart");
+  }
+
+  if (cartHasStockIssue(checkoutCart)) {
+    redirect("/cart?stock=1");
   }
 
   const isGuest = !session?.user?.id;

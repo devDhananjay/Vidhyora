@@ -74,7 +74,7 @@ export function HeroBannerSlider({
 
   return (
     <section className="relative w-full overflow-hidden bg-[#5c7a6a]">
-      <div className="relative aspect-[4/5] w-full min-h-[280px] sm:aspect-[16/9] sm:min-h-[300px] md:aspect-[21/9] md:min-h-[340px] lg:min-h-[400px]">
+      <div className="relative aspect-[8/7] w-full min-h-[196px] sm:aspect-[5/2] sm:min-h-[210px] md:aspect-[10/3] md:min-h-[238px] lg:min-h-[280px]">
         <div
           className="flex h-full transition-transform duration-700 ease-in-out"
           style={{ transform: `translateX(-${active * 100}%)` }}

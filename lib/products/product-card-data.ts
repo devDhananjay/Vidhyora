@@ -1,9 +1,13 @@
 import { isVideoUrl } from "@/lib/media/is-video-url";
 
-export function isBestSellerFlag(attributes: unknown) {
-  if (!attributes || typeof attributes !== "object") return false;
-  return (attributes as { bestSeller?: boolean }).bestSeller === true;
-}
+export {
+  isBestSellerFlag,
+  isExpertChoiceFlag,
+  resolveProductBadge,
+  productBadgeLabel,
+  getProductBadgeSets,
+  type ProductCardBadge,
+} from "@/lib/products/product-badges";
 
 function asAttrString(value: unknown) {
   if (typeof value === "string" && value.trim()) return value.trim();

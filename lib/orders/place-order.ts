@@ -61,8 +61,11 @@ export function cartTotals(
 export function stockError(items: CartLine[]): string | null {
   for (const item of items) {
     const available = item.variant.stock - item.variant.reservedStock;
+    if (available <= 0) {
+      return `${item.product.name} is out of stock. Please remove it from your cart.`;
+    }
     if (available < item.quantity) {
-      return `${item.product.name} - Only ${available} items available`;
+      return `${item.product.name} — only ${available} available. Please update quantity.`;
     }
   }
   return null;

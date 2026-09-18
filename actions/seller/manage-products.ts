@@ -234,7 +234,21 @@ export async function updateProduct(
           hsn: validated.hsn || null,
           certificateNumber: validated.certificateNumber || null,
           certificateUrl: validated.certificateUrl || null,
-          attributes: validated.attributes ?? {},
+          attributes: (() => {
+            const next = {
+              ...((validated.attributes as Record<string, unknown>) ?? {}),
+            };
+            const prev = existingProduct.attributes;
+            if (prev && typeof prev === "object" && !Array.isArray(prev)) {
+              const prevAttrs = prev as Record<string, unknown>;
+              for (const key of ["bestSeller", "expertChoice"] as const) {
+                if (prevAttrs[key] != null && next[key] === undefined) {
+                  next[key] = prevAttrs[key];
+                }
+              }
+            }
+            return next;
+          })(),
           approvalStatus: needsApproval ? "PENDING_APPROVAL" : "APPROVED",
           status: needsApproval
             ? existingProduct.status === "ARCHIVED"

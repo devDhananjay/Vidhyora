@@ -30,6 +30,21 @@
   color-scheme: light;
 }
 
+::selection {
+  background: var(--brand);
+  color: var(--primary-foreground);
+}
+
+::-moz-selection {
+  background: var(--brand);
+  color: var(--primary-foreground);
+}
+
+/* Storefront page titles — brand maroon */
+.storefront-main h1 {
+  color: var(--brand);
+}
+
 .dark {
   /* Warm jewellery dark — not cold grey / purple */
   --background: #140e0c;
@@ -218,6 +233,35 @@
     opacity: 1;
     transform: scale(1) rotate(18deg);
   }
+}
+
+@keyframes vidyora-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Tanishq-style thin spinning arc */
+.vidyora-loader-ring {
+  background: conic-gradient(
+    from 210deg,
+    transparent 0%,
+    transparent 62%,
+    rgba(139, 46, 46, 0.12) 72%,
+    rgba(139, 46, 46, 0.55) 86%,
+    #8b2e2e 100%
+  );
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 2px),
+    #000 calc(100% - 2px)
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 2px),
+    #000 calc(100% - 2px)
+  );
+  animation: vidyora-loader-spin 0.9s linear infinite;
 }
 
 .animate-vidyora-float {

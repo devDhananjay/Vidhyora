@@ -2,9 +2,10 @@ import prisma from "@/lib/prisma";
 import { ProductCard } from "@/components/products/product-card";
 import {
   imageUrlsForProduct,
-  isBestSellerFlag,
   jewelleryCardMeta,
   mapCardVariants,
+  getProductBadgeSets,
+  resolveProductBadge,
 } from "@/lib/products/product-card-data";
 import { getCartLinesForPlp } from "@/actions/cart/get-cart";
 
@@ -15,7 +16,7 @@ export async function RelatedProducts({
   categoryId: string;
   currentProductId: string;
 }) {
-  const [relatedProducts, cartLines] = await Promise.all([
+  const [relatedProducts, cartLines, badgeSets] = await Promise.all([
     prisma.product.findMany({
       where: {
         categoryId,
@@ -50,6 +51,7 @@ export async function RelatedProducts({
       orderBy: { createdAt: "desc" },
     }),
     getCartLinesForPlp(),
+    getProductBadgeSets(),
   ]);
 
   if (relatedProducts.length === 0) {
@@ -71,7 +73,7 @@ export async function RelatedProducts({
                 ? Number(product.compareAtPrice)
                 : null,
               images: imageUrlsForProduct(product),
-              isBestSeller: isBestSellerFlag(product.attributes),
+              badge: resolveProductBadge(product, badgeSets),
               metalLabel: jewelleryCardMeta(product.attributes).label ?? null,
               variants: mapCardVariants(product.variants),
             }}

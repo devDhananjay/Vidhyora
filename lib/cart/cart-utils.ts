@@ -101,3 +101,26 @@ export function getCartItemCount(cart: CartWithItems): number {
     .filter((item) => !item.savedForLater)
     .reduce((sum, item) => sum + item.quantity, 0);
 }
+
+/** True when any active line exceeds available stock (including fully OOS). */
+export function cartHasStockIssue(cart: CartWithItems): boolean {
+  return cart.items
+    .filter((item) => !item.savedForLater)
+    .some((item) => {
+      const available = item.variant.stock - item.variant.reservedStock;
+      return available < item.quantity;
+    });
+}
+
+export function cartStockIssueMessage(cart: CartWithItems): string | null {
+  for (const item of cart.items.filter((i) => !i.savedForLater)) {
+    const available = item.variant.stock - item.variant.reservedStock;
+    if (available <= 0) {
+      return `Remove out-of-stock items to checkout (${item.product.name})`;
+    }
+    if (available < item.quantity) {
+      return `${item.product.name} — only ${available} left. Update quantity to continue.`;
+    }
+  }
+  return null;
+}

@@ -13,9 +13,10 @@ import {
 } from "@/lib/products/product-query";
 import {
   imageUrlsForProduct,
-  isBestSellerFlag,
   jewelleryCardMeta,
   mapCardVariants,
+  getProductBadgeSets,
+  resolveProductBadge,
 } from "@/lib/products/product-card-data";
 import { getProductFacets } from "@/lib/products/product-facets";
 import { productSearch } from "@/lib/search/product-search";
@@ -44,10 +45,11 @@ async function SearchResults({
         : params.sort,
   });
 
-  const [result, wishlistIds, cartLines] = await Promise.all([
+  const [result, wishlistIds, cartLines, badgeSets] = await Promise.all([
     productSearch.search(query, filters, page, pageSize),
     getWishlistProductIds(),
     getCartLinesForPlp(),
+    getProductBadgeSets(),
   ]);
   const savedIds = new Set(wishlistIds);
 
@@ -75,7 +77,7 @@ async function SearchResults({
             product={{
               ...product,
               images: imageUrlsForProduct(product),
-              isBestSeller: isBestSellerFlag(product.attributes),
+              badge: resolveProductBadge(product, badgeSets),
               metalLabel: jewelleryCardMeta(product.attributes).label ?? null,
               variants: mapCardVariants(product.variants ?? []),
             }}

@@ -13,9 +13,10 @@ import {
 } from "@/lib/products/product-query";
 import {
   imageUrlsForProduct,
-  isBestSellerFlag,
   jewelleryCardMeta,
   mapCardVariants,
+  getProductBadgeSets,
+  resolveProductBadge,
 } from "@/lib/products/product-card-data";
 
 export async function ProductGrid({
@@ -31,42 +32,44 @@ export async function ProductGrid({
   const useRelevance = isRelevanceSort(params.sort, params.q);
   const orderBy = getProductOrderBy(useRelevance ? "relevance" : params.sort);
 
-  const [rawProducts, total, wishlistIds, cartLines] = await Promise.all([
-    prisma.product.findMany({
-      where,
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        brand: true,
-        basePrice: true,
-        compareAtPrice: true,
-        thumbnail: true,
-        attributes: true,
-        images: {
-          select: { url: true },
-          orderBy: { sortOrder: "asc" },
-        },
-        variants: {
-          where: { isActive: true },
-          select: {
-            id: true,
-            stock: true,
-            attributes: true,
+  const [rawProducts, total, wishlistIds, cartLines, badgeSets] =
+    await Promise.all([
+      prisma.product.findMany({
+        where,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          brand: true,
+          basePrice: true,
+          compareAtPrice: true,
+          thumbnail: true,
+          attributes: true,
+          images: {
+            select: { url: true },
+            orderBy: { sortOrder: "asc" },
           },
-          orderBy: { price: "asc" },
+          variants: {
+            where: { isActive: true },
+            select: {
+              id: true,
+              stock: true,
+              attributes: true,
+            },
+            orderBy: { price: "asc" },
+          },
         },
-      },
-      orderBy,
-      skip: useRelevance ? 0 : skip,
-      take: useRelevance
-        ? Math.min(pageSize * 3, PAGINATION.MAX_PAGE_SIZE)
-        : pageSize,
-    }),
-    prisma.product.count({ where }),
-    getWishlistProductIds(),
-    getCartLinesForPlp(),
-  ]);
+        orderBy,
+        skip: useRelevance ? 0 : skip,
+        take: useRelevance
+          ? Math.min(pageSize * 3, PAGINATION.MAX_PAGE_SIZE)
+          : pageSize,
+      }),
+      prisma.product.count({ where }),
+      getWishlistProductIds(),
+      getCartLinesForPlp(),
+      getProductBadgeSets(),
+    ]);
   const products = useRelevance
     ? rankBySearchRelevance(rawProducts, params.q).slice(skip, skip + pageSize)
     : rawProducts;
@@ -102,7 +105,7 @@ export async function ProductGrid({
                 ? Number(product.compareAtPrice)
                 : null,
               images: imageUrlsForProduct(product),
-              isBestSeller: isBestSellerFlag(product.attributes),
+              badge: resolveProductBadge(product, badgeSets),
               metalLabel: jewelleryCardMeta(product.attributes).label ?? null,
               variants: mapCardVariants(product.variants),
             }}

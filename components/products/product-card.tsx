@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useSearchParams } from "next/navigation";
-import { Star } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { ProductFavoriteButton } from "@/components/products/product-favorite-button";
 import {
@@ -13,6 +13,10 @@ import {
 } from "@/components/products/product-card-quick-add";
 import type { CartPlpLine } from "@/actions/cart/get-cart";
 import { isVideoUrl } from "@/lib/media/is-video-url";
+import {
+  productBadgeLabel,
+  type ProductCardBadge,
+} from "@/lib/products/product-badges";
 
 type ProductCardProps = {
   product: {
@@ -24,7 +28,9 @@ type ProductCardProps = {
     compareAtPrice: number | null;
     thumbnail: string | null;
     images?: string[];
+    /** @deprecated prefer `badge` — kept for older call sites */
     isBestSeller?: boolean;
+    badge?: ProductCardBadge | null;
     metalLabel?: string | null;
     variants?: CardVariantOption[];
   };
@@ -62,6 +68,21 @@ export function ProductCard({
           100,
       )
     : 0;
+
+  const availableStock = (product.variants ?? []).reduce(
+    (sum, variant) => sum + Math.max(0, variant.stock),
+    0,
+  );
+  // < 3 → Only N left!; < 5 → Running low (Only takes priority)
+  const stockUrgency =
+    availableStock > 0 && availableStock < 3
+      ? `Only ${availableStock} left!`
+      : availableStock > 0 && availableStock < 5
+        ? "Running low"
+        : null;
+
+  const badge: ProductCardBadge | null =
+    product.badge ?? (product.isBestSeller ? "BESTSELLERS" : null);
 
   const gallery = galleryFor(product);
   const [index, setIndex] = useState(0);
@@ -116,10 +137,10 @@ export function ProductCard({
           <div className="pointer-events-none absolute inset-0 bg-black/0 transition duration-500 group-hover:bg-black/10" />
         </Link>
 
-        {product.isBestSeller ? (
-          <span className="absolute left-0 top-0 z-10 flex items-center gap-1 rounded-br-xl bg-[#c5a46e] px-2.5 py-1 text-[10px] font-semibold tracking-[0.12em] text-white">
-            <Star className="size-2.5 fill-white" strokeWidth={0} />
-            BESTSELLER
+        {badge ? (
+          <span className="pointer-events-none absolute left-0 top-0 z-20 inline-flex items-center gap-1 rounded-br-xl bg-gradient-to-r from-[#8b2e2e] via-[#a34444] to-[#c5a46e] px-2.5 py-1 text-[10px] font-semibold tracking-[0.06em] text-white uppercase shadow-sm">
+            <Sparkles className="size-2.5 shrink-0" strokeWidth={2.2} />
+            {productBadgeLabel(badge)}
           </span>
         ) : null}
 
@@ -162,16 +183,26 @@ export function ProductCard({
               </span>
             ) : null}
           </div>
-          {discount > 0 ? (
-            <p className="mt-2 rounded-md bg-[#f6ead7] px-2 py-1 text-[11px] text-[#8b2e2e]">
-              Save {discount}% instantly
-            </p>
+          {discount > 0 || stockUrgency ? (
+            <div className="mt-2 flex flex-wrap items-center gap-x-2.5 gap-y-1">
+              {discount > 0 ? (
+                <span className="inline-flex w-fit shrink-0 rounded-md bg-[#f6ead7] px-2 py-1 text-[11px] text-[#8b2e2e]">
+                  Save {discount}% instantly
+                </span>
+              ) : null}
+              {stockUrgency ? (
+                <span className="text-[11px] text-[#8b2e2e]">
+                  {stockUrgency}
+                </span>
+              ) : null}
+            </div>
           ) : null}
         </Link>
 
         {product.variants && product.variants.length > 0 ? (
           <ProductCardQuickAdd
             productId={product.id}
+            productName={product.name}
             variants={product.variants}
             cartLines={cartLines.filter((line) => line.productId === product.id)}
           />

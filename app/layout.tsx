@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Bodoni_Moda, Caveat, Montserrat } from "next/font/google";
 import "./globals.css";
 import { FirebaseAnalytics } from "@/components/firebase/firebase-analytics";
 import { AppDialogProvider } from "@/components/shared/app-dialog";
 import { ActionToastProvider } from "@/components/shared/action-toast";
+import { CartDrawerProvider } from "@/components/cart/cart-drawer";
+import { WishlistDrawerProvider } from "@/components/wishlist/wishlist-drawer";
+import { NavigationLoader } from "@/components/shared/navigation-loader";
 import { APP_NAME, APP_DESCRIPTION, APP_TAGLINE, BRAND_LOGO_SRC } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site-url";
 
@@ -79,8 +83,15 @@ export default function RootLayout({
         */}
         <AppDialogProvider>
           <ActionToastProvider>
-            {children}
-            <FirebaseAnalytics />
+            <CartDrawerProvider>
+              <WishlistDrawerProvider>
+                <Suspense fallback={null}>
+                  <NavigationLoader />
+                </Suspense>
+                {children}
+                <FirebaseAnalytics />
+              </WishlistDrawerProvider>
+            </CartDrawerProvider>
           </ActionToastProvider>
         </AppDialogProvider>
       </body>

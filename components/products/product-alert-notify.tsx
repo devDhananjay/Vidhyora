@@ -85,6 +85,10 @@ type ProductAlertNotifyProps = {
   baselinePrice?: number;
   variantId?: string;
   compact?: boolean;
+  /** PLP / card CTA — trigger button only + dialog */
+  asButton?: boolean;
+  triggerClassName?: string;
+  triggerLabel?: string;
 };
 
 export function ProductAlertNotify({
@@ -94,6 +98,9 @@ export function ProductAlertNotify({
   baselinePrice,
   variantId,
   compact = false,
+  asButton = false,
+  triggerClassName,
+  triggerLabel,
 }: ProductAlertNotifyProps) {
   const [open, setOpen] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
@@ -108,7 +115,7 @@ export function ProductAlertNotify({
   const headline = isRestock
     ? "Sold out right now?"
     : "Waiting For A Better Price?";
-  const cta = isRestock ? "Notify when back" : "Notify Me";
+  const cta = triggerLabel || (isRestock ? "Notify when back" : "Notify Me");
   const dialogTitle = isRestock ? "Back in stock alert" : "Price drop alerts";
 
   useEffect(() => {
@@ -192,6 +199,154 @@ export function ProductAlertNotify({
     }
   }
 
+  const dialog = (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <button
+          type="button"
+          disabled={!ready}
+          onClick={(event) => {
+            event.stopPropagation();
+          }}
+          className={cn(
+            "inline-flex h-8 w-fit items-center justify-center gap-1 rounded-full bg-[#8b2e2e] px-4 text-xs font-medium text-white transition hover:bg-[#7a2727]",
+            !ready && "opacity-60",
+            triggerClassName,
+          )}
+        >
+          {subscribed ? (
+            <>
+              <BellRing className="size-3.5 shrink-0" strokeWidth={1.8} />
+              <span className="truncate">Alert on</span>
+            </>
+          ) : (
+            <>
+              <Bell className="size-3.5 shrink-0" strokeWidth={1.8} />
+              <span className="truncate">{cta}</span>
+            </>
+          )}
+        </button>
+      </DialogTrigger>
+
+      <DialogContent className="gap-0 overflow-hidden rounded-[28px] border-neutral-200 p-0 sm:max-w-[400px]">
+        <div className="px-7 pb-7 pt-8">
+          {justJoined ? (
+            <div className="flex flex-col items-center text-center">
+              <div className="flex size-14 items-center justify-center rounded-full bg-[#e8f5ef]">
+                <CheckCircle2
+                  className="size-7 text-[#2f6b4f]"
+                  strokeWidth={1.6}
+                />
+              </div>
+              <h3 className="mt-4 font-serif text-2xl text-neutral-900">
+                You&apos;re all set
+              </h3>
+              <p className="mt-2 text-sm text-neutral-500">
+                Thanks
+                {name.trim() ? `, ${name.trim().split(" ")[0]}` : ""}! Your
+                alert for {productName} is saved.
+              </p>
+              <button
+                type="button"
+                onClick={() => handleOpenChange(false)}
+                className="mt-6 flex h-11 w-full items-center justify-center rounded-full bg-[#8b2e2e] text-sm font-medium text-white transition hover:bg-[#7a2727]"
+              >
+                Done
+              </button>
+            </div>
+          ) : subscribed && asButton ? (
+            <div className="flex flex-col items-center text-center">
+              <div className="flex size-14 items-center justify-center rounded-full bg-[#e8f5ef]">
+                <CheckCircle2
+                  className="size-7 text-[#2f6b4f]"
+                  strokeWidth={1.6}
+                />
+              </div>
+              <h3 className="mt-4 font-serif text-2xl text-neutral-900">
+                Alert is on
+              </h3>
+              <p className="mt-2 text-sm text-neutral-500">
+                We&apos;ll notify you when {productName} is back in stock.
+              </p>
+              <button
+                type="button"
+                onClick={unsubscribe}
+                disabled={pending}
+                className="mt-4 text-xs text-neutral-500 underline-offset-2 hover:underline"
+              >
+                Turn off alerts
+              </button>
+              <button
+                type="button"
+                onClick={() => handleOpenChange(false)}
+                className="mt-6 flex h-11 w-full items-center justify-center rounded-full bg-[#8b2e2e] text-sm font-medium text-white transition hover:bg-[#7a2727]"
+              >
+                Done
+              </button>
+            </div>
+          ) : (
+            <>
+              <DialogHeader className="items-center space-y-3 text-center sm:text-center">
+                <div className="flex size-12 items-center justify-center rounded-full bg-[#f3e4e4]">
+                  <Bell
+                    className="size-5 text-[#8b2e2e]"
+                    strokeWidth={1.6}
+                  />
+                </div>
+                <DialogTitle className="font-serif text-2xl text-neutral-900">
+                  {dialogTitle}
+                </DialogTitle>
+                <DialogDescription className="text-sm text-neutral-500">
+                  Save an alert for {productName}. We&apos;ll use email when
+                  linked to your account, and keep your mobile for SMS later.
+                </DialogDescription>
+              </DialogHeader>
+
+              <form onSubmit={handleSubmit} className="mt-6 space-y-3">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  placeholder="Full Name"
+                  className="h-11 w-full rounded-xl border border-neutral-200 bg-white px-4 text-sm outline-none transition focus:border-[#8b2e2e]"
+                  autoComplete="name"
+                />
+                <input
+                  type="tel"
+                  inputMode="numeric"
+                  value={mobile}
+                  onChange={(event) =>
+                    setMobile(
+                      event.target.value.replace(/\D/g, "").slice(0, 10),
+                    )
+                  }
+                  placeholder="Mobile Number"
+                  className="h-11 w-full rounded-xl border border-neutral-200 bg-white px-4 text-sm outline-none transition focus:border-[#8b2e2e]"
+                  autoComplete="tel"
+                />
+                {error ? (
+                  <p className="text-sm text-red-600">{error}</p>
+                ) : null}
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#8b2e2e] text-sm font-medium text-white transition hover:bg-[#7a2727] disabled:opacity-60"
+                >
+                  {cta}
+                  <ArrowRight className="size-4" strokeWidth={1.8} />
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  if (asButton) {
+    return dialog;
+  }
+
   const body = (
     <div className="relative overflow-hidden">
       <div className="relative z-10 flex max-w-[85%] flex-col gap-2.5 pr-2">
@@ -238,104 +393,7 @@ export function ProductAlertNotify({
                 ? "Leave your number — we'll notify you as soon as it returns."
                 : "Get notified when the price of this product drops!"}
             </p>
-            <Dialog open={open} onOpenChange={handleOpenChange}>
-              <DialogTrigger asChild>
-                <button
-                  type="button"
-                  disabled={!ready}
-                  className={cn(
-                    "inline-flex h-8 w-fit items-center justify-center rounded-full bg-[#8b2e2e] px-4 text-xs font-medium text-white transition hover:bg-[#7a2727]",
-                    !ready && "opacity-60",
-                  )}
-                >
-                  {cta}
-                </button>
-              </DialogTrigger>
-
-              <DialogContent className="gap-0 overflow-hidden rounded-[28px] border-neutral-200 p-0 sm:max-w-[400px]">
-                <div className="px-7 pb-7 pt-8">
-                  {justJoined ? (
-                    <div className="flex flex-col items-center text-center">
-                      <div className="flex size-14 items-center justify-center rounded-full bg-[#e8f5ef]">
-                        <CheckCircle2
-                          className="size-7 text-[#2f6b4f]"
-                          strokeWidth={1.6}
-                        />
-                      </div>
-                      <h3 className="mt-4 font-serif text-2xl text-neutral-900">
-                        You&apos;re all set
-                      </h3>
-                      <p className="mt-2 text-sm text-neutral-500">
-                        Thanks
-                        {name.trim() ? `, ${name.trim().split(" ")[0]}` : ""}!
-                        Your alert for {productName} is saved.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => handleOpenChange(false)}
-                        className="mt-6 flex h-11 w-full items-center justify-center rounded-full bg-[#8b2e2e] text-sm font-medium text-white transition hover:bg-[#7a2727]"
-                      >
-                        Done
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <DialogHeader className="items-center space-y-3 text-center sm:text-center">
-                        <div className="flex size-12 items-center justify-center rounded-full bg-[#f3e4e4]">
-                          <Bell
-                            className="size-5 text-[#8b2e2e]"
-                            strokeWidth={1.6}
-                          />
-                        </div>
-                        <DialogTitle className="font-serif text-2xl text-neutral-900">
-                          {dialogTitle}
-                        </DialogTitle>
-                        <DialogDescription className="text-sm text-neutral-500">
-                          Save an alert for {productName}. We&apos;ll use email
-                          when linked to your account, and keep your mobile for
-                          SMS later.
-                        </DialogDescription>
-                      </DialogHeader>
-
-                      <form onSubmit={handleSubmit} className="mt-6 space-y-3">
-                        <input
-                          type="text"
-                          value={name}
-                          onChange={(event) => setName(event.target.value)}
-                          placeholder="Full Name"
-                          className="h-11 w-full rounded-xl border border-neutral-200 bg-white px-4 text-sm outline-none transition focus:border-[#8b2e2e]"
-                          autoComplete="name"
-                        />
-                        <input
-                          type="tel"
-                          inputMode="numeric"
-                          value={mobile}
-                          onChange={(event) =>
-                            setMobile(
-                              event.target.value.replace(/\D/g, "").slice(0, 10),
-                            )
-                          }
-                          placeholder="Mobile Number"
-                          className="h-11 w-full rounded-xl border border-neutral-200 bg-white px-4 text-sm outline-none transition focus:border-[#8b2e2e]"
-                          autoComplete="tel"
-                        />
-                        {error ? (
-                          <p className="text-sm text-red-600">{error}</p>
-                        ) : null}
-                        <button
-                          type="submit"
-                          disabled={pending}
-                          className="flex h-11 w-full items-center justify-center gap-2 rounded-full bg-[#8b2e2e] text-sm font-medium text-white transition hover:bg-[#7a2727] disabled:opacity-60"
-                        >
-                          {cta}
-                          <ArrowRight className="size-4" strokeWidth={1.8} />
-                        </button>
-                      </form>
-                    </>
-                  )}
-                </div>
-              </DialogContent>
-            </Dialog>
+            {dialog}
           </>
         )}
       </div>

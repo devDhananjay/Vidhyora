@@ -7,7 +7,7 @@ import { ShoppingBag, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { addToCart } from "@/actions/cart/add-to-cart";
 import { appAlert } from "@/components/shared/app-dialog";
-import { showActionToast } from "@/components/shared/action-toast";
+import { openCartDrawer } from "@/lib/cart/open-cart-drawer";
 
 type AddToCartButtonProps = {
   productId: string;
@@ -46,12 +46,9 @@ export function AddToCartButton({
       if (result.success) {
         setAdded(true);
         setTimeout(() => setAdded(false), 2000);
-        showActionToast({
-          message: "Added to cart",
-          href: "/cart",
-          linkLabel: "View cart →",
-        });
-        router.refresh();
+        // Open drawer first; refresh after so bag count updates without killing panel
+        openCartDrawer();
+        window.setTimeout(() => router.refresh(), 150);
         return;
       }
 

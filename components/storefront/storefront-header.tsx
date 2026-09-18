@@ -17,6 +17,7 @@ import type { MegaMenuItem } from "@/lib/nav/mega-menu-data";
 type StorefrontHeaderProps = {
   user: SessionUser | null;
   cartSlot: React.ReactNode;
+  wishlistSlot?: React.ReactNode;
   megaMenu: MegaMenuItem[];
 };
 
@@ -27,6 +28,7 @@ const COMPACT_OFF_Y = 40;
 export function StorefrontHeader({
   user,
   cartSlot,
+  wishlistSlot,
   megaMenu,
 }: StorefrontHeaderProps) {
   const [compact, setCompact] = useState(false);
@@ -118,18 +120,21 @@ export function StorefrontHeader({
           </Link>
           {user ? (
             <>
-              <Link
-                href={ROUTES.wishlist}
-                className="rounded-full p-2 text-brand hover:bg-brand/5"
-                aria-label="Wishlist"
-              >
-                <Heart className="size-5" strokeWidth={1.5} />
-              </Link>
+              {wishlistSlot ?? (
+                <Link
+                  href={ROUTES.wishlist}
+                  className="rounded-full p-2 text-brand hover:bg-brand/5"
+                  aria-label="Wishlist"
+                >
+                  <Heart className="size-5" strokeWidth={1.5} />
+                </Link>
+              )}
               <UserMenu user={user} />
               {cartSlot}
             </>
           ) : (
             <>
+              {wishlistSlot}
               <Link
                 href="/login"
                 className="rounded-full p-2 text-brand hover:bg-brand/5"

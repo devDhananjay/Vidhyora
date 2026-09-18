@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import type { CartSummary as CartSummaryType } from "@/types/cart";
-import { ShoppingBag, Truck } from "lucide-react";
+import { AlertTriangle, ShoppingBag, Truck } from "lucide-react";
 import {
   PromoCodeForm,
   type AvailablePromo,
@@ -11,15 +11,22 @@ import {
 type CartSummaryProps = {
   summary: CartSummaryType;
   availablePromos?: AvailablePromo[];
+  /** When set, checkout is blocked (e.g. out-of-stock lines). */
+  stockIssue?: string | null;
 };
 
 export function CartSummary({
   summary,
   availablePromos = [],
+  stockIssue = null,
 }: CartSummaryProps) {
+  const checkoutBlocked = Boolean(stockIssue);
+
   return (
     <div className="rounded-xl border p-6">
-      <h2 className="mb-4 text-lg font-semibold">Order Summary</h2>
+      <h2 className="mb-4 font-serif text-lg font-semibold text-[#8b2e2e]">
+        Order Summary
+      </h2>
 
       <div className="mb-4">
         <PromoCodeForm
@@ -115,12 +122,31 @@ export function CartSummary({
         </div>
       </div>
 
-      <Button asChild size="lg" className="mt-6 w-full">
-        <Link href="/checkout">
+      {checkoutBlocked ? (
+        <div className="mt-4 flex gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-xs text-red-800">
+          <AlertTriangle className="mt-0.5 size-4 shrink-0" strokeWidth={2} />
+          <p>{stockIssue}</p>
+        </div>
+      ) : null}
+
+      {checkoutBlocked ? (
+        <Button
+          size="lg"
+          className="mt-6 w-full"
+          disabled
+          aria-disabled="true"
+        >
           <ShoppingBag className="mr-2 size-5" />
           Proceed to Checkout
-        </Link>
-      </Button>
+        </Button>
+      ) : (
+        <Button asChild size="lg" className="mt-6 w-full">
+          <Link href="/checkout">
+            <ShoppingBag className="mr-2 size-5" />
+            Proceed to Checkout
+          </Link>
+        </Button>
+      )}
 
       <div className="mt-4 text-center text-xs text-muted-foreground">
         Secure checkout powered by Razorpay

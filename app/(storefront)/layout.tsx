@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Mail, Phone } from "lucide-react";
 import { CartIndicator } from "@/components/cart/cart-indicator";
+import { WishlistIndicator } from "@/components/wishlist/wishlist-indicator";
 import { SiteFooter } from "@/components/storefront/site-footer";
 import { StorefrontHeader } from "@/components/storefront/storefront-header";
 import { auth } from "@/lib/auth";
@@ -73,10 +74,11 @@ export default async function StorefrontLayout({
       <StorefrontHeader
         user={user}
         cartSlot={<CartIndicator />}
+        wishlistSlot={<WishlistIndicator />}
         megaMenu={megaMenu}
       />
 
-      <main className="flex-1">{children}</main>
+      <main className="storefront-main flex-1">{children}</main>
 
       <SiteFooter settings={siteSettings} />
     </div>

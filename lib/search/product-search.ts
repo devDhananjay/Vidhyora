@@ -36,7 +36,7 @@ export class ProductSearchService {
     query: string,
     filters: ProductFilters = {},
     page = 1,
-    pageSize = PAGINATION.DEFAULT_PAGE_SIZE,
+    pageSize: number = PAGINATION.DEFAULT_PAGE_SIZE,
   ) {
     const skip = (page - 1) * pageSize;
     const q = query.trim();
@@ -95,6 +95,7 @@ export class ProductSearchService {
             select: {
               id: true,
               stock: true,
+              reservedStock: true,
               attributes: true,
             },
             orderBy: { price: "asc" },
@@ -149,6 +150,7 @@ export class ProductSearchService {
           select: {
             id: true,
             stock: true,
+            reservedStock: true,
             attributes: true,
           },
           orderBy: { price: "asc" },

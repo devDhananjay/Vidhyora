@@ -64,7 +64,7 @@ export function BasicInfoStep({
           id="name"
           {...nameRegister}
           onChange={handleNameChange}
-          placeholder="Apple iPhone 15 Pro Max"
+          placeholder="22K Gold Solitaire Ring"
           className="mt-2"
         />
         {errors.name && (
@@ -95,7 +95,7 @@ export function BasicInfoStep({
         <Input
           id="brand"
           {...register("brand")}
-          placeholder="Apple"
+          placeholder="VIDYORA"
           className="mt-2"
         />
         {errors.brand && (

@@ -15,7 +15,7 @@ export async function getSellerPayments() {
       prisma.sellerEarning.findMany({
         where: { sellerId: acting.sellerUserId },
         orderBy: { createdAt: "desc" },
-        take: 50,
+        take: 100,
       }),
       prisma.sellerPayout.findMany({
         where: { sellerId: acting.sellerUserId },

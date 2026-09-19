@@ -4,7 +4,7 @@ import { CategoryForm } from "@/components/admin/category-form";
 import { getAllCategories } from "@/actions/admin/manage-categories";
 
 export const metadata: Metadata = {
-  title: "Create Category | Super Admin",
+  title: "Create Category | Admin",
 };
 
 export default async function NewCategoryPage() {

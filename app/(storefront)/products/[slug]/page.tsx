@@ -81,9 +81,7 @@ export async function generateMetadata({
   const product = await getProduct(slug);
 
   if (!product) {
-    return {
-      title: "Product Not Found",
-    };
+    notFound();
   }
 
   return {
@@ -140,7 +138,9 @@ export default async function ProductDetailPage({
     : 0;
 
   const defaultVariant = product.variants[0];
-  const inStock = product.variants.some((v) => v.stock > 0);
+  const inStock = product.variants.some(
+    (v) => v.stock - v.reservedStock > 0,
+  );
   const jewelleryKind = (() => {
     const hay = `${product.name} ${product.category.name}`.toLowerCase();
     if (/ring|band/.test(hay)) return "ring" as const;

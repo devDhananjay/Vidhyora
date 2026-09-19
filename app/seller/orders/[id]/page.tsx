@@ -8,6 +8,7 @@ import prisma from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
+import { formatVariantAttributes } from "@/lib/products/product-card-data";
 import {
   getOrderStatusLabel,
   getPaymentProviderLabel,
@@ -44,12 +45,9 @@ export default async function SellerOrderDetailPage({
     : null;
   const preferredCourier = profile?.preferredCourier || "";
 
-  const attributes =
-    orderItem.variant.attributes &&
-    typeof orderItem.variant.attributes === "object" &&
-    !Array.isArray(orderItem.variant.attributes)
-      ? (orderItem.variant.attributes as Record<string, string>)
-      : null;
+  const attributesLabel = formatVariantAttributes(
+    orderItem.variant.attributes,
+  );
   const shipping = (orderItem.order.shippingAddress ?? {}) as {
     name?: string;
     phone?: string;
@@ -117,13 +115,9 @@ export default async function SellerOrderDetailPage({
                     {orderItem.product.name}
                   </Link>
 
-                  {attributes ? (
+                  {attributesLabel ? (
                     <div className="mt-2 text-sm text-muted-foreground">
-                      {Object.entries(attributes).map(([key, value]) => (
-                        <div key={key}>
-                          {key}: {value}
-                        </div>
-                      ))}
+                      {attributesLabel}
                     </div>
                   ) : null}
 

@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getSellerInventory } from "@/actions/seller/manage-inventory";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { InventoryTable } from "@/components/seller/inventory-table";
-import { AlertTriangle, Package } from "lucide-react";
+import { StatCard } from "@/components/seller/stat-card";
+import { AlertTriangle, Package, PackageX } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Inventory | Seller Dashboard",
@@ -21,71 +21,41 @@ export default async function SellerInventoryPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Inventory Management</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+          Inventory Management
+        </h1>
         <p className="mt-2 text-sm text-muted-foreground sm:text-base">
           Track and manage your product stock levels
         </p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-            <Package className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{inventory.length}</div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Stock</CardTitle>
-            <Package className="size-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalStock}</div>
-            <p className="text-xs text-muted-foreground">
-              {totalAvailable} available
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Low Stock</CardTitle>
-            <AlertTriangle className="size-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">
-              {lowStockProducts.length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Products below 10 units
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Out of Stock</CardTitle>
-            <AlertTriangle className="size-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-destructive">
-              {outOfStockProducts.length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Products with 0 stock
-            </p>
-          </CardContent>
-        </Card>
+        <StatCard
+          title="Total Products"
+          value={inventory.length}
+          icon={Package}
+        />
+        <StatCard
+          title="Total Stock"
+          value={totalStock}
+          icon={Package}
+          description={`${totalAvailable} available`}
+        />
+        <StatCard
+          title="Low Stock"
+          value={lowStockProducts.length}
+          icon={AlertTriangle}
+          description="Products below 10 units"
+        />
+        <StatCard
+          title="Out of Stock"
+          value={outOfStockProducts.length}
+          icon={PackageX}
+          description="Products with 0 stock"
+        />
       </div>
 
-      {/* Low Stock Alert */}
       {lowStockProducts.length > 0 && (
         <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900 dark:bg-yellow-900/10">
           <div className="flex items-start gap-3">
@@ -95,14 +65,15 @@ export default async function SellerInventoryPage() {
                 Low Stock Alert
               </h4>
               <p className="mt-1 text-sm text-yellow-800 dark:text-yellow-200">
-                {lowStockProducts.length} {lowStockProducts.length === 1 ? "product has" : "products have"} low stock levels. Consider restocking soon.
+                {lowStockProducts.length}{" "}
+                {lowStockProducts.length === 1 ? "product has" : "products have"}{" "}
+                low stock levels. Consider restocking soon.
               </p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Inventory Table */}
       <Card>
         <CardHeader>
           <CardTitle>Inventory</CardTitle>

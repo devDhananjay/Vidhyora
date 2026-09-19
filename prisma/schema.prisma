@@ -941,6 +941,55 @@ model ContactMessage {
   @@index([createdAt])
 }
 
+// ─── Storefront support chat (VIDYORA concierge) ─────────────────────────────
+
+enum SupportChatStatus {
+  OPEN
+  PENDING
+  CLOSED
+}
+
+enum SupportChatSender {
+  CUSTOMER
+  AGENT
+  SYSTEM
+}
+
+model SupportChatThread {
+  id            String            @id @default(cuid())
+  guestToken    String
+  userId        String?
+  name          String
+  email         String
+  phone         String?
+  status        SupportChatStatus @default(OPEN)
+  lastMessageAt DateTime          @default(now())
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  messages SupportChatMessage[]
+
+  @@index([guestToken])
+  @@index([status])
+  @@index([lastMessageAt])
+  @@index([email])
+}
+
+model SupportChatMessage {
+  id             String            @id @default(cuid())
+  threadId       String
+  sender         SupportChatSender
+  body           String?           @db.Text
+  attachmentUrl  String?
+  attachmentName String?
+  attachmentType String?
+  createdAt      DateTime          @default(now())
+
+  thread SupportChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  @@index([threadId, createdAt])
+}
+
 model EmailCampaign {
   id         String            @id @default(cuid())
   type       EmailCampaignType

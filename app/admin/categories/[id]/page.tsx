@@ -6,7 +6,7 @@ import { CategoryAttributesForm } from "@/components/admin/category-attributes-f
 import { getAllCategories, getCategoryById } from "@/actions/admin/manage-categories";
 
 export const metadata: Metadata = {
-  title: "Edit Category | Super Admin",
+  title: "Edit Category | Admin",
 };
 
 export default async function EditCategoryPage({

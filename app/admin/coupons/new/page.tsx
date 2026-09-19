@@ -2,7 +2,7 @@ import type { Metadata} from "next";
 import { CouponForm } from "@/components/admin/coupon-form";
 
 export const metadata: Metadata = {
-  title: "Create Coupon | Super Admin",
+  title: "Create Coupon | Admin",
 };
 
 export default function NewCouponPage() {

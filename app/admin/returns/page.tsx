@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { getAllReturnRequests } from "@/actions/admin/manage-returns";
-import { ReturnModerationCard } from "@/components/returns/return-moderation-card";
-import { Card, CardContent } from "@/components/ui/card";
+import { ReturnsWorkspace } from "@/components/returns/returns-workspace";
 
 export const metadata: Metadata = {
-  title: "Returns & Replacements | Super Admin",
+  title: "Returns & Replacements | Admin",
 };
 
 export default async function AdminReturnsPage() {
   const returns = await getAllReturnRequests();
-  const pending = returns.filter((item) => item.status === "PENDING").length;
-  const replacements = returns.filter((item) => item.type === "REPLACEMENT").length;
 
   return (
     <div className="space-y-6">
@@ -19,25 +17,18 @@ export default async function AdminReturnsPage() {
           Returns & Replacements
         </h1>
         <p className="mt-2 text-muted-foreground">
-          {returns.length} requests across seller admins • {pending} pending •{" "}
-          {replacements} replacements. Super Admin approves, rejects, or
-          completes these.
+          Review customer return and replacement requests across all seller
+          admins. Approve, reject, or complete from here.
         </p>
       </div>
 
-      {returns.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            No return or replacement requests yet.
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {returns.map((item) => (
-            <ReturnModerationCard key={item.id} item={item} showSeller />
-          ))}
-        </div>
-      )}
+      <Suspense fallback={<div className="text-sm text-muted-foreground">Loading…</div>}>
+        <ReturnsWorkspace
+          items={returns}
+          showSeller
+          emptyMessage="No return or replacement requests yet."
+        />
+      </Suspense>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { CouponForm } from "@/components/admin/coupon-form";
 import { getCouponById } from "@/actions/admin/manage-coupons";
 
 export const metadata: Metadata = {
-  title: "Edit Coupon | Super Admin",
+  title: "Edit Coupon | Admin",
 };
 
 export default async function EditCouponPage({

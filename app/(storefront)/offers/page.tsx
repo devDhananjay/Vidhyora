@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   title: "Offers & Contest Details | VIDYORA",
   description:
     "Live coupon codes, festival contests and boutique lucky draws at VIDYORA.",
+  alternates: { canonical: "/offers" },
 };
 
 function couponHeadline(offer: {

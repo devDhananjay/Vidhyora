@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { removeFromWishlist } from "@/actions/wishlist/manage-wishlist";
 import { addToCart } from "@/actions/cart/add-to-cart";
 import { formatCurrency } from "@/lib/utils";
+import { sellableStock } from "@/lib/products/product-card-data";
 import { appAlert } from "@/components/shared/app-dialog";
 import { openCartDrawer } from "@/lib/cart/open-cart-drawer";
 
@@ -31,6 +32,7 @@ type WishlistItemProps = {
         id: string;
         price: unknown;
         stock: number;
+        reservedStock?: number;
       }>;
     };
   };
@@ -58,7 +60,7 @@ export function WishlistItem({ item, readOnly = false }: WishlistItemProps) {
     ? Math.round(((comparePrice - price) / comparePrice) * 100)
     : 0;
 
-  const inStock = variant ? variant.stock > 0 : false;
+  const inStock = variant ? sellableStock(variant) > 0 : false;
 
   const isAvailable =
     product.status === "ACTIVE" && product.approvalStatus === "APPROVED";

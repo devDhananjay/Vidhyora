@@ -6,7 +6,7 @@ import { HelpArticleForm } from "@/components/admin/help-article-form";
 import { HelpRowActions } from "@/components/admin/help-row-actions";
 
 export const metadata: Metadata = {
-  title: "Help | Super Admin",
+  title: "Help | Admin",
 };
 
 export default async function AdminHelpPage() {

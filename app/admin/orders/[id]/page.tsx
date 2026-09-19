@@ -13,7 +13,7 @@ import { AdminOrderCancelButton } from "@/components/admin/admin-order-cancel-bu
 import { setViewAsSeller } from "@/actions/seller/view-as-seller";
 
 export const metadata: Metadata = {
-  title: "Order Details | Super Admin",
+  title: "Order Details | Admin",
 };
 
 type AddressJson = {

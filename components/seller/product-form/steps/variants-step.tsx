@@ -65,7 +65,7 @@ export function VariantsStep({
                   <Input
                     id={`variants.${index}.sku`}
                     {...register(`variants.${index}.sku`)}
-                    placeholder="IPHONE-15-PRO-256-BLACK"
+                    placeholder="VIDYORA-RING-22K-001"
                     className="mt-2"
                   />
                   {errors.variants?.[index]?.sku && (

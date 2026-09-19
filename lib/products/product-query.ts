@@ -68,6 +68,7 @@ const OCCASION_TERMS: Record<string, string[]> = {
   daily: ["daily", "everyday", "casual"],
   wedding: ["wedding", "bridal", "engagement"],
   festive: ["festive", "festival", "celebration", "auspicious"],
+  party: ["party", "evening", "cocktail", "celebration"],
   office: ["office", "work", "formal"],
   modern: ["modern", "contemporary"],
   casual: ["casual", "everyday", "daily"],

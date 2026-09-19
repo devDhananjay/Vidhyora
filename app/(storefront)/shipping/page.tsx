@@ -10,6 +10,7 @@ export const metadata: Metadata = {
   title: "Delivery Information | VIDYORA",
   description:
     "Shipping, delivery timelines and international enquire-only support for VIDYORA jewellery.",
+  alternates: { canonical: "/shipping" },
 };
 
 export default async function ShippingPage() {

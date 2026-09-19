@@ -67,6 +67,9 @@ export function migrateHomepageRaw(raw: unknown): unknown {
   if (!data.sectionSchedule || typeof data.sectionSchedule !== "object") {
     data.sectionSchedule = defaults.sectionSchedule ?? {};
   }
+  if (!data.festivalOffer || typeof data.festivalOffer !== "object") {
+    data.festivalOffer = defaults.festivalOffer;
+  }
 
   return data;
 }

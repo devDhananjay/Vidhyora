@@ -6,7 +6,7 @@ import { ReviewModerationCard } from "@/components/admin/review-moderation-card"
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Review Moderation | Super Admin",
+  title: "Review Moderation | Admin",
 };
 
 const TABS = [

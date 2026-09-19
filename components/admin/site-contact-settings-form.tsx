@@ -191,7 +191,11 @@ export function SiteContactSettingsForm({
                       social: { ...prev.social, [key]: e.target.value },
                     }))
                   }
-                  placeholder="https://"
+                  placeholder={
+                    key === "instagram"
+                      ? "https://www.instagram.com/vidyora_official/"
+                      : "https://"
+                  }
                 />
               </div>
             ))}

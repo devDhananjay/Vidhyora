@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -23,6 +24,7 @@ import {
   resolveHomepageSectionOrder,
   resolveHomepageVisibility,
   filterVisibleHeroSlides,
+  isFestivalOfferActive,
   type HomepageSectionId,
 } from "@/lib/validations/homepage";
 import { StyleStories } from "@/components/storefront/style-stories";
@@ -32,6 +34,7 @@ import { ExploreTraditions } from "@/components/storefront/explore-traditions";
 import { HeroBannerSlider } from "@/components/storefront/hero-banner-slider";
 import { MediaFill } from "@/components/storefront/media-fill";
 import { RecentlyViewedRail } from "@/components/products/recently-viewed";
+import { FestivalOfferModal } from "@/components/storefront/festival-offer-modal";
 import {
   generateOrganizationStructuredData,
   generateWebSiteStructuredData,
@@ -39,6 +42,26 @@ import {
 import { getSiteSettings } from "@/lib/content/get-site-settings";
 import { getCartLinesForPlp } from "@/actions/cart/get-cart";
 import type { ReactNode } from "react";
+import { APP_DESCRIPTION, APP_NAME, SEO_BRAND_NAME } from "@/lib/constants";
+import { getSiteUrl } from "@/lib/site-url";
+
+export const metadata: Metadata = {
+  // Absolute title for Google SERP — site UI still shows VIDYORA branding
+  title: {
+    absolute: SEO_BRAND_NAME,
+  },
+  description: APP_DESCRIPTION,
+  alternates: { canonical: "/" },
+  openGraph: {
+    title: SEO_BRAND_NAME,
+    siteName: SEO_BRAND_NAME,
+    description: APP_DESCRIPTION,
+  },
+  twitter: {
+    title: SEO_BRAND_NAME,
+    description: APP_DESCRIPTION,
+  },
+};
 
 const ASSURANCE_ICONS = [Hammer, HeartHandshake, Gem] as const;
 const EXCHANGE_ICONS = [RefreshCcw, Shield, Sparkles, Award] as const;
@@ -56,6 +79,7 @@ async function getFeaturedProducts() {
           select: {
             id: true,
             stock: true,
+            reservedStock: true,
             attributes: true,
           },
           orderBy: { price: "asc" as const },
@@ -129,15 +153,25 @@ export default async function HomePage() {
   } = homepage;
   const visibility = resolveHomepageVisibility(homepage);
   const sectionOrder = resolveHomepageSectionOrder(homepage);
+  const siteUrl = getSiteUrl();
   const organizationLd = generateOrganizationStructuredData({
-    name: "VIDYORA",
-    url: process.env.NEXT_PUBLIC_APP_URL || "https://vidyora.co.in",
+    name: SEO_BRAND_NAME,
+    alternateName: APP_NAME,
+    url: siteUrl,
     email: siteSettings.contact.supportEmail,
     phone: siteSettings.contact.supportPhone,
+    logo: `${siteUrl}/brand/vidyora-logo.png`,
+    sameAs: [
+      siteSettings.social.instagram,
+      siteSettings.social.facebook,
+      siteSettings.social.youtube,
+      siteSettings.social.twitter,
+    ].filter(Boolean),
   });
   const websiteLd = generateWebSiteStructuredData({
-    name: "VIDYORA",
-    url: process.env.NEXT_PUBLIC_APP_URL || "https://vidyora.co.in",
+    name: SEO_BRAND_NAME,
+    alternateName: APP_NAME,
+    url: siteUrl,
   });
 
   const sections: Record<HomepageSectionId, ReactNode> = {
@@ -453,6 +487,11 @@ export default async function HomePage() {
       )}
 
       <RecentlyViewedRail />
+
+      {isFestivalOfferActive(homepage.festivalOffer) &&
+      homepage.festivalOffer ? (
+        <FestivalOfferModal offer={homepage.festivalOffer} />
+      ) : null}
     </div>
   );
 }

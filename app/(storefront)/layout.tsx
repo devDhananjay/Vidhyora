@@ -4,6 +4,7 @@ import { CartIndicator } from "@/components/cart/cart-indicator";
 import { WishlistIndicator } from "@/components/wishlist/wishlist-indicator";
 import { SiteFooter } from "@/components/storefront/site-footer";
 import { StorefrontHeader } from "@/components/storefront/storefront-header";
+import { SupportChatWidget } from "@/components/storefront/support-chat-widget";
 import { auth } from "@/lib/auth";
 import { ROUTES } from "@/lib/constants";
 import { getMegaMenuItems } from "@/lib/nav/get-mega-menu";
@@ -81,6 +82,7 @@ export default async function StorefrontLayout({
       <main className="storefront-main flex-1">{children}</main>
 
       <SiteFooter settings={siteSettings} />
+      <SupportChatWidget />
     </div>
   );
 }

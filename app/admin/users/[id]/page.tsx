@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "User Details | Super Admin",
+  title: "User Details | Admin",
 };
 
 export default async function AdminUserDetailPage({
@@ -93,7 +93,9 @@ export default async function AdminUserDetailPage({
             <CardTitle className="text-sm">Orders</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{user._count.orders}</div>
+            <div className="font-serif text-3xl tracking-tight text-brand">
+              {user._count.orders}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -101,7 +103,9 @@ export default async function AdminUserDetailPage({
             <CardTitle className="text-sm">Reviews</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{user._count.reviews}</div>
+            <div className="font-serif text-3xl tracking-tight text-brand">
+              {user._count.reviews}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -109,7 +113,9 @@ export default async function AdminUserDetailPage({
             <CardTitle className="text-sm">Addresses</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{user._count.addresses}</div>
+            <div className="font-serif text-3xl tracking-tight text-brand">
+              {user._count.addresses}
+            </div>
           </CardContent>
         </Card>
         <Card>

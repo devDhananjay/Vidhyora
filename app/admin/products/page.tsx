@@ -5,28 +5,48 @@ import { ProductBulkActions } from "@/components/admin/product-bulk-actions";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Products | Super Admin",
+  title: "Products | Admin",
 };
 
 const FILTERS = [
   { label: "All", value: "ALL" },
   { label: "Pending", value: "PENDING_APPROVAL" },
+  { label: "Draft", value: "DRAFT" },
   { label: "Approved", value: "APPROVED" },
   { label: "Rejected", value: "REJECTED" },
 ] as const;
 
+function productsHref(opts: {
+  approvalStatus: string;
+  search?: string;
+  seller?: string;
+}) {
+  const qs = new URLSearchParams();
+  if (opts.approvalStatus !== "ALL") qs.set("approvalStatus", opts.approvalStatus);
+  if (opts.search) qs.set("search", opts.search);
+  if (opts.seller) qs.set("seller", opts.seller);
+  const q = qs.toString();
+  return q ? `/admin/products?${q}` : "/admin/products";
+}
+
 export default async function AdminProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ approvalStatus?: string; search?: string }>;
+  searchParams: Promise<{
+    approvalStatus?: string;
+    search?: string;
+    seller?: string;
+  }>;
 }) {
   const params = await searchParams;
   const approvalStatus = params.approvalStatus || "ALL";
   const search = params.search?.trim() || undefined;
+  const sellerId = params.seller?.trim() || undefined;
 
   const products = await getAllProducts({
     approvalStatus,
     search,
+    sellerId,
   });
 
   const pendingCount = products.filter(
@@ -42,23 +62,29 @@ export default async function AdminProductsPage({
         </h1>
         <p className="mt-2 text-sm text-muted-foreground sm:text-base">
           {products.length} products shown
+          {sellerId ? " • filtered by seller" : null}
           {approvalStatus === "ALL"
-            ? ` • ${pendingCount} pending Super Admin approval`
+            ? ` • ${pendingCount} pending admin approval`
             : null}
         </p>
+        {sellerId ? (
+          <Link
+            href={productsHref({ approvalStatus, search })}
+            className="mt-2 inline-block text-sm text-primary hover:underline"
+          >
+            Clear seller filter
+          </Link>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-2">
           {FILTERS.map((filter) => {
-            const href =
-              filter.value === "ALL"
-                ? search
-                  ? `/admin/products?search=${encodeURIComponent(search)}`
-                  : "/admin/products"
-                : `/admin/products?approvalStatus=${filter.value}${
-                    search ? `&search=${encodeURIComponent(search)}` : ""
-                  }`;
+            const href = productsHref({
+              approvalStatus: filter.value,
+              search,
+              seller: sellerId,
+            });
             const active = approvalStatus === filter.value;
             return (
               <Link
@@ -80,6 +106,9 @@ export default async function AdminProductsPage({
         <form className="flex gap-2" action="/admin/products" method="get">
           {approvalStatus !== "ALL" ? (
             <input type="hidden" name="approvalStatus" value={approvalStatus} />
+          ) : null}
+          {sellerId ? (
+            <input type="hidden" name="seller" value={sellerId} />
           ) : null}
           <input
             type="search"

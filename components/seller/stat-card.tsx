@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { MetricValue } from "@/components/dashboard/metric-value";
 import { LucideIcon } from "lucide-react";
 
 type StatCardProps = {
@@ -24,7 +25,7 @@ export function StatCard({ title, value, icon: Icon, description, trend }: StatC
         </span>
       </CardHeader>
       <CardContent>
-        <div className="font-serif text-3xl text-neutral-900">{value}</div>
+        <MetricValue>{value}</MetricValue>
         {description && (
           <p className="mt-1 text-xs text-neutral-500">{description}</p>
         )}

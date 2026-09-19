@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 export const metadata: Metadata = {
   title: "Partner with Us | VIDYORA",
   description: "List your jewellery boutique on VIDYORA and sell gold and diamond jewellery across India.",
+  alternates: { canonical: "/partner" },
 };
 
 export default async function PartnerPage() {

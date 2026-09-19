@@ -54,6 +54,7 @@ export async function ProductGrid({
             select: {
               id: true,
               stock: true,
+              reservedStock: true,
               attributes: true,
             },
             orderBy: { price: "asc" },

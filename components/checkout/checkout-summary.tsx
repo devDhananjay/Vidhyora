@@ -492,9 +492,9 @@ export function CheckoutSummary({
               <span className="mt-0.5 block text-xs text-muted-foreground">
                 Cash on Delivery is currently unavailable
               </span>
-            ) : !codAvailable && selectedAddressId ? (
+            ) : !codAvailable && checkoutPincode ? (
               <span className="mt-0.5 block text-xs text-muted-foreground">
-                {codUnavailableMessage(selectedAddress?.postalCode)}
+                {codUnavailableMessage(checkoutPincode)}
               </span>
             ) : null}
           </span>

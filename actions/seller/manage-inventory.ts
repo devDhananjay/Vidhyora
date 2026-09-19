@@ -121,6 +121,8 @@ export async function getSellerInventory() {
         seller: {
           sellerId: acting.sellerUserId,
         },
+        // Match My Products — archived listings stay out of stock ops
+        status: { not: "ARCHIVED" },
       },
       include: {
         category: {

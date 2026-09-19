@@ -13,7 +13,7 @@ import type { JewelleryQaChecklist } from "@/lib/products/jewellery-qa";
 import { rejectionCategoryLabel } from "@/lib/products/jewellery-qa";
 
 export const metadata: Metadata = {
-  title: "Product Review | Super Admin",
+  title: "Product Review | Admin",
 };
 
 export default async function AdminProductDetailPage({
@@ -113,11 +113,12 @@ export default async function AdminProductDetailPage({
           </CardHeader>
           <CardContent>
             <p
-              className={`text-2xl font-bold ${
-                totalStock <= 10 ? "text-red-600" : ""
+              className={`font-serif text-3xl tracking-tight ${
+                totalStock <= 10 ? "text-red-600" : "text-brand"
               }`}
             >
-              {totalStock} units
+              {totalStock}{" "}
+              <span className="text-lg text-neutral-500">units</span>
             </p>
           </CardContent>
         </Card>

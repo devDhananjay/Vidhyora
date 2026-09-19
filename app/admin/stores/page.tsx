@@ -6,8 +6,25 @@ import { StoreForm } from "@/components/admin/store-form";
 import { StoreRowActions } from "@/components/admin/store-row-actions";
 
 export const metadata: Metadata = {
-  title: "Stores | Super Admin",
+  title: "Stores | Admin",
 };
+
+function formatStoreAddress(store: {
+  address: string;
+  city: string;
+  state: string;
+  postalCode: string | null;
+}) {
+  const address = store.address.trim();
+  const city = store.city.trim();
+  const state = store.state.trim();
+  const lower = address.toLowerCase();
+  const parts = [address];
+  if (city && !lower.includes(city.toLowerCase())) parts.push(city);
+  if (state && !lower.includes(state.toLowerCase())) parts.push(state);
+  const line = parts.filter(Boolean).join(", ");
+  return store.postalCode ? `${line} ${store.postalCode}` : line;
+}
 
 export default async function AdminStoresPage() {
   const stores = await getAdminStores();
@@ -49,8 +66,7 @@ export default async function AdminStoresPage() {
                     </Badge>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {store.address}, {store.city}, {store.state}
-                    {store.postalCode ? ` ${store.postalCode}` : ""}
+                    {formatStoreAddress(store)}
                   </p>
                   <p className="mt-1 text-sm">{store.phone} · {store.hours}</p>
                 </div>

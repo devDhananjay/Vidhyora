@@ -10,7 +10,7 @@ import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 
 export const metadata: Metadata = {
-  title: "Coupons | Super Admin",
+  title: "Coupons | Admin",
 };
 
 export default async function AdminCouponsPage() {

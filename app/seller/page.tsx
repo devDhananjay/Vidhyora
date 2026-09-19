@@ -17,7 +17,7 @@ import { getActingSeller } from "@/lib/seller-context";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Seller Admin | VIDYORA",
+  title: "Seller Admin",
   description: "Manage your products, orders, and sales",
 };
 
@@ -40,7 +40,7 @@ export default async function SellerDashboardPage() {
         <p className="mt-2 text-sm text-neutral-500">
           {acting?.isAdminView
             ? `Monitoring ${acting.businessName}. Super Admin can approve, reject, or deactivate from the Super Admin panel.`
-            : "Manage your own products, inventory, and orders. Listings go live after Super Admin approval."}
+            : "Manage your own products, inventory, and orders. Listings go live after admin approval."}
         </p>
       </div>
 
@@ -66,12 +66,14 @@ export default async function SellerDashboardPage() {
             description={`${stats.pendingOrders} pending`}
           />
         </Link>
-        <StatCard
-          title="Active Products"
-          value={stats.activeProducts}
-          icon={Package}
-          description={`${stats.totalProducts} total products`}
-        />
+        <Link href="/seller/products">
+          <StatCard
+            title="Active Products"
+            value={stats.activeProducts}
+            icon={Package}
+            description={`${stats.totalProducts} total products`}
+          />
+        </Link>
       </div>
 
       {/* Action Cards */}
@@ -84,12 +86,14 @@ export default async function SellerDashboardPage() {
             description={`${formatCurrency(stats.commissionDeducted)} commission deducted`}
           />
         </Link>
-        <StatCard
-          title="Pending Approval"
-          value={stats.pendingApproval}
-          icon={AlertCircle}
-          description="Products awaiting admin approval"
-        />
+        <Link href="/seller/products">
+          <StatCard
+            title="Pending Approval"
+            value={stats.pendingApproval}
+            icon={AlertCircle}
+            description="Products awaiting admin approval"
+          />
+        </Link>
         <Link href="/seller/returns">
           <StatCard
             title="Returns & Replacements"
@@ -98,12 +102,14 @@ export default async function SellerDashboardPage() {
             description={`${stats.totalReturns} total requests`}
           />
         </Link>
-        <StatCard
-          title="Low Stock Items"
-          value={stats.lowStockProducts}
-          icon={AlertCircle}
-          description="Products with low inventory"
-        />
+        <Link href="/seller/inventory">
+          <StatCard
+            title="Low Stock Items"
+            value={stats.lowStockProducts}
+            icon={AlertCircle}
+            description="Products with low inventory"
+          />
+        </Link>
       </div>
 
       {/* Low Stock Alert */}

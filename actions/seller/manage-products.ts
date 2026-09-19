@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import { ZodError } from "zod";
 import { getActingSeller } from "@/lib/seller-context";
 import { revalidatePath } from "next/cache";
 import { createProductSchema, type CreateProductInput } from "@/lib/validations/product";
@@ -126,6 +127,12 @@ export async function createProduct(
     };
   } catch (error) {
     console.error("Create product error:", error);
+    if (error instanceof ZodError) {
+      return {
+        success: false,
+        error: error.issues[0]?.message || "Invalid product data",
+      };
+    }
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to create product",

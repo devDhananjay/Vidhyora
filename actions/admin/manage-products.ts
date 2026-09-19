@@ -44,14 +44,19 @@ export async function getAdminProductById(productId: string) {
 export async function getAllProducts(filters?: {
   approvalStatus?: string;
   search?: string;
+  sellerId?: string;
 }) {
   try {
     await requireAdmin();
 
-    const where: any = {};
+    const where: Record<string, unknown> = {};
 
     if (filters?.approvalStatus && filters.approvalStatus !== "ALL") {
       where.approvalStatus = filters.approvalStatus;
+    }
+
+    if (filters?.sellerId) {
+      where.sellerId = filters.sellerId;
     }
 
     if (filters?.search) {

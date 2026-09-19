@@ -18,14 +18,14 @@ export const CONTESTS: Contest[] = [
       "Weekly draw: ₹25,000 VIDYORA voucher. Grand prize: a certified diamond pendant from the live catalogue.",
     howToEnter: [
       "Place a paid diamond jewellery order on VIDYORA during the contest window (Razorpay or delivered COD).",
-      "Share your unboxing or styling photo on Instagram and tag @vidyora with #VidyoraDiamonds.",
+      "Share your unboxing or styling photo on Instagram and tag @vidyora_official with #VidyoraDiamonds.",
       "Keep the order number. Winners are contacted on the email used at checkout.",
     ],
     rules: [
       "Open to customers in India, 18 years and above.",
       "Cancelled, refused COD and returned orders do not qualify.",
       "One entry per paid order. Employees of VIDYORA and seller boutiques are not eligible.",
-      "Vouchers are valid for 90 days on vidyora.com and cannot be exchanged for cash.",
+      "Vouchers are valid for 90 days on vidyora.co.in and cannot be exchanged for cash.",
     ],
   },
   {

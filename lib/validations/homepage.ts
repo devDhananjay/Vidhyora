@@ -95,6 +95,35 @@ export const homepageMoodboardNoteSchema = z.object({
   z: z.number(),
 });
 
+export const homepageFestivalOfferBudgetSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  href: z.string().min(1),
+});
+
+export const homepageFestivalOfferImageSchema = z.object({
+  src: z.string().min(1),
+  alt: z.string().min(1),
+  /** Degrees — small tilt like Tanishq polaroids. */
+  rotate: z.number().optional(),
+});
+
+export const homepageFestivalOfferSchema = z.object({
+  /** Stable id for dismiss / once-per-campaign localStorage. */
+  id: z.string().min(1),
+  enabled: z.boolean(),
+  visibleFrom: z.string().optional().nullable(),
+  visibleUntil: z.string().optional().nullable(),
+  title: z.string().min(1),
+  subtitle: z.string().min(1),
+  /** Highlighted pill text inside the subtitle, e.g. "festive offer". */
+  highlight: z.string().min(1),
+  /** after dismiss: once = never again for this id; session = until tab close; daily = once per day */
+  frequency: z.enum(["once", "session", "daily"]),
+  images: z.array(homepageFestivalOfferImageSchema).min(2).max(4),
+  budgets: z.array(homepageFestivalOfferBudgetSchema).min(1).max(8),
+});
+
 export const HOMEPAGE_SECTION_IDS = [
   "hero",
   "collections",
@@ -261,6 +290,11 @@ export const homepageConfigSchema = z.object({
     polaroids: z.array(homepageMoodboardPolaroidSchema).min(1),
     notes: z.array(homepageMoodboardNoteSchema).min(1),
   }),
+  /**
+   * Optional Tanishq-style festival / budget offer popup.
+   * Schedule with enabled + visibleFrom/visibleUntil — set dates in advance.
+   */
+  festivalOffer: homepageFestivalOfferSchema.optional(),
 });
 
 export type HomepageConfigData = z.infer<typeof homepageConfigSchema>;
@@ -272,6 +306,7 @@ export type HomepageMoodboardPolaroid = z.infer<
   typeof homepageMoodboardPolaroidSchema
 >;
 export type HomepageMoodboardNote = z.infer<typeof homepageMoodboardNoteSchema>;
+export type HomepageFestivalOffer = z.infer<typeof homepageFestivalOfferSchema>;
 
 function parseScheduleBound(value?: string | null): Date | null {
   if (!value || !String(value).trim()) return null;
@@ -286,11 +321,28 @@ function isWithinSchedule(
   now: Date,
 ): boolean {
   if (!schedule) return true;
-  const from = parseScheduleBound(schedule.visibleFrom);
-  const until = parseScheduleBound(schedule.visibleUntil);
+  const fromRaw = schedule.visibleFrom?.trim();
+  const untilRaw = schedule.visibleUntil?.trim();
+  const from = parseScheduleBound(fromRaw);
+  const until = parseScheduleBound(untilRaw);
+  // Invalid non-empty dates fail closed (don't show forever).
+  if (fromRaw && !from) return false;
+  if (untilRaw && !until) return false;
   if (from && now < from) return false;
   if (until && now > until) return false;
   return true;
+}
+
+/** True when the festival budget popup should render on the storefront. */
+export function isFestivalOfferActive(
+  offer: HomepageFestivalOffer | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  if (!offer?.enabled) return false;
+  return isWithinSchedule(
+    { visibleFrom: offer.visibleFrom, visibleUntil: offer.visibleUntil },
+    now,
+  );
 }
 
 export function resolveHomepageVisibility(

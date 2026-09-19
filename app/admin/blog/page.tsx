@@ -1,14 +1,19 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { getBlogConfigForAdmin } from "@/lib/content/get-blog-posts";
 import { requireSuperAdmin } from "@/lib/auth-helpers";
 import { BlogEditor } from "@/components/admin/blog-editor";
 
 export const metadata: Metadata = {
-  title: "Blog | Super Admin",
+  title: "Blog | Admin",
 };
 
 export default async function AdminBlogPage() {
-  await requireSuperAdmin();
+  try {
+    await requireSuperAdmin();
+  } catch {
+    redirect("/admin");
+  }
   const { posts, source } = await getBlogConfigForAdmin();
 
   return (

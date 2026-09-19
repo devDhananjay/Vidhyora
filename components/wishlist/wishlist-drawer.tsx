@@ -20,6 +20,7 @@ import {
 import { signalNavStart } from "@/lib/nav/signal-nav-start";
 import { useCoarsePointer } from "@/lib/hooks/use-coarse-pointer";
 import { formatCurrency } from "@/lib/utils";
+import { sellableStock } from "@/lib/products/product-card-data";
 
 export { openWishlistDrawer, closeWishlistDrawer };
 
@@ -41,7 +42,11 @@ type MiniWishlistItem = {
     slug: string;
     thumbnail: string | null;
     basePrice: unknown;
-    variants: Array<{ price: unknown; stock: number }>;
+    variants: Array<{
+      price: unknown;
+      stock: number;
+      reservedStock?: number;
+    }>;
   };
 };
 
@@ -52,7 +57,9 @@ function linePrice(item: MiniWishlistItem) {
 
 function MiniWishlistLine({ item }: { item: MiniWishlistItem }) {
   const price = linePrice(item);
-  const inStock = (item.product.variants[0]?.stock ?? 0) > 0;
+  const inStock = item.product.variants[0]
+    ? sellableStock(item.product.variants[0]) > 0
+    : false;
 
   return (
     <div className="flex gap-3 border-b border-border py-3.5 last:border-b-0">

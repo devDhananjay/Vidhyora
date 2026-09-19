@@ -45,11 +45,41 @@ export type ReturnRequestCardData = {
 };
 
 function statusBadge(status: string) {
-  if (status === "PENDING") return <Badge className="bg-yellow-600">Pending</Badge>;
-  if (status === "APPROVED") return <Badge className="bg-green-600">Approved</Badge>;
-  if (status === "REJECTED") return <Badge className="bg-red-600 text-white">Rejected</Badge>;
-  if (status === "COMPLETED") return <Badge className="bg-emerald-600">Completed</Badge>;
-  if (status === "PICKED_UP") return <Badge className="bg-blue-600">Picked up</Badge>;
+  if (status === "PENDING") {
+    return (
+      <Badge className="border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-50">
+        Pending
+      </Badge>
+    );
+  }
+  if (status === "APPROVED") {
+    return (
+      <Badge className="border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-50">
+        Approved
+      </Badge>
+    );
+  }
+  if (status === "REJECTED") {
+    return (
+      <Badge className="border-red-200 bg-red-50 text-red-700 hover:bg-red-50">
+        Rejected
+      </Badge>
+    );
+  }
+  if (status === "COMPLETED") {
+    return (
+      <Badge className="border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-50">
+        Completed
+      </Badge>
+    );
+  }
+  if (status === "PICKED_UP") {
+    return (
+      <Badge className="border-[#ead9c4] bg-[#f6ead7] text-[#8b2e2e] hover:bg-[#f6ead7]">
+        Picked up
+      </Badge>
+    );
+  }
   return <Badge variant="outline">{status}</Badge>;
 }
 
@@ -114,10 +144,10 @@ export function ReturnModerationCard({
   };
 
   return (
-    <Card>
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <div className="relative size-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+    <Card className="overflow-hidden border-[#ead9c4]/80 transition hover:border-[#d4b896]">
+      <CardContent className="p-0">
+        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:p-5">
+          <div className="relative size-20 shrink-0 overflow-hidden rounded-xl bg-[#f6ead7] sm:size-24">
             {item.orderItem.product.thumbnail ? (
               <Image
                 src={item.orderItem.product.thumbnail}
@@ -126,53 +156,69 @@ export function ReturnModerationCard({
                 className="object-cover"
               />
             ) : (
-              <div className="flex size-full items-center justify-center text-muted-foreground">
+              <div className="flex size-full items-center justify-center text-sm text-[#8b2e2e]/60">
                 —
               </div>
             )}
           </div>
-          <div className="min-w-0 flex-1">
+
+          <div className="min-w-0 flex-1 space-y-3">
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <div className="font-semibold">{item.orderItem.product.name}</div>
+              <div className="min-w-0">
+                <div className="font-serif text-lg text-neutral-900 sm:text-xl">
+                  {item.orderItem.product.name}
+                </div>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {item.orderItem.order.orderNumber} • {item.user.name} •{" "}
-                  {formatCurrency(Number(item.orderItem.total))}
+                  <span className="font-medium text-neutral-700">
+                    {item.orderItem.order.orderNumber}
+                  </span>
+                  {" · "}
+                  {item.user.name || item.user.email}
                 </p>
                 {showSeller && item.orderItem.product.seller ? (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Seller admin: {item.orderItem.product.seller.businessName}
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Seller: {item.orderItem.product.seller.businessName}
                   </p>
                 ) : null}
               </div>
-              <div className="flex gap-2">
-                <Badge variant="outline">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className="border-[#ead9c4] bg-[#faf6f0] text-[#8b2e2e]"
+                >
                   {item.type === "REPLACEMENT" ? "Replacement" : "Return"}
                 </Badge>
                 {statusBadge(item.status)}
+                <span className="font-serif text-xl text-neutral-900">
+                  {formatCurrency(Number(item.orderItem.total))}
+                </span>
               </div>
             </div>
-            <p className="mt-3 text-sm">
-              <span className="text-muted-foreground">Reason: </span>
-              {item.reason}
-            </p>
-            {item.description ? (
-              <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
-            ) : null}
-            {item.adminNote ? (
-              <p className="mt-1 text-sm text-red-700">Note: {item.adminNote}</p>
-            ) : null}
-            <p className="mt-2 text-xs text-muted-foreground">
-              Requested {format(new Date(item.requestedAt), "dd MMM yyyy")}
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
+
+            <div className="rounded-xl bg-[#faf7f5] px-3.5 py-3 text-sm">
+              <p>
+                <span className="text-muted-foreground">Reason · </span>
+                <span className="font-medium text-neutral-800">{item.reason}</span>
+              </p>
+              {item.description ? (
+                <p className="mt-1 text-muted-foreground">{item.description}</p>
+              ) : null}
+              {item.adminNote ? (
+                <p className="mt-1 text-[#8b2e2e]">Note · {item.adminNote}</p>
+              ) : null}
+              <p className="mt-2 text-xs text-muted-foreground">
+                Requested {format(new Date(item.requestedAt), "dd MMM yyyy")}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
               {item.status === "PENDING" ? (
                 <>
                   <Button
                     type="button"
                     onClick={approve}
                     disabled={isPending}
-                    className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                    className="gap-2 bg-emerald-700 text-white hover:bg-emerald-800"
                   >
                     <CheckCircle className="size-4" />
                     Approve
@@ -184,7 +230,8 @@ export function ReturnModerationCard({
                       setRejectOpen(true);
                     }}
                     disabled={isPending}
-                    className="gap-2 bg-red-600 text-white hover:bg-red-700"
+                    variant="outline"
+                    className="gap-2 border-red-200 text-red-700 hover:bg-red-50"
                   >
                     <XCircle className="size-4" />
                     Reject
@@ -198,7 +245,7 @@ export function ReturnModerationCard({
                     onClick={pickUp}
                     disabled={isPending}
                     variant="outline"
-                    className="gap-2"
+                    className="gap-2 border-[#ead9c4]"
                   >
                     <Package className="size-4" />
                     Mark picked up
@@ -207,7 +254,7 @@ export function ReturnModerationCard({
                     type="button"
                     onClick={complete}
                     disabled={isPending}
-                    className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                    className="gap-2 bg-emerald-700 text-white hover:bg-emerald-800"
                   >
                     <CheckCircle className="size-4" />
                     {item.type === "RETURN"
@@ -221,7 +268,8 @@ export function ReturnModerationCard({
                       setRejectOpen(true);
                     }}
                     disabled={isPending}
-                    className="gap-2 bg-red-600 text-white hover:bg-red-700"
+                    variant="outline"
+                    className="gap-2 border-red-200 text-red-700 hover:bg-red-50"
                   >
                     <XCircle className="size-4" />
                     Reject
@@ -233,7 +281,7 @@ export function ReturnModerationCard({
                   type="button"
                   onClick={complete}
                   disabled={isPending}
-                  className="gap-2 bg-emerald-600 text-white hover:bg-emerald-700"
+                  className="gap-2 bg-emerald-700 text-white hover:bg-emerald-800"
                 >
                   <CheckCircle className="size-4" />
                   {item.type === "RETURN"

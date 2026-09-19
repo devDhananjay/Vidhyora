@@ -12,6 +12,7 @@ import {
 export const metadata: Metadata = {
   title: "About VIDYORA | Contact",
   description: "About VIDYORA jewellery and how to reach our advisors.",
+  alternates: { canonical: "/contact" },
 };
 
 export default async function ContactPage() {

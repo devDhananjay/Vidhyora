@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Inventory override | Super Admin",
+  title: "Inventory override | Admin",
 };
 
 export default async function AdminInventoryPage() {

@@ -36,7 +36,7 @@ export async function getSellerStats(): Promise<SellerStats> {
       lowStockProducts,
     ] = await Promise.all([
       prisma.product.count({
-        where: { sellerId: sellerUserId },
+        where: { sellerId: sellerUserId, status: { not: "ARCHIVED" } },
       }),
       prisma.product.count({
         where: {

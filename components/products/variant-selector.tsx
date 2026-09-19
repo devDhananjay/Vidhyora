@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { ProductVariant } from "@prisma/client";
 import { formatCurrency } from "@/lib/utils";
+import { sellableStock } from "@/lib/products/product-card-data";
 import { Check } from "lucide-react";
 
 type VariantSelectorProps = {
@@ -19,6 +20,7 @@ export function VariantSelector({ variants }: VariantSelectorProps) {
 
   const selectedVariant = variants.find((v) => v.id === selectedVariantId);
   const attributes = selectedVariant?.attributes as Record<string, string> | null;
+  const available = selectedVariant ? sellableStock(selectedVariant) : 0;
 
   // Group variants by attribute type
   const attributeTypes = new Set<string>();
@@ -56,7 +58,7 @@ export function VariantSelector({ variants }: VariantSelectorProps) {
                 if (!variant) return null;
 
                 const isSelected = variant.id === selectedVariantId;
-                const inStock = variant.stock > 0;
+                const inStock = sellableStock(variant) > 0;
 
                 return (
                   <button
@@ -90,12 +92,13 @@ export function VariantSelector({ variants }: VariantSelectorProps) {
 
       {selectedVariant && (
         <div className="text-sm text-muted-foreground">
-          Price: <span className="font-semibold text-foreground">
+          Price:{" "}
+          <span className="font-semibold text-foreground">
             {formatCurrency(Number(selectedVariant.price))}
           </span>
           {" • "}
-          {selectedVariant.stock > 0 ? (
-            <span className="text-green-600">{selectedVariant.stock} in stock</span>
+          {available > 0 ? (
+            <span className="text-green-600">{available} in stock</span>
           ) : (
             <span className="text-destructive">Out of stock</span>
           )}

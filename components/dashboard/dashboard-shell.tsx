@@ -27,6 +27,7 @@ import {
   Globe,
   Mail,
   MessageSquare,
+  MessagesSquare,
   BookOpen,
   Clock,
 } from "lucide-react";
@@ -49,6 +50,7 @@ const ADMIN_NAV = [
   { label: "Blog", href: "/admin/blog", icon: BookOpen },
   { label: "Emails", href: "/admin/emails", icon: Mail },
   { label: "Contact", href: "/admin/contact-messages", icon: MessageSquare },
+  { label: "Live Chat", href: "/admin/support-chat", icon: MessagesSquare },
   { label: "Help", href: "/admin/help", icon: CircleHelp },
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { label: "Order SLA", href: "/admin/orders/sla", icon: Clock },
@@ -263,10 +265,10 @@ function NavLink({
         href={item.href}
         onClick={onNavigate}
         className={cn(
-          "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] whitespace-nowrap transition",
+          "flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-[12px] whitespace-nowrap transition",
           active
-            ? "bg-brand text-primary-foreground"
-            : "bg-accent text-brand",
+            ? "border-[#8b2e2e] bg-[#8b2e2e] text-white shadow-sm"
+            : "border-[#ead9c4] bg-[#faf6f0] text-[#8b2e2e] hover:border-[#d4b896] hover:bg-white",
         )}
       >
         <Icon className="size-3.5" strokeWidth={1.75} />

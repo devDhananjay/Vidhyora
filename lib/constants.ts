@@ -2,6 +2,11 @@ export const APP_NAME = "VIDYORA";
 export const APP_TAGLINE = "Beyond Ornaments";
 export const APP_DESCRIPTION =
   "VIDYORA — India's trusted destination for gold, diamond and fine jewellery.";
+/**
+ * Google / search-engine display name only.
+ * UI, logos, and on-site copy keep APP_NAME ("VIDYORA").
+ */
+export const SEO_BRAND_NAME = "Vidyora Jewels";
 export const BRAND_LOGO_SRC = "/brand/vidyora-logo.png";
 /** Default seal / watermark asset */
 export const BRAND_MONOGRAM_SRC = "/brand/vidyora-watermark.png";

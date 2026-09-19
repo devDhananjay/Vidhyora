@@ -42,6 +42,7 @@ export async function RelatedProducts({
           select: {
             id: true,
             stock: true,
+            reservedStock: true,
             attributes: true,
           },
           orderBy: { price: "asc" },

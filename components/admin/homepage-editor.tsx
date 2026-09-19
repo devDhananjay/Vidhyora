@@ -20,8 +20,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import type { HomepageConfigData, HomepageSectionId } from "@/lib/validations/homepage";
+import type {
+  HomepageConfigData,
+  HomepageFestivalOffer,
+  HomepageSectionId,
+} from "@/lib/validations/homepage";
 import { appConfirm } from "@/components/shared/app-dialog";
+import { DEFAULT_HOMEPAGE_CONFIG } from "@/lib/content/homepage-defaults";
 import {
   DEFAULT_HOMEPAGE_SECTION_ORDER,
   DEFAULT_HOMEPAGE_VISIBILITY,
@@ -29,9 +34,10 @@ import {
 } from "@/lib/validations/homepage";
 import { cn } from "@/lib/utils";
 
-type SectionId = HomepageSectionId;
+type SectionId = HomepageSectionId | "festivalOffer";
 
 const SECTIONS: { id: SectionId; label: string }[] = [
+  { id: "festivalOffer", label: "Festival offer popup" },
   { id: "hero", label: "Hero Banners (auto-scroll)" },
   { id: "collections", label: "Collections" },
   { id: "categories", label: "Categories" },
@@ -193,8 +199,10 @@ export function HomepageEditor({
     },
     sectionOrder: resolveHomepageSectionOrder(initialData),
     sectionSchedule: initialData.sectionSchedule ?? {},
+    festivalOffer:
+      initialData.festivalOffer ?? DEFAULT_HOMEPAGE_CONFIG.festivalOffer,
   });
-  const [section, setSection] = useState<SectionId>("hero");
+  const [section, setSection] = useState<SectionId>("festivalOffer");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showJson, setShowJson] = useState(false);
@@ -209,7 +217,7 @@ export function HomepageEditor({
   const sectionOrder = resolveHomepageSectionOrder(data);
   const sectionById = Object.fromEntries(
     SECTIONS.map((item) => [item.id, item]),
-  ) as Record<HomepageSectionId, (typeof SECTIONS)[number]>;
+  ) as Record<SectionId, (typeof SECTIONS)[number]>;
 
   function setSectionVisible(id: HomepageSectionId, visible: boolean) {
     setData((prev) => ({
@@ -372,6 +380,32 @@ export function HomepageEditor({
             <CardTitle className="text-base">Sections</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
+            <div
+              className={cn(
+                "rounded-xl border p-2",
+                section === "festivalOffer"
+                  ? "border-[#8b2e2e] bg-[#8b2e2e]/5"
+                  : "border-border",
+              )}
+            >
+              <button
+                type="button"
+                onClick={() => setSection("festivalOffer")}
+                className="w-full text-left"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium">Festival offer popup</span>
+                  {data.festivalOffer?.enabled ? (
+                    <Eye className="size-3.5 shrink-0 text-emerald-600" />
+                  ) : (
+                    <EyeOff className="size-3.5 shrink-0 text-muted-foreground" />
+                  )}
+                </div>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Schedule Diwali / festive budget modal in advance
+                </p>
+              </button>
+            </div>
             {sectionOrder.map((id, index) => {
               const item = sectionById[id] ?? {
                 id,
@@ -453,6 +487,10 @@ export function HomepageEditor({
         </Card>
 
         <div className="min-w-0 space-y-4">
+          {section === "festivalOffer" ? (
+            <FestivalOfferForm data={data} setData={setData} />
+          ) : (
+            <>
           {visibility[section] === false ? (
             <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
               This section is hidden on the storefront. Turn on “Show on
@@ -517,6 +555,8 @@ export function HomepageEditor({
           {section === "exchange" ? (
             <ExchangeForm data={data} setData={setData} />
           ) : null}
+            </>
+          )}
         </div>
       </div>
 
@@ -2032,6 +2072,167 @@ function WeddingMoodboardForm({ data, setData }: FormProps) {
                       ),
                     },
                   }))
+                }
+              />
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+
+function FestivalOfferForm({ data, setData }: FormProps) {
+  const offer: HomepageFestivalOffer =
+    data.festivalOffer ?? DEFAULT_HOMEPAGE_CONFIG.festivalOffer!;
+
+  function patch(next: Partial<HomepageFestivalOffer>) {
+    setData((prev) => ({
+      ...prev,
+      festivalOffer: {
+        ...(prev.festivalOffer ?? DEFAULT_HOMEPAGE_CONFIG.festivalOffer!),
+        ...next,
+      },
+    }));
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Festival offer popup</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Tanishq-style budget modal. Turn it on and set From / Until dates
+          before Diwali or any festival — it opens automatically on the
+          homepage during that window.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-5">
+        <VisibilityScheduleControls
+          idPrefix="festival-offer"
+          entityLabel="popup"
+          shown={offer.enabled}
+          onShownChange={(enabled) => patch({ enabled })}
+          visibleFrom={offer.visibleFrom}
+          visibleUntil={offer.visibleUntil}
+          onScheduleChange={(schedule) => patch(schedule)}
+        />
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field
+            label="Campaign id"
+            value={offer.id}
+            onChange={(id) => patch({ id: id || "festive-budget" })}
+          />
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium" htmlFor="festival-freq">
+              Show again after dismiss
+            </label>
+            <select
+              id="festival-freq"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={offer.frequency}
+              onChange={(event) =>
+                patch({
+                  frequency: event.target
+                    .value as HomepageFestivalOffer["frequency"],
+                })
+              }
+            >
+              <option value="once">Once (never again for this id)</option>
+              <option value="daily">Once per day</option>
+              <option value="session">Once per browser tab</option>
+            </select>
+          </div>
+        </div>
+
+        <Field
+          label="Title"
+          value={offer.title}
+          onChange={(title) => patch({ title })}
+        />
+        <Field
+          label="Subtitle (before highlight)"
+          value={offer.subtitle}
+          onChange={(subtitle) => patch({ subtitle })}
+        />
+        <Field
+          label="Highlight pill"
+          value={offer.highlight}
+          onChange={(highlight) => patch({ highlight })}
+        />
+
+        <div className="space-y-3">
+          <p className="text-sm font-medium">Polaroid images (2–4)</p>
+          {offer.images.map((image, index) => (
+            <div
+              key={`${image.src}-${index}`}
+              className="grid gap-3 rounded-xl border p-3 sm:grid-cols-2"
+            >
+              <Field
+                label="Image URL"
+                value={image.src}
+                onChange={(src) =>
+                  patch({
+                    images: offer.images.map((img, i) =>
+                      i === index ? { ...img, src } : img,
+                    ),
+                  })
+                }
+              />
+              <Field
+                label="Alt text"
+                value={image.alt}
+                onChange={(alt) =>
+                  patch({
+                    images: offer.images.map((img, i) =>
+                      i === index ? { ...img, alt } : img,
+                    ),
+                  })
+                }
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-3">
+          <p className="text-sm font-medium">Budget buttons</p>
+          {offer.budgets.map((budget, index) => (
+            <div
+              key={budget.id}
+              className="grid gap-3 rounded-xl border p-3 sm:grid-cols-3"
+            >
+              <Field
+                label="Label"
+                value={budget.label}
+                onChange={(label) =>
+                  patch({
+                    budgets: offer.budgets.map((b, i) =>
+                      i === index ? { ...b, label } : b,
+                    ),
+                  })
+                }
+              />
+              <Field
+                label="Link"
+                value={budget.href}
+                onChange={(href) =>
+                  patch({
+                    budgets: offer.budgets.map((b, i) =>
+                      i === index ? { ...b, href } : b,
+                    ),
+                  })
+                }
+              />
+              <Field
+                label="Id"
+                value={budget.id}
+                onChange={(id) =>
+                  patch({
+                    budgets: offer.budgets.map((b, i) =>
+                      i === index ? { ...b, id: id || b.id } : b,
+                    ),
+                  })
                 }
               />
             </div>

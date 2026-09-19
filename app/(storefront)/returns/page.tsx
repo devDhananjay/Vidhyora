@@ -8,6 +8,7 @@ import { phoneTelHref } from "@/lib/content/site-settings-defaults";
 export const metadata: Metadata = {
   title: "Returns | VIDYORA",
   description: "Return and replacement policy for VIDYORA jewellery.",
+  alternates: { canonical: "/returns" },
 };
 
 export default async function ReturnsPolicyPage() {

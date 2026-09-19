@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
+import { formatVariantAttributes } from "@/lib/products/product-card-data";
 import { Package } from "lucide-react";
 import type { CartItemWithDetails } from "@/types/cart";
 
@@ -54,17 +55,11 @@ export function OrderReview({ items }: OrderReviewProps) {
                   {item.product.name}
                 </Link>
 
-                {attributes && (
+                {attributes && formatVariantAttributes(attributes, 2) ? (
                   <div className="text-sm text-muted-foreground">
-                    {Object.entries(attributes)
-                      .slice(0, 2)
-                      .map(([key, value]) => (
-                        <span key={key}>
-                          {key}: {value} |{" "}
-                        </span>
-                      ))}
+                    {formatVariantAttributes(attributes, 2)}
                   </div>
-                )}
+                ) : null}
 
                 <div className="flex items-center gap-3 text-sm">
                   <span className="font-medium">

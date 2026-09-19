@@ -54,7 +54,7 @@ export async function registerSellerAction(
             gstNumber: validated.gstNumber,
             panNumber: validated.panNumber,
             businessAddress: {
-              line1: validated.address,
+              addressLine1: validated.address,
               city: validated.city,
               state: validated.state,
               country: "IN",

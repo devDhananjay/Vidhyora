@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 
 export const metadata: Metadata = {
-  title: "Users | Super Admin",
+  title: "Users | Admin",
 };
 
 type SearchParams = Promise<{
@@ -226,14 +226,16 @@ export default async function AdminUsersPage({
 
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
-    <Card>
+    <Card className="transition hover:border-[#ead9c4]">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+        <CardTitle className="text-sm font-medium tracking-wide text-neutral-600">
           {label}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-semibold">{value}</div>
+        <div className="font-serif text-3xl tracking-tight text-brand">
+          {value}
+        </div>
       </CardContent>
     </Card>
   );

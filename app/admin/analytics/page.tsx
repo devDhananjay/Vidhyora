@@ -21,7 +21,7 @@ import { getOrderStatusLabel } from "@/lib/orders/order-utils";
 import { format } from "date-fns";
 
 export const metadata: Metadata = {
-  title: "Analytics | Super Admin",
+  title: "Analytics | Admin",
 };
 
 export default async function AdminAnalyticsPage() {
@@ -80,7 +80,7 @@ export default async function AdminAnalyticsPage() {
           title="Reviews"
           value={stats.pendingReviews}
           icon={Star}
-          description={`${stats.activeCoupons} active coupons`}
+          description="Awaiting moderation"
         />
       </div>
 

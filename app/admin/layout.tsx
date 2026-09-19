@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 
@@ -9,10 +8,6 @@ export default async function AdminLayout({
 }) {
   const session = await requireAdmin();
 
-  if (!session) {
-    redirect("/login?callbackUrl=/admin");
-  }
-
   return (
     <DashboardShell
       variant="admin"
@@ -20,7 +15,8 @@ export default async function AdminLayout({
       userRole={session.user.role}
       extraLinks={[
         { href: "/", label: "View Storefront" },
-        { href: "/seller", label: "Monitor Seller Admins" },
+        { href: "/admin/sellers", label: "Seller Admins" },
+        { href: "/seller", label: "Seller Console" },
       ]}
     >
       {children}

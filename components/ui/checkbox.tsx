@@ -10,6 +10,7 @@ export type CheckboxProps = Omit<
   onCheckedChange?: (checked: boolean) => void;
 };
 
+/** Brand-styled checkbox (size + color also enforced globally in globals.css). */
 export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
   ({ className, checked, onCheckedChange, ...props }, ref) => {
     return (
@@ -19,7 +20,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
         checked={checked}
         onChange={(e) => onCheckedChange?.(e.target.checked)}
         className={cn(
-          "size-4 shrink-0 rounded border border-neutral-300 accent-[#8b2e2e] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8b2e2e]/40 disabled:cursor-not-allowed disabled:opacity-50",
+          "size-5 shrink-0 cursor-pointer disabled:cursor-not-allowed",
           className,
         )}
         {...props}

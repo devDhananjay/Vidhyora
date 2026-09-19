@@ -15,7 +15,7 @@ import { format } from "date-fns";
 import { SlaOrderActions } from "@/components/admin/sla-order-actions";
 
 export const metadata: Metadata = {
-  title: "Order SLA | Super Admin",
+  title: "Order SLA | Admin",
 };
 
 export default async function AdminOrderSlaPage() {
@@ -109,7 +109,7 @@ export default async function AdminOrderSlaPage() {
                           {formatCurrency(Number(order.total))}
                         </Badge>
                         {order.slaNudgedAt ? (
-                          <Badge variant="outline" className="text-blue-700">
+                          <Badge variant="outline" className="border-[#ead9c4] text-[#8b2e2e]">
                             Nudged
                           </Badge>
                         ) : null}

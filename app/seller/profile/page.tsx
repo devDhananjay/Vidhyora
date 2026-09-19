@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { KycUploadForm } from "@/components/seller/kyc-upload-form";
 import { SellerKycDetailsForm } from "@/components/seller/kyc-details-form";
+import { parseBusinessAddress } from "@/lib/seller/business-address";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "Profile & KYC | Seller Dashboard",
@@ -82,10 +85,22 @@ export default async function SellerProfilePage() {
     : null;
 
   if (!sellerProfile) {
-    return <div>Seller profile not found</div>;
+    return (
+      <div className="space-y-4 rounded-xl border border-dashed border-neutral-200 bg-white p-8 text-center">
+        <h1 className="font-serif text-2xl text-neutral-900">
+          Seller profile not found
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Complete seller registration to manage KYC and business details.
+        </p>
+        <Button asChild>
+          <Link href="/seller/register">Register as seller</Link>
+        </Button>
+      </div>
+    );
   }
 
-  const businessAddress = sellerProfile.businessAddress as Record<string, string>;
+  const businessAddress = parseBusinessAddress(sellerProfile.businessAddress);
   const hasGstNumber = Boolean(sellerProfile.gstNumber);
   const hasPanNumber = Boolean(sellerProfile.panNumber);
   const hasGstDoc = Boolean(sellerProfile.kycGstDocumentUrl);
@@ -155,7 +170,7 @@ export default async function SellerProfilePage() {
                 sellerProfile.kycStatus === "PENDING" ||
                 sellerProfile.kycStatus === "VERIFIED"
               }
-              label="Step 3 — Submit for Super Admin review"
+              label="Step 3 — Submit for admin review"
             />
             <Step
               done={sellerProfile.kycStatus === "VERIFIED"}
@@ -194,21 +209,32 @@ export default async function SellerProfilePage() {
                 <h3 className="mb-3 text-sm font-semibold text-neutral-900">
                   Step 2 — Documents
                 </h3>
-                <div className="grid gap-6 md:grid-cols-2">
-                  <KycUploadForm
-                    kind="gst"
-                    label="GST certificate"
-                    currentUrl={sellerProfile.kycGstDocumentUrl}
-                  />
-                  <KycUploadForm
-                    kind="pan"
-                    label="PAN document"
-                    currentUrl={sellerProfile.kycPanDocumentUrl}
-                  />
-                </div>
-                <p className="mt-3 text-xs text-muted-foreground">
-                  JPG, PNG, WEBP or PDF up to 5 MB.
-                </p>
+                {sellerProfile.kycStatus === "VERIFIED" &&
+                !hasGstDoc &&
+                !hasPanDoc ? (
+                  <p className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                    KYC is verified. Document uploads were not required for this
+                    account (or were cleared after verification).
+                  </p>
+                ) : (
+                  <>
+                    <div className="grid gap-6 md:grid-cols-2">
+                      <KycUploadForm
+                        kind="gst"
+                        label="GST certificate"
+                        currentUrl={sellerProfile.kycGstDocumentUrl}
+                      />
+                      <KycUploadForm
+                        kind="pan"
+                        label="PAN document"
+                        currentUrl={sellerProfile.kycPanDocumentUrl}
+                      />
+                    </div>
+                    <p className="mt-3 text-xs text-muted-foreground">
+                      JPG, PNG, WEBP or PDF up to 5 MB.
+                    </p>
+                  </>
+                )}
               </div>
             </>
           )}
@@ -279,17 +305,24 @@ export default async function SellerProfilePage() {
 
           <div>
             <div className="text-sm text-muted-foreground">Business address</div>
-            <div className="mt-1 space-y-1 text-sm">
-              <div>{businessAddress.addressLine1}</div>
-              {businessAddress.addressLine2 ? (
-                <div>{businessAddress.addressLine2}</div>
-              ) : null}
-              <div>
-                {businessAddress.city}, {businessAddress.state}{" "}
-                {businessAddress.postalCode}
+            {businessAddress ? (
+              <div className="mt-1 space-y-1 text-sm">
+                <div>{businessAddress.addressLine1 || "—"}</div>
+                {businessAddress.addressLine2 ? (
+                  <div>{businessAddress.addressLine2}</div>
+                ) : null}
+                <div>
+                  {[businessAddress.city, businessAddress.state, businessAddress.postalCode]
+                    .filter(Boolean)
+                    .join(", ")}
+                </div>
+                {businessAddress.country ? (
+                  <div>{businessAddress.country}</div>
+                ) : null}
               </div>
-              <div>{businessAddress.country}</div>
-            </div>
+            ) : (
+              <div className="mt-1 text-sm text-muted-foreground">Not provided</div>
+            )}
           </div>
         </CardContent>
       </Card>

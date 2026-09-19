@@ -8,7 +8,7 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Seller Admins | Super Admin",
+  title: "Seller Admins | Admin",
 };
 
 const KYC_FILTERS = [

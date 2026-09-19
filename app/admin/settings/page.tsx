@@ -18,7 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 
 export const metadata: Metadata = {
-  title: "Website Settings | Super Admin",
+  title: "Website Settings | Admin",
 };
 
 export default async function AdminSettingsPage() {

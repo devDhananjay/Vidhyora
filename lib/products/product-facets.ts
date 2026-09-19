@@ -71,12 +71,17 @@ const OCCASION_DEFS = [
     label: "Wedding",
     terms: ["wedding", "bridal", "engagement"],
   },
-  {
-    value: "festive",
-    label: "Festive",
-    terms: ["festive", "festival", "celebration", "auspicious"],
-  },
-] as const;
+    {
+      value: "festive",
+      label: "Festive",
+      terms: ["festive", "festival", "celebration", "auspicious"],
+    },
+    {
+      value: "party",
+      label: "Party",
+      terms: ["party", "evening", "cocktail", "celebration"],
+    },
+  ] as const;
 
 const METAL_ORDER = ["Yellow Gold", "White Gold", "Rose Gold", "Gold"] as const;
 

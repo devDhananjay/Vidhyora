@@ -7,7 +7,7 @@ import {
 import { HomepageEditor } from "@/components/admin/homepage-editor";
 
 export const metadata: Metadata = {
-  title: "Homepage | Super Admin",
+  title: "Homepage | Admin",
 };
 
 export default async function AdminHomepagePage() {

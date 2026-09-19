@@ -214,11 +214,11 @@ export function ReturnRequestForm({ orderItem, order, eligibility }: ReturnReque
       </Card>
 
       {/* Important Information */}
-      <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-900/10">
-        <h4 className="mb-2 font-medium text-blue-900 dark:text-blue-100">
+      <div className="rounded-xl border border-[#ead9c4] bg-[#faf6f0] p-4">
+        <h4 className="mb-2 font-medium text-[#8b2e2e]">
           Important Information
         </h4>
-        <ul className="space-y-1 text-sm text-blue-800 dark:text-blue-200">
+        <ul className="space-y-1 text-sm text-neutral-700">
           <li>• Your request will be reviewed within 24-48 hours</li>
           <li>• You'll receive an email notification once reviewed</li>
           <li>• Please keep the item in its original condition and packaging</li>

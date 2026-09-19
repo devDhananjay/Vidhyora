@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { updateSellerSettings } from "@/actions/seller/update-settings";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -94,22 +95,20 @@ export function SellerSettingsForm(props: Props) {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm">
-          <input
-            type="checkbox"
+        <label className="flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm">
+          <Checkbox
             checked={form.notifyNewOrders}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, notifyNewOrders: e.target.checked }))
+            onCheckedChange={(checked) =>
+              setForm((f) => ({ ...f, notifyNewOrders: checked }))
             }
           />
           Email me on new orders
         </label>
-        <label className="flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm">
-          <input
-            type="checkbox"
+        <label className="flex cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-sm">
+          <Checkbox
             checked={form.notifyLowStock}
-            onChange={(e) =>
-              setForm((f) => ({ ...f, notifyLowStock: e.target.checked }))
+            onCheckedChange={(checked) =>
+              setForm((f) => ({ ...f, notifyLowStock: checked }))
             }
           />
           Email me on low stock

@@ -1,4 +1,3 @@
-import { redirect } from "next/navigation";
 import { requireSeller } from "@/lib/auth-helpers";
 import { getActingSeller, listSellersForAdminView } from "@/lib/seller-context";
 import { DashboardShell } from "@/components/dashboard/dashboard-shell";
@@ -11,10 +10,6 @@ export default async function SellerLayout({
   children: React.ReactNode;
 }) {
   const session = await requireSeller();
-
-  if (!session) {
-    redirect("/login?callbackUrl=/seller");
-  }
 
   const acting = await getActingSeller();
   const sellers =

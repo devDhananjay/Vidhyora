@@ -12,6 +12,7 @@ import { OrdersSearch } from "@/components/orders/orders-search";
 import { SellerFulfillmentActions } from "@/components/seller/seller-fulfillment-actions";
 import { PaymentStatusBadge } from "@/components/orders/payment-status-badge";
 import { formatCurrency } from "@/lib/utils";
+import { formatVariantAttributes } from "@/lib/products/product-card-data";
 import { getOrderStatusLabel, getNextFulfillmentStep } from "@/lib/orders/order-utils";
 import { bulkAdvanceFulfillment } from "@/actions/seller/bulk-fulfillment";
 import { appAlert } from "@/components/shared/app-dialog";
@@ -187,12 +188,10 @@ export function SellerOrdersPanel({
             </div>
             <div className="grid gap-4">
               {filtered.map((item) => {
-                const attributes =
-                  item.variant.attributes &&
-                  typeof item.variant.attributes === "object" &&
-                  !Array.isArray(item.variant.attributes)
-                    ? (item.variant.attributes as Record<string, string>)
-                    : null;
+                const variantLabel = formatVariantAttributes(
+                  item.variant.attributes,
+                  2,
+                );
 
                 return (
                   <Card key={item.id}>
@@ -236,9 +235,7 @@ export function SellerOrdersPanel({
                               </Link>
                               <p className="mt-1 text-sm text-muted-foreground">
                                 {item.product.name}
-                                {attributes
-                                  ? ` · ${Object.values(attributes).join(" / ")}`
-                                  : ""}
+                                {variantLabel ? ` · ${variantLabel}` : ""}
                               </p>
                               <p className="text-sm text-muted-foreground">
                                 {item.order.user.name} •{" "}

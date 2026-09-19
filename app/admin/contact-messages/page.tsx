@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Contact Messages | Super Admin",
+  title: "Contact Messages | Admin",
 };
 
 const TABS = [

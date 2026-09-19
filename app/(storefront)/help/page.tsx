@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 export const metadata: Metadata = {
   title: "Help & FAQs | VIDYORA",
   description: "Answers about orders, payments, returns, jewellery care and stores.",
+  alternates: { canonical: "/help" },
 };
 
 export default async function HelpPage({

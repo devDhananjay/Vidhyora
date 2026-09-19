@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { Mail, MessageCircle } from "lucide-react";
 import { BrandLogo } from "@/components/brand/brand-logo";
+import { FooterLiveChatButton } from "@/components/storefront/footer-live-chat-button";
 import { APP_NAME, ROUTES } from "@/lib/constants";
 import {
   phoneTelHref,
@@ -11,18 +12,18 @@ import type { SiteSettingsData } from "@/lib/validations/site-settings";
 
 const USEFUL_LINKS = [
   { href: ROUTES.shipping, label: "Delivery Information" },
-  { href: ROUTES.shipping, label: "International Shipping" },
   { href: ROUTES.paymentOptions, label: "Payment Options" },
   { href: ROUTES.orders, label: "Track your Order" },
   { href: ROUTES.returns, label: "Returns" },
   { href: ROUTES.storeLocator, label: "Find a Store" },
+  { href: ROUTES.contact, label: "International Shipping Enquire" },
 ];
 
 const INFO_LINKS = [
   { href: ROUTES.blog, label: "Blog" },
   { href: ROUTES.offers, label: "Offers & Contest Details" },
   { href: ROUTES.help, label: "Help & FAQs" },
-  { href: ROUTES.contact, label: "About VIDYORA" },
+  { href: ROUTES.contact, label: "About & Contact" },
   { href: ROUTES.privacyPolicy, label: "Privacy Policy" },
   { href: ROUTES.termsAndConditions, label: "Terms & Conditions" },
 ];
@@ -94,15 +95,7 @@ export function SiteFooter({ settings }: SiteFooterProps) {
               >
                 <Mail className="size-4" strokeWidth={1.6} />
               </CircleIcon>
-              <CircleIcon href={ROUTES.help} label="Live chat">
-                <svg
-                  viewBox="0 0 24 24"
-                  className="size-4 fill-current"
-                  aria-hidden
-                >
-                  <path d="M4 4h16a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H9l-5 4V6a2 2 0 0 1 2-2Z" />
-                </svg>
-              </CircleIcon>
+              <FooterLiveChatButton />
             </div>
           </div>
         </div>
@@ -110,7 +103,7 @@ export function SiteFooter({ settings }: SiteFooterProps) {
         {socialLinks.length > 0 ? (
           <div className="mt-12 flex flex-wrap items-center gap-5 border-t border-white/15 pt-7">
             <p className="font-serif text-[22px]">Social</p>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               {socialLinks.map((item) => (
                 <SocialIcon
                   key={item.label}
@@ -120,6 +113,16 @@ export function SiteFooter({ settings }: SiteFooterProps) {
                   <path d={item.path} />
                 </SocialIcon>
               ))}
+              {social.instagram ? (
+                <a
+                  href={social.instagram}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm tracking-wide text-[#f4ece6]/90 hover:text-white"
+                >
+                  @vidyora_official
+                </a>
+              ) : null}
             </div>
           </div>
         ) : null}

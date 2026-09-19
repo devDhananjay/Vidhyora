@@ -8,9 +8,10 @@ import { SellerActions } from "@/components/admin/seller-actions";
 import { SellerCommissionForm } from "@/components/admin/seller-commission-form";
 import { KycActions } from "@/components/admin/kyc-actions";
 import { format } from "date-fns";
+import { parseBusinessAddress } from "@/lib/seller/business-address";
 
 export const metadata: Metadata = {
-  title: "Seller Admin | Super Admin",
+  title: "Seller Admin | Admin",
 };
 
 export default async function AdminSellerDetailPage({
@@ -25,7 +26,7 @@ export default async function AdminSellerDetailPage({
     notFound();
   }
 
-  const businessAddress = seller.businessAddress as Record<string, string>;
+  const businessAddress = parseBusinessAddress(seller.businessAddress);
 
   return (
     <div className="space-y-6">
@@ -104,7 +105,9 @@ export default async function AdminSellerDetailPage({
             <CardTitle className="text-sm">Total Products</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{seller.products.length}</div>
+            <div className="font-serif text-3xl tracking-tight text-brand">
+              {seller.products.length}
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -159,14 +162,24 @@ export default async function AdminSellerDetailPage({
 
           <div>
             <div className="text-sm text-muted-foreground">Business Address</div>
-            <div className="mt-1 space-y-1 text-sm">
-              <div>{businessAddress.addressLine1}</div>
-              {businessAddress.addressLine2 && <div>{businessAddress.addressLine2}</div>}
-              <div>
-                {businessAddress.city}, {businessAddress.state} {businessAddress.postalCode}
+            {businessAddress ? (
+              <div className="mt-1 space-y-1 text-sm">
+                <div>{businessAddress.addressLine1 || "—"}</div>
+                {businessAddress.addressLine2 ? (
+                  <div>{businessAddress.addressLine2}</div>
+                ) : null}
+                <div>
+                  {[businessAddress.city, businessAddress.state, businessAddress.postalCode]
+                    .filter(Boolean)
+                    .join(", ")}
+                </div>
+                {businessAddress.country ? (
+                  <div>{businessAddress.country}</div>
+                ) : null}
               </div>
-              <div>{businessAddress.country}</div>
-            </div>
+            ) : (
+              <div className="mt-1 text-sm text-muted-foreground">Not provided</div>
+            )}
           </div>
 
           <div>

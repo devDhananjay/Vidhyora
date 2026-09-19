@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { ProductVariant } from "@prisma/client";
 import { Check, Ruler } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
+import { sellableStock } from "@/lib/products/product-card-data";
 import { ProductBuyActions } from "@/components/products/product-buy-actions";
 import { SizeGuideDialog } from "@/components/products/size-guide-dialog";
 
@@ -54,7 +55,8 @@ export function ProductPurchasePanel({
   ) || /ring|bangle|bracelet|chain|necklace/i.test(productName);
 
   const price = selectedVariant ? Number(selectedVariant.price) : basePrice;
-  const inStock = selectedVariant ? selectedVariant.stock > 0 : false;
+  const available = selectedVariant ? sellableStock(selectedVariant) : 0;
+  const inStock = available > 0;
   const weightLabel = selectedVariant?.weight
     ? `${Number(selectedVariant.weight)} g`
     : weightFallback || null;
@@ -98,7 +100,7 @@ export function ProductPurchasePanel({
                     );
                     if (!variant) return null;
                     const isSelected = variant.id === selectedVariantId;
-                    const stockOk = variant.stock > 0;
+                    const stockOk = sellableStock(variant) > 0;
 
                     return (
                       <button
@@ -140,7 +142,7 @@ export function ProductPurchasePanel({
               {" · "}
               {inStock ? (
                 <span className="text-green-600">
-                  {selectedVariant.stock} in stock
+                  {available} in stock
                 </span>
               ) : (
                 <span className="text-destructive">Out of stock</span>

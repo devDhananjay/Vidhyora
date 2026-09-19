@@ -26,9 +26,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const collection = COLLECTION_MAP[slug];
-  if (!collection) {
-    return { title: "Collection | VIDYORA" };
-  }
+  if (!collection) notFound();
   return {
     title: `${collection.title} | VIDYORA`,
     description: collection.description,

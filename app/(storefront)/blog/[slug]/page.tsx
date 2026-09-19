@@ -20,7 +20,7 @@ export async function generateMetadata({
 }: BlogPostPageProps): Promise<Metadata> {
   const { slug } = await params;
   const post = await getBlogPostBySlug(slug);
-  if (!post) return { title: "Article | VIDYORA" };
+  if (!post) notFound();
   return {
     title: `${post.title} | VIDYORA Blog`,
     description: post.excerpt,

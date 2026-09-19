@@ -25,6 +25,8 @@ import { PAGINATION } from "@/lib/constants";
 export const metadata: Metadata = {
   title: "Search Jewellery | VIDYORA",
   description: "Search gold, diamond and fine jewellery on VIDYORA",
+  alternates: { canonical: "/search" },
+  robots: { index: false, follow: true },
 };
 
 async function SearchResults({

@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   title: "Payment Options | VIDYORA",
   description:
     "Pay for VIDYORA jewellery with UPI, cards, net banking, wallets via Razorpay, or Cash on Delivery.",
+  alternates: { canonical: "/payment-options" },
 };
 
 const METHODS = [

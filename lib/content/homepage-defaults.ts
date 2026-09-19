@@ -578,4 +578,48 @@ export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfigData = {
       },
     ],
   },
+  festivalOffer: {
+    id: "festive-budget-2026",
+    // Off by default — turn on in Admin → Homepage and set festival dates.
+    enabled: false,
+    visibleFrom: null,
+    visibleUntil: null,
+    title: "Best Picks for Your Budget",
+    subtitle: "Choose your budget and be among the first to hear about our",
+    highlight: "festive offer",
+    frequency: "once",
+    images: [
+      {
+        src: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=600&q=80",
+        alt: "Gold earrings",
+        rotate: -8,
+      },
+      {
+        src: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=600&q=80",
+        alt: "Diamond necklace",
+        rotate: 7,
+      },
+      {
+        src: "https://images.unsplash.com/photo-1601121141461-9d6647bca1ed?w=600&q=80",
+        alt: "Gold necklace",
+        rotate: -5,
+      },
+      {
+        src: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=600&q=80",
+        alt: "Bridal jewellery",
+        rotate: 6,
+      },
+    ],
+    budgets: [
+      { id: "25k", label: "Less than ₹25k", href: "/products?maxPrice=25000" },
+      { id: "50k", label: "Less than ₹50k", href: "/collections/under-50k" },
+      { id: "75k", label: "Less than ₹75k", href: "/products?maxPrice=75000" },
+      { id: "1l", label: "Less than ₹1 Lakh", href: "/products?maxPrice=100000" },
+      {
+        id: "1l-plus",
+        label: "More than ₹1 Lakh",
+        href: "/products?minPrice=100000",
+      },
+    ],
+  },
 };

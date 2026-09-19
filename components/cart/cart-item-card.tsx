@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
+import { formatVariantAttributes } from "@/lib/products/product-card-data";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, Heart } from "lucide-react";
 import type { CartItemWithDetails } from "@/types/cart";
@@ -104,15 +105,11 @@ export function CartItemCard({ item }: CartItemCardProps) {
           >
             {item.product.name}
           </Link>
-          {attributes && (
+          {attributes && formatVariantAttributes(attributes) ? (
             <div className="mt-1 text-sm text-muted-foreground">
-              {Object.entries(attributes).map(([key, value]) => (
-                <span key={key}>
-                  {key}: {value} |{" "}
-                </span>
-              ))}
+              {formatVariantAttributes(attributes)}
             </div>
-          )}
+          ) : null}
         </div>
 
         {/* Price */}

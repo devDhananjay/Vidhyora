@@ -7,7 +7,7 @@ import { EmailCampaignForm } from "@/components/admin/email-campaign-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Emails | Super Admin",
+  title: "Emails | Admin",
 };
 
 const TYPE_LABEL: Record<string, string> = {

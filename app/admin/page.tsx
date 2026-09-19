@@ -18,23 +18,29 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/utils";
 import { format } from "date-fns";
 import Link from "next/link";
+import { auth } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "Super Admin | VIDYORA",
+  title: "Admin | VIDYORA",
   description: "Monitor seller admins and moderate the marketplace",
 };
 
 export default async function AdminDashboardPage() {
-  const [stats, activity] = await Promise.all([
+  const [session, stats, activity] = await Promise.all([
+    auth(),
     getAdminStats(),
     getRecentActivity(),
   ]);
+  const isSuper = session?.user?.role === "SUPER_ADMIN";
+  const roleLabel = isSuper ? "Super Admin" : "Admin";
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Super Admin</h1>
+        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+          {roleLabel}
+        </h1>
         <p className="mt-2 text-sm text-neutral-500">
           Monitor seller admins, approve or reject listings and reviews, and
           activate or deactivate accounts.
@@ -100,7 +106,7 @@ export default async function AdminDashboardPage() {
             title="Returns & Replacements"
             value={stats.pendingReturns}
             icon={RotateCcw}
-            description="Requests awaiting Super Admin review"
+            description="Requests awaiting admin review"
           />
         </Link>
         <Link href="/admin/payouts">
@@ -127,7 +133,7 @@ export default async function AdminDashboardPage() {
               {stats.pendingSellers > 0 && (
                 <Link href="/admin/sellers">
                   <div className="rounded-xl border bg-background p-4 hover:bg-muted">
-                    <div className="text-2xl font-bold text-orange-600">
+                    <div className="font-serif text-3xl tracking-tight text-brand">
                       {stats.pendingSellers}
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -139,7 +145,7 @@ export default async function AdminDashboardPage() {
               {stats.pendingProducts > 0 && (
                 <Link href="/admin/products">
                   <div className="rounded-xl border bg-background p-4 hover:bg-muted">
-                    <div className="text-2xl font-bold text-orange-600">
+                    <div className="font-serif text-3xl tracking-tight text-brand">
                       {stats.pendingProducts}
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -151,7 +157,7 @@ export default async function AdminDashboardPage() {
               {stats.pendingReviews > 0 && (
                 <Link href="/admin/reviews">
                   <div className="rounded-xl border bg-background p-4 hover:bg-muted">
-                    <div className="text-2xl font-bold text-orange-600">
+                    <div className="font-serif text-3xl tracking-tight text-brand">
                       {stats.pendingReviews}
                     </div>
                     <div className="text-sm text-muted-foreground">
@@ -163,7 +169,7 @@ export default async function AdminDashboardPage() {
               {stats.pendingReturns > 0 && (
                 <Link href="/admin/returns">
                   <div className="rounded-xl border bg-background p-4 hover:bg-muted">
-                    <div className="text-2xl font-bold text-orange-600">
+                    <div className="font-serif text-3xl tracking-tight text-brand">
                       {stats.pendingReturns}
                     </div>
                     <div className="text-sm text-muted-foreground">

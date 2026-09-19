@@ -6,7 +6,7 @@ import { EmptyWishlist } from "@/components/wishlist/empty-wishlist";
 import { WishlistShareButton } from "@/components/wishlist/wishlist-share-button";
 
 export const metadata: Metadata = {
-  title: "My Wishlist | VIDYORA",
+  title: "My Wishlist",
 };
 
 export default async function WishlistPage() {

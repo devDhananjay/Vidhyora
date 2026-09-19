@@ -9,6 +9,7 @@ import { NativeSelect } from "@/components/ui/native-select";
 export const metadata: Metadata = {
   title: "Store Locator | VIDYORA",
   description: "Find a VIDYORA jewellery store near you.",
+  alternates: { canonical: "/store-locator" },
 };
 
 export default async function StoreLocatorPage({

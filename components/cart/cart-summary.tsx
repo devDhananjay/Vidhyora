@@ -101,7 +101,7 @@ export function CartSummary({
         ) : null}
 
         {summary.subtotal < summary.freeShippingThreshold && (
-          <div className="flex items-center gap-2 rounded bg-blue-50 p-2 text-xs text-blue-700">
+          <div className="flex items-center gap-2 rounded-lg border border-[#ead9c4] bg-[#faf6f0] p-2 text-xs text-[#8b2e2e]">
             <Truck className="size-4" />
             Add{" "}
             {formatCurrency(summary.freeShippingThreshold - summary.subtotal)}{" "}

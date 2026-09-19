@@ -13,7 +13,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettingsData = {
     whatsappNumber: "919411441937",
   },
   social: {
-    instagram: "",
+    instagram: "https://www.instagram.com/vidyora_official/",
     facebook: "",
     twitter: "",
     youtube: "",

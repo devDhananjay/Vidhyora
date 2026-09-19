@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { getSellerReturns } from "@/actions/seller/get-returns";
-import { ReturnModerationCard } from "@/components/returns/return-moderation-card";
-import { Card, CardContent } from "@/components/ui/card";
+import { ReturnsWorkspace } from "@/components/returns/returns-workspace";
 
 export const metadata: Metadata = {
   title: "Returns & Replacements | Seller Admin",
@@ -9,7 +9,6 @@ export const metadata: Metadata = {
 
 export default async function SellerReturnsPage() {
   const returns = await getSellerReturns();
-  const pending = returns.filter((item) => item.status === "PENDING").length;
 
   return (
     <div className="space-y-6">
@@ -18,24 +17,17 @@ export default async function SellerReturnsPage() {
           Returns & Replacements
         </h1>
         <p className="mt-2 text-muted-foreground">
-          {returns.length} requests • {pending} pending review. Approve or
-          reject customer requests for this store.
+          Approve or reject customer requests for your store. Track each request
+          from pending through completion.
         </p>
       </div>
 
-      {returns.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            No return or replacement requests for this seller admin yet.
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4">
-          {returns.map((item) => (
-            <ReturnModerationCard key={item.id} item={item} />
-          ))}
-        </div>
-      )}
+      <Suspense fallback={<div className="text-sm text-muted-foreground">Loading…</div>}>
+        <ReturnsWorkspace
+          items={returns}
+          emptyMessage="No return or replacement requests for this seller admin yet."
+        />
+      </Suspense>
     </div>
   );
 }

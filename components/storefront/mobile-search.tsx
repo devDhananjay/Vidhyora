@@ -18,14 +18,17 @@ type SuggestItem = {
   image: string | null;
 };
 
-const POPULAR = [
+const POPULAR: Array<
+  | { label: string; q: string; href?: never }
+  | { label: string; href: string; q?: never }
+> = [
   { label: "Gold necklace", q: "gold necklace" },
   { label: "Diamond rings", q: "diamond ring" },
   { label: "Earrings", q: "earrings" },
   { label: "Bridal", q: "bridal" },
   { label: "Under ₹50k", href: "/collections/under-50k" },
   { label: "Wedding", href: "/collections/wedding" },
-] as const;
+];
 
 export function MobileSearchButton({ className }: { className?: string }) {
   const [open, setOpen] = useState(false);
@@ -204,7 +207,7 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
             </p>
             <div className="flex flex-wrap gap-2">
               {POPULAR.map((item) =>
-                "href" in item && item.href ? (
+                item.href ? (
                   <Link
                     key={item.label}
                     href={item.href}
@@ -217,7 +220,7 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
                   <button
                     key={item.label}
                     type="button"
-                    onClick={() => goSearch("q" in item ? item.q : item.label)}
+                    onClick={() => goSearch(item.q)}
                     className="rounded-full border border-neutral-200 bg-white px-3.5 py-2 text-sm text-neutral-800"
                   >
                     {item.label}

@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
+import { formatVariantAttributes } from "@/lib/products/product-card-data";
 import { ShoppingCart, Trash2 } from "lucide-react";
 import type { CartItemWithDetails } from "@/types/cart";
 import { toggleSaveForLater } from "@/actions/cart/save-for-later";
@@ -85,17 +86,11 @@ export function SavedForLaterSection({ items }: SavedForLaterSectionProps) {
                 {item.product.name}
               </Link>
 
-              {attributes && (
+              {attributes && formatVariantAttributes(attributes, 2) ? (
                 <div className="mb-2 text-xs text-muted-foreground">
-                  {Object.entries(attributes)
-                    .slice(0, 2)
-                    .map(([key, value]) => (
-                      <span key={key}>
-                        {key}: {value} |{" "}
-                      </span>
-                    ))}
+                  {formatVariantAttributes(attributes, 2)}
                 </div>
-              )}
+              ) : null}
 
               <div className="mb-3 font-semibold">
                 {formatCurrency(Number(item.variant.price))}

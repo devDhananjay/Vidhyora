@@ -91,11 +91,12 @@ export default async function ProductDetailPage({
           </CardHeader>
           <CardContent>
             <p
-              className={`text-2xl font-bold ${
-                totalStock <= 10 ? "text-red-600" : ""
+              className={`font-serif text-3xl tracking-tight ${
+                totalStock <= 10 ? "text-red-600" : "text-brand"
               }`}
             >
-              {totalStock} units
+              {totalStock}{" "}
+              <span className="text-lg text-neutral-500">units</span>
             </p>
           </CardContent>
         </Card>

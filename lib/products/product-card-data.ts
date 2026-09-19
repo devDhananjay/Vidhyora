@@ -103,9 +103,18 @@ export function imageUrlsForProduct(input: {
 export const productCardVariantSelect = {
   id: true,
   stock: true,
+  reservedStock: true,
   attributes: true,
   price: true,
 } as const;
+
+/** Units that can still be sold (on-hand minus reserved for open carts/orders). */
+export function sellableStock(variant: {
+  stock: number;
+  reservedStock?: number | null;
+}) {
+  return Math.max(0, variant.stock - Math.max(0, variant.reservedStock ?? 0));
+}
 
 export function variantOptionLabel(attributes: unknown, fallback = "Default") {
   if (!attributes || typeof attributes !== "object" || Array.isArray(attributes)) {
@@ -126,19 +135,45 @@ export function variantOptionLabel(attributes: unknown, fallback = "Default") {
   return fallback;
 }
 
+/** Human-readable variant attrs for cart/checkout (no raw `name:` / trailing `|`). */
+export function formatVariantAttributes(
+  attributes: unknown,
+  maxEntries = 4,
+): string {
+  if (!attributes || typeof attributes !== "object" || Array.isArray(attributes)) {
+    return "";
+  }
+  return Object.entries(attributes as Record<string, unknown>)
+    .slice(0, maxEntries)
+    .map(([key, raw]) => {
+      const value = asAttrString(raw);
+      if (!value) return null;
+      if (/^(name|option|label|title|value)$/i.test(key)) return value;
+      return `${key}: ${value}`;
+    })
+    .filter(Boolean)
+    .join(" · ");
+}
+
 export function mapCardVariants(
   variants: Array<{
     id: string;
     stock: number;
+    reservedStock?: number;
     attributes: unknown;
   }>,
 ) {
-  return variants.map((variant, index) => ({
-    id: variant.id,
-    stock: variant.stock,
-    label: variantOptionLabel(
-      variant.attributes,
-      variants.length === 1 ? "Standard" : `Option ${index + 1}`,
-    ),
-  }));
+  return variants.map((variant, index) => {
+    const reserved = Math.max(0, variant.reservedStock ?? 0);
+    const available = Math.max(0, variant.stock - reserved);
+    return {
+      id: variant.id,
+      /** Sellable units (stock − reserved) — matches cart/add-to-cart checks. */
+      stock: available,
+      label: variantOptionLabel(
+        variant.attributes,
+        variants.length === 1 ? "Standard" : `Option ${index + 1}`,
+      ),
+    };
+  });
 }

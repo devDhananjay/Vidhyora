@@ -1,4 +1,5 @@
 import type { Product, ProductVariant, Category } from "@prisma/client";
+import { sellableStock } from "@/lib/products/product-card-data";
 
 type ProductWithRelations = Product & {
   category: Category;
@@ -16,7 +17,7 @@ export function generateProductStructuredData(product: ProductWithRelations) {
     ? Math.max(...product.variants.map((v) => Number(v.price)))
     : basePrice;
 
-  const inStock = product.variants.some((v) => v.stock > 0);
+  const inStock = product.variants.some((v) => sellableStock(v) > 0);
 
   const structuredData = {
     "@context": "https://schema.org",
@@ -67,17 +68,21 @@ export function generateBreadcrumbStructuredData(items: Array<{ name: string; ur
 
 export function generateOrganizationStructuredData(options: {
   name: string;
+  alternateName?: string;
   url: string;
   email?: string;
   phone?: string;
   logo?: string;
+  sameAs?: string[];
 }) {
   return {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: options.name,
+    ...(options.alternateName ? { alternateName: options.alternateName } : {}),
     url: options.url,
     ...(options.logo ? { logo: options.logo } : {}),
+    ...(options.sameAs?.length ? { sameAs: options.sameAs } : {}),
     ...(options.email || options.phone
       ? {
           contactPoint: {
@@ -95,12 +100,14 @@ export function generateOrganizationStructuredData(options: {
 
 export function generateWebSiteStructuredData(options: {
   name: string;
+  alternateName?: string;
   url: string;
 }) {
   return {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: options.name,
+    ...(options.alternateName ? { alternateName: options.alternateName } : {}),
     url: options.url,
     potentialAction: {
       "@type": "SearchAction",

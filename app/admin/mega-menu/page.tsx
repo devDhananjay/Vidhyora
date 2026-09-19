@@ -4,7 +4,7 @@ import { ensureMegaMenuConfigSeeded, getMegaMenuConfigForAdmin } from "@/lib/nav
 import { MegaMenuEditor } from "@/components/admin/mega-menu-editor";
 
 export const metadata: Metadata = {
-  title: "Mega Menu | Super Admin",
+  title: "Mega Menu | Admin",
 };
 
 export default async function AdminMegaMenuPage() {

@@ -46,6 +46,15 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
 
     return {
       ...base,
+      social: {
+        ...base.social,
+        instagram:
+          base.social?.instagram?.trim() ||
+          DEFAULT_SITE_SETTINGS.social.instagram,
+        facebook: base.social?.facebook?.trim() || "",
+        twitter: base.social?.twitter?.trim() || "",
+        youtube: base.social?.youtube?.trim() || "",
+      },
       business: {
         ...DEFAULT_BUSINESS_SETTINGS,
         ...(base.business ?? {}),

@@ -111,32 +111,8 @@ export async function approveProduct(
   try {
     await requireAdmin();
 
-    const product = await prisma.product.findUnique({
-      where: { id: productId },
-      select: { qualityChecklist: true },
-    });
-
-    const checklist = product?.qualityChecklist as
-      | { checked?: Record<string, boolean> }
-      | null;
-    const criticalIds = [
-      "images_clear",
-      "weight",
-      "metal_purity",
-      "pricing",
-      "description",
-      "sku_stock",
-    ];
-    const missingCritical = criticalIds.filter(
-      (id) => !checklist?.checked?.[id],
-    );
-    if (missingCritical.length > 0) {
-      return {
-        success: false,
-        error: `Complete QA checklist first (${missingCritical.length} critical item(s) unchecked). Save the checklist, then approve.`,
-      };
-    }
-
+    // Same behavior as bulkApproveProducts: QA checklist is optional guidance
+    // on the review page, not a hard gate for single approve.
     await prisma.product.update({
       where: { id: productId },
       data: {

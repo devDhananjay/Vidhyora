@@ -62,7 +62,7 @@ export function JewelleryQaChecklistPanel({
       <div>
         <h3 className="font-semibold text-neutral-900">Jewellery QA checklist</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Tick items before approving. Critical items must pass for a clean review.
+          Optional review aid — tick items as you check the listing. Does not block approve.
         </p>
       </div>
 

@@ -17,6 +17,7 @@ type ProductPurchasePanelProps = {
   isInWishlist: boolean;
   whatsappNumber?: string;
   weightFallback?: string | null;
+  sizeFallback?: string | null;
 };
 
 function attrRecord(variant: ProductVariant | undefined) {
@@ -33,6 +34,7 @@ export function ProductPurchasePanel({
   isInWishlist,
   whatsappNumber,
   weightFallback,
+  sizeFallback,
 }: ProductPurchasePanelProps) {
   const [selectedVariantId, setSelectedVariantId] = useState(variants[0]?.id);
   const [sizeGuideOpen, setSizeGuideOpen] = useState(false);
@@ -57,9 +59,35 @@ export function ProductPurchasePanel({
   const price = selectedVariant ? Number(selectedVariant.price) : basePrice;
   const available = selectedVariant ? sellableStock(selectedVariant) : 0;
   const inStock = available > 0;
-  const weightLabel = selectedVariant?.weight
-    ? `${Number(selectedVariant.weight)} g`
-    : weightFallback || null;
+  const weightLabel = (() => {
+    const raw = selectedVariant?.weight
+      ? String(Number(selectedVariant.weight))
+      : weightFallback?.trim() || "";
+    if (!raw) return null;
+    // Always show unit as capital G (e.g. Weight: 20 G)
+    const numeric = raw.match(/([\d.]+)/)?.[1];
+    if (numeric) return `${numeric} G`;
+    return /gram|\bg\b/i.test(raw)
+      ? raw.replace(/\s*(gram|g)\b/i, " G")
+      : `${raw} G`;
+  })();
+
+  const sizeLabel = (() => {
+    if (attributes) {
+      const sizeKey = Object.keys(attributes).find((key) =>
+        /size|ring|bangle|circumference|diameter|length/i.test(key),
+      );
+      const value = sizeKey ? attributes[sizeKey]?.trim() : null;
+      if (value) return value;
+    }
+    if (sizeFallback?.trim()) return sizeFallback.trim();
+    // Fallback: variant length field (e.g. chain length in inches)
+    if (selectedVariant?.length != null) {
+      const n = Number(selectedVariant.length);
+      if (Number.isFinite(n) && n > 0) return `${n} inches`;
+    }
+    return null;
+  })();
 
   return (
     <div className="space-y-5">
@@ -136,7 +164,7 @@ export function ProductPurchasePanel({
           {selectedVariant ? (
             <div className="text-sm text-muted-foreground">
               Price:{" "}
-              <span className="font-semibold text-foreground">
+              <span className="font-semibold text-brand">
                 {formatCurrency(price)}
               </span>
               {" · "}
@@ -170,6 +198,7 @@ export function ProductPurchasePanel({
         productText={productText}
         whatsappNumber={whatsappNumber}
         price={price}
+        sizeLabel={sizeLabel}
         weightLabel={weightLabel}
       />
 

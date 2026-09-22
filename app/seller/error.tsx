@@ -17,7 +17,7 @@ export default function SellerError({
 
   return (
     <div className="mx-auto flex max-w-lg flex-col items-center gap-4 py-16 text-center">
-      <h1 className="font-serif text-3xl text-neutral-900">Something went wrong</h1>
+      <h1 className="font-serif text-3xl text-brand">Something went wrong</h1>
       <p className="text-sm text-muted-foreground">
         This seller page failed to load. Try again, or return to the dashboard.
       </p>

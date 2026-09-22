@@ -30,7 +30,7 @@ export default async function PrivacyPolicyPage() {
         agree to this policy.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         1. Information we collect
       </h2>
       <p>We may collect:</p>
@@ -62,7 +62,7 @@ export default async function PrivacyPolicyPage() {
         </li>
       </ul>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         2. How we use your information
       </h2>
       <p>We use personal data to:</p>
@@ -77,7 +77,7 @@ export default async function PrivacyPolicyPage() {
         <li>Improve site performance, search and customer support.</li>
       </ul>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         3. Cookies
       </h2>
       <p>
@@ -87,7 +87,7 @@ export default async function PrivacyPolicyPage() {
         together with our site Cookie information in the footer.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         4. Sharing of information
       </h2>
       <p>
@@ -98,7 +98,7 @@ export default async function PrivacyPolicyPage() {
         required by law or to protect VIDYORA, our users or the public.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         5. Data retention &amp; security
       </h2>
       <p>
@@ -109,7 +109,7 @@ export default async function PrivacyPolicyPage() {
         safeguards but cannot guarantee absolute security.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         6. Your choices
       </h2>
       <p>
@@ -122,7 +122,7 @@ export default async function PrivacyPolicyPage() {
         and compliance.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         7. Children
       </h2>
       <p>
@@ -131,7 +131,7 @@ export default async function PrivacyPolicyPage() {
         children for marketplace accounts.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         8. Changes
       </h2>
       <p>
@@ -140,7 +140,7 @@ export default async function PrivacyPolicyPage() {
         the site after changes means you accept the revised policy.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">9. Contact</h2>
+      <h2 className="font-serif text-2xl text-brand">9. Contact</h2>
       <p>
         Privacy questions:{" "}
         <a

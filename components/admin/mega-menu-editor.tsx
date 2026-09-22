@@ -232,7 +232,7 @@ export function MegaMenuEditor({
           <DialogOverlay />
           <DialogPrimitive.Content className="fixed left-1/2 top-1/2 z-[101] flex max-h-[90vh] w-[min(100%-1.5rem,1100px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl outline-none">
             <div className="flex items-center justify-between border-b px-4 py-3">
-              <DialogTitle className="font-serif text-xl text-neutral-900">
+              <DialogTitle className="font-serif text-xl text-brand">
                 Mega menu preview
               </DialogTitle>
               <DialogClose asChild>

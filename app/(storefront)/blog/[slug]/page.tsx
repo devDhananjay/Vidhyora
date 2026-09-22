@@ -92,7 +92,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
         {post.tips && post.tips.length > 0 ? (
           <div className="mt-8 rounded-2xl border border-neutral-100 bg-white p-6">
-            <h2 className="font-serif text-2xl text-neutral-900">Keep in mind</h2>
+            <h2 className="font-serif text-2xl text-brand">Keep in mind</h2>
             <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-6 text-neutral-700">
               {post.tips.map((tip) => (
                 <li key={tip}>{tip}</li>
@@ -106,7 +106,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
             <p className="text-xs tracking-[0.2em] text-[#8b2e2e] uppercase">
               Shop the look
             </p>
-            <h2 className="mt-2 font-serif text-2xl text-neutral-900 sm:text-3xl">
+            <h2 className="mt-2 font-serif text-2xl text-brand sm:text-3xl">
               Ready to explore this jewellery?
             </h2>
             <p className="mt-2 max-w-xl text-sm leading-relaxed text-neutral-600">
@@ -125,7 +125,7 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
 
       {more.length > 0 ? (
         <div className="mx-auto max-w-3xl px-4 pb-16 md:px-6">
-          <h2 className="font-serif text-2xl text-neutral-900">More to read</h2>
+          <h2 className="font-serif text-2xl text-brand">More to read</h2>
           <ul className="mt-4 space-y-3">
             {more.map((item) => (
               <li key={item.slug}>

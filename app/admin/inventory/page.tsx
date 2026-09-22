@@ -26,7 +26,7 @@ export default async function AdminInventoryPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+        <h1 className="font-serif text-3xl text-brand sm:text-4xl">
           Inventory override
         </h1>
         <p className="mt-2 text-muted-foreground">
@@ -39,7 +39,7 @@ export default async function AdminInventoryPage() {
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="font-serif text-xl">
+            <CardTitle className="font-serif text-xl font-normal text-brand">
               Low stock (≤ {DEFAULT_LOW_STOCK_THRESHOLD})
             </CardTitle>
             <p className="mt-1 text-sm text-muted-foreground">

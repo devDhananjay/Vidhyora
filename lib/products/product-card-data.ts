@@ -35,6 +35,7 @@ export function jewelleryCardMeta(attributes: unknown): {
   metal?: string;
   karat?: string;
   weight?: string;
+  quality?: string;
   label?: string;
 } {
   if (!attributes || typeof attributes !== "object" || Array.isArray(attributes)) {
@@ -60,15 +61,26 @@ export function jewelleryCardMeta(attributes: unknown): {
     if (/yellow\s*gold/i.test(metal)) metal = "Yellow Gold";
     else if (/white\s*gold/i.test(metal)) metal = "White Gold";
     else if (/rose\s*gold/i.test(metal)) metal = "Rose Gold";
+    else if (/stainless\s*steel|steel/i.test(metal)) metal = "Stainless Steel";
     else if (/^gold$/i.test(metal)) metal = "Gold";
   }
 
-  const parts = [metal, karat, weight].filter(Boolean);
+  const quality = asAttrString(source.quality);
+
+  // Prefer metal · quality (e.g. STAINLESS STEEL · 316L) when quality is set.
+  // Otherwise fall back to karat / weight for gold pieces.
+  const parts = quality
+    ? [metal, quality]
+    : [metal, karat, weight].filter(Boolean);
+
   return {
     metal: metal || undefined,
     karat: karat || undefined,
     weight: weight || undefined,
-    label: parts.length ? parts.join(" · ") : undefined,
+    quality: quality || undefined,
+    label: parts.filter(Boolean).length
+      ? parts.filter(Boolean).join(" · ")
+      : undefined,
   };
 }
 

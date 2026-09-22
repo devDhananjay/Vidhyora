@@ -85,7 +85,7 @@ export function RecentlyViewedRail({
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-12 md:py-16">
-      <h2 className="mb-6 font-serif text-2xl text-[#8b2e2e] md:text-3xl">
+      <h2 className="mb-6 font-serif text-2xl text-brand md:text-3xl">
         {title}
       </h2>
       <div className="-mx-4 flex gap-4 overflow-x-auto px-4 pb-2 md:mx-0 md:px-0">
@@ -113,7 +113,7 @@ export function RecentlyViewedRail({
             <p className="mt-3 line-clamp-2 text-sm text-neutral-800">
               {item.name}
             </p>
-            <p className="mt-1 text-sm font-medium text-neutral-900">
+            <p className="mt-1 text-sm font-medium text-brand">
               {formatCurrency(item.price)}
             </p>
           </Link>

@@ -21,7 +21,7 @@ export default async function OrderConfirmedPage({
       <span className="flex size-16 items-center justify-center rounded-full bg-[#f3ebe4] text-[#8b2e2e]">
         <CheckCircle2 className="size-8" strokeWidth={1.6} />
       </span>
-      <h1 className="mt-6 font-serif text-3xl text-neutral-900">
+      <h1 className="mt-6 font-serif text-3xl text-brand">
         Thank you for your order
       </h1>
       <p className="mt-3 text-sm leading-relaxed text-neutral-600">

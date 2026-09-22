@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Scale, ShoppingBag } from "lucide-react";
+import { Check, Ruler, Scale, ShoppingBag } from "lucide-react";
 import { addToCart } from "@/actions/cart/add-to-cart";
 import { cn, formatCurrency } from "@/lib/utils";
 import { appAlert } from "@/components/shared/app-dialog";
@@ -12,6 +12,7 @@ type FloatingAddToCartBarProps = {
   productId: string;
   variantId?: string;
   price: number;
+  sizeLabel?: string | null;
   weightLabel?: string | null;
   inStock: boolean;
   giftPackaging?: boolean;
@@ -23,6 +24,7 @@ export function FloatingAddToCartBar({
   productId,
   variantId,
   price,
+  sizeLabel,
   weightLabel,
   inStock,
   giftPackaging = false,
@@ -122,10 +124,17 @@ export function FloatingAddToCartBar({
       >
         <span className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-[#c5a46e]/80 to-transparent" />
         <div className="flex items-center border-r border-neutral-200 px-3 md:px-4">
-          <span className="font-serif text-base text-neutral-900 md:text-xl">
+          <span className="font-serif text-base text-brand md:text-xl">
             {formatCurrency(price)}
           </span>
         </div>
+
+        {sizeLabel ? (
+          <div className="hidden items-center gap-1.5 rounded-full bg-[#f5f1ed] px-3 py-2 text-xs text-neutral-700 md:flex">
+            <Ruler className="size-3.5 text-[#8b2e2e]" strokeWidth={1.7} />
+            <span className="whitespace-nowrap">Size: {sizeLabel}</span>
+          </div>
+        ) : null}
 
         {weightLabel ? (
           <div className="hidden items-center gap-1.5 rounded-full bg-[#f5f1ed] px-3 py-2 text-xs text-neutral-700 md:flex">

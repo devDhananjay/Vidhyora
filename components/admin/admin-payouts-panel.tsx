@@ -72,7 +72,7 @@ export function AdminPayoutsPanel({
     <div className="space-y-6">
       <Card className="overflow-hidden border-[#ead9c4]/80">
         <CardHeader className="border-b border-[#ead9c4]/60 bg-[#faf7f5]/40">
-          <CardTitle className="font-serif text-xl text-neutral-900">
+          <CardTitle className="font-serif text-xl text-brand">
             Seller balances
           </CardTitle>
           <p className="text-sm text-muted-foreground">
@@ -217,7 +217,7 @@ export function AdminPayoutsPanel({
 
       <Card className="overflow-hidden border-[#ead9c4]/80">
         <CardHeader className="border-b border-[#ead9c4]/60 bg-[#faf7f5]/40">
-          <CardTitle className="font-serif text-xl text-neutral-900">
+          <CardTitle className="font-serif text-xl text-brand">
             Settlement history
           </CardTitle>
         </CardHeader>

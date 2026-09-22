@@ -189,7 +189,7 @@ export function ReturnModerationCard({
                   {item.type === "REPLACEMENT" ? "Replacement" : "Return"}
                 </Badge>
                 {statusBadge(item.status)}
-                <span className="font-serif text-xl text-neutral-900">
+                <span className="font-serif text-xl text-brand">
                   {formatCurrency(Number(item.orderItem.total))}
                 </span>
               </div>

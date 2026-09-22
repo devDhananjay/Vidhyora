@@ -24,7 +24,7 @@ export function CartSummary({
 
   return (
     <div className="rounded-xl border p-6">
-      <h2 className="mb-4 font-serif text-lg font-semibold text-[#8b2e2e]">
+      <h2 className="mb-4 font-serif text-xl text-brand">
         Order Summary
       </h2>
 
@@ -158,7 +158,7 @@ export function CartSummary({
           <div className="mx-auto flex max-w-lg items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-[11px] text-muted-foreground">Total</p>
-              <p className="font-serif text-lg font-semibold text-[#8b2e2e]">
+              <p className="font-serif text-xl text-brand">
                 {formatCurrency(summary.total)}
               </p>
             </div>

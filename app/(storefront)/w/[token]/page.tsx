@@ -25,7 +25,7 @@ export default async function SharedWishlistPage({
         <p className="text-xs tracking-[0.18em] text-[#8b2e2e] uppercase">
           Shared collection
         </p>
-        <h1 className="mt-2 font-serif text-3xl text-neutral-900 sm:text-4xl">
+        <h1 className="mt-2 font-serif text-3xl text-brand sm:text-4xl">
           A VIDYORA wishlist
         </h1>
         <p className="mt-2 max-w-xl text-sm text-neutral-500">

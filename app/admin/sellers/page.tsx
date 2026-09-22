@@ -74,7 +74,7 @@ export default async function AdminSellersPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+        <h1 className="font-serif text-3xl text-brand sm:text-4xl">
           Seller Admins
         </h1>
         <p className="mt-2 text-muted-foreground">

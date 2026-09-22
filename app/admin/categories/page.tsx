@@ -21,7 +21,7 @@ export default async function AdminCategoriesPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+          <h1 className="font-serif text-3xl text-brand sm:text-4xl">
             Category Management
           </h1>
           <p className="mt-2 max-w-xl text-sm text-muted-foreground sm:text-base">

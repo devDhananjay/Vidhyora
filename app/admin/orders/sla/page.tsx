@@ -25,7 +25,7 @@ export default async function AdminOrderSlaPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+        <h1 className="font-serif text-3xl text-brand sm:text-4xl">
           Order SLA
         </h1>
         <p className="mt-2 text-muted-foreground">

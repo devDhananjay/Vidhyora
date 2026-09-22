@@ -31,7 +31,7 @@ export default async function OrdersPage() {
         <div className="mb-6 flex items-center gap-3">
           <ShoppingBag className="size-8 text-[#8b2e2e]" />
           <div>
-            <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+            <h1 className="font-serif text-3xl text-brand sm:text-4xl">
               My Orders
             </h1>
             <p className="text-muted-foreground">

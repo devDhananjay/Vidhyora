@@ -174,7 +174,7 @@ export function ProductCard({
             </p>
           ) : null}
           <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-sm font-semibold text-neutral-900">
+            <span className="text-sm font-semibold text-brand">
               {formatCurrency(product.basePrice)}
             </span>
             {product.compareAtPrice ? (

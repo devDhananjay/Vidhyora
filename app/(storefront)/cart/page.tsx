@@ -71,7 +71,7 @@ export default async function CartPage({
     <div className="container mx-auto px-4 py-8 pb-28 lg:pb-8">
       <div className="mb-6 flex items-center gap-3">
         <ShoppingBag className="size-8 text-[#8b2e2e]" />
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+        <h1 className="font-serif text-3xl text-brand sm:text-4xl">
           Shopping Cart
         </h1>
       </div>

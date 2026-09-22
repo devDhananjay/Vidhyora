@@ -36,7 +36,7 @@ export function GiftPackagingOption({
       </div>
 
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-neutral-900 sm:text-[15px]">
+        <p className="text-sm font-semibold text-brand sm:text-[15px]">
           Gift Packaging
         </p>
         <p className="mt-0.5 text-xs leading-5 text-neutral-500 sm:text-sm">

@@ -153,7 +153,7 @@ export function HowItSitsAid({
             <Sparkles className="size-3.5" strokeWidth={1.7} />
             How it sits
           </p>
-          <h2 className="mt-2 font-serif text-2xl text-neutral-900 md:text-3xl">
+          <h2 className="mt-2 font-serif text-2xl text-brand md:text-3xl">
             {tip.title}
           </h2>
           <ul className="mt-4 space-y-2.5">

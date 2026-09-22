@@ -15,7 +15,7 @@ export default async function AdminHelpPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Help & FAQs</h1>
+        <h1 className="font-serif text-3xl text-brand sm:text-4xl">Help & FAQs</h1>
         <p className="mt-2 text-sm text-muted-foreground sm:text-base">
           Questions listed here appear on the public Help page.
         </p>
@@ -48,7 +48,7 @@ export default async function AdminHelpPage() {
                       {article.isActive ? "Live" : "Hidden"}
                     </Badge>
                   </div>
-                  <h3 className="mt-2 text-lg font-semibold">{article.question}</h3>
+                  <h3 className="mt-2 font-serif text-xl text-brand">{article.question}</h3>
                   <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
                     {article.answer}
                   </p>

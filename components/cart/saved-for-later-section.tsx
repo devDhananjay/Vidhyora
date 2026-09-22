@@ -48,7 +48,7 @@ export function SavedForLaterSection({ items }: SavedForLaterSectionProps) {
 
   return (
     <div>
-      <h2 className="mb-4 text-lg font-semibold">
+      <h2 className="mb-4 font-serif text-xl text-brand md:text-2xl">
         Saved for Later ({items.length})
       </h2>
 

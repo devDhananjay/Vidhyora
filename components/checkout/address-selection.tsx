@@ -58,7 +58,7 @@ export function AddressSelection({
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <MapPin className="size-5 shrink-0 text-primary" />
-          <h2 className="text-lg font-semibold">Delivery Address</h2>
+          <h2 className="font-serif text-xl text-brand md:text-2xl">Delivery Address</h2>
         </div>
         <Button
           variant="outline"

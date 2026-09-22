@@ -37,7 +37,7 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="mt-8 max-w-xl space-y-4">
-      <h2 className="font-serif text-2xl text-neutral-900">Send a message</h2>
+      <h2 className="font-serif text-2xl text-brand">Send a message</h2>
       <p className="text-sm text-neutral-600">
         We usually reply within one business day.
       </p>

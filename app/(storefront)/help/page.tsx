@@ -41,7 +41,7 @@ export default async function HelpPage({
     <div className="bg-[#faf8f6]">
       <div className="mx-auto max-w-4xl px-4 py-12 md:px-6">
         <p className="text-xs tracking-[0.2em] text-[#8b2e2e] uppercase">Support</p>
-        <h1 className="mt-2 font-serif text-3xl text-neutral-900 sm:text-4xl md:text-5xl">Help</h1>
+        <h1 className="mt-2 font-serif text-3xl text-brand sm:text-4xl md:text-5xl">Help</h1>
         <p className="mt-3 text-neutral-600">
           Search live FAQs. Super Admin can add or update answers anytime.
         </p>
@@ -81,7 +81,7 @@ export default async function HelpPage({
           <div className="mt-10 space-y-10">
             {Object.entries(grouped).map(([group, items]) => (
               <section key={group}>
-                <h2 className="font-serif text-2xl text-neutral-900">{group}</h2>
+                <h2 className="font-serif text-2xl text-brand">{group}</h2>
                 <div className="mt-4 divide-y rounded-xl border bg-white">
                   {items.map((article) => (
                     <details key={article.id} className="group px-5 py-4">

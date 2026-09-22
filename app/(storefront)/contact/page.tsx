@@ -27,7 +27,7 @@ export default async function ContactPage() {
         approves catalogues, KYC and payouts so every boutique meets the same
         quality bar.
       </p>
-      <h2 className="font-serif text-2xl text-neutral-900">Talk to us</h2>
+      <h2 className="font-serif text-2xl text-brand">Talk to us</h2>
       <p>
         Phone:{" "}
         <a href={phoneTelHref(supportPhone)} className="text-[#8b2e2e] underline">
@@ -51,7 +51,7 @@ export default async function ContactPage() {
         </a>
       </p>
       <ContactForm />
-      <h2 className="font-serif text-2xl text-neutral-900">Visit a boutique</h2>
+      <h2 className="font-serif text-2xl text-brand">Visit a boutique</h2>
       <p>
         Try gold colour, size and wedding sets in person. Addresses and hours are
         on the{" "}

@@ -55,7 +55,7 @@ export default async function ReturnRequestPage({
           <ArrowLeft className="size-4" />
           Back to order
         </Link>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+        <h1 className="font-serif text-3xl text-brand sm:text-4xl">
           Request Return/Replacement
         </h1>
         <p className="mt-2 text-muted-foreground">

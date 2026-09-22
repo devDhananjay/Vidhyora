@@ -14,7 +14,7 @@ export function OrderReview({ items }: OrderReviewProps) {
     <div className="rounded-xl border p-4 sm:p-6">
       <div className="mb-4 flex items-center gap-2">
         <Package className="size-5 shrink-0 text-primary" />
-        <h2 className="text-lg font-semibold">Review Items</h2>
+        <h2 className="font-serif text-xl text-brand md:text-2xl">Review Items</h2>
       </div>
 
       <div className="space-y-4">

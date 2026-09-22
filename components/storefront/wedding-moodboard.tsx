@@ -1,9 +1,11 @@
 import Link from "next/link";
+import Image from "next/image";
 import { DEFAULT_HOMEPAGE_CONFIG } from "@/lib/content/homepage-defaults";
 import type {
   HomepageMoodboardNote,
   HomepageMoodboardPolaroid,
 } from "@/lib/validations/homepage";
+import { BRAND_LOADER_ICON_SRC } from "@/lib/constants";
 import { MediaFill } from "@/components/storefront/media-fill";
 
 type WeddingMoodboardProps = {
@@ -15,6 +17,75 @@ type WeddingMoodboardProps = {
   polaroids?: HomepageMoodboardPolaroid[];
   notes?: HomepageMoodboardNote[];
 };
+
+function FoundersMark({
+  className = "",
+  compact = false,
+}: {
+  className?: string;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      className={`relative select-none ${
+        compact ? "mx-auto w-fit text-center" : "ml-10 text-right"
+      } ${className}`}
+      aria-hidden
+    >
+      <div
+        className={`pointer-events-none absolute ${
+          compact
+            ? "-top-3 left-1/2 size-[88px] -translate-x-1/2"
+            : "-top-4 left-0 size-[100px]"
+        }`}
+      >
+        <Image
+          src={BRAND_LOADER_ICON_SRC}
+          alt=""
+          fill
+          className="object-contain opacity-[0.18] mix-blend-multiply"
+          sizes="100px"
+        />
+      </div>
+
+      <div className={`relative ${compact ? "pt-10" : "pt-7 pr-1 pl-8"}`}>
+        <p
+          className={`font-[family-name:var(--font-caveat)] leading-[0.92] text-[#8b2e2e] ${
+            compact ? "text-[1.55rem]" : "text-[2.05rem]"
+          }`}
+        >
+          Vidyora
+        </p>
+        <div
+          className={`my-1.5 flex items-center gap-2 ${
+            compact ? "justify-center" : "justify-end"
+          }`}
+        >
+          <span className="h-px w-7 bg-gradient-to-r from-transparent to-[#c5a46e]/80" />
+          <span
+            className="size-1 rotate-45 bg-[#c5a46e]/90"
+            aria-hidden
+          />
+          <span className="h-px w-7 bg-gradient-to-l from-transparent to-[#c5a46e]/80" />
+        </div>
+        <p
+          className={`font-[family-name:var(--font-caveat)] leading-tight text-[#9a6f45] ${
+            compact ? "text-[1.05rem]" : "text-[1.28rem]"
+          }`}
+        >
+          by Vidushi
+        </p>
+        <p
+          className={`mt-1 font-serif tracking-[0.22em] text-[#c4a484]/90 uppercase ${
+            compact ? "text-[7px]" : "text-[8px]"
+          }`}
+        >
+          Beyond Ornaments
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function Tape() {
   return (
@@ -195,6 +266,7 @@ export function WeddingMoodboard({
               </div>
             ))}
           </div>
+          <FoundersMark compact className="mt-6" />
         </div>
 
         <div className="relative mx-auto mt-10 hidden h-[560px] w-full max-w-[920px] md:block lg:h-[600px]">
@@ -268,6 +340,17 @@ export function WeddingMoodboard({
           {boardNotes.map((note) => (
             <Note key={note.label ?? note.text} note={note} />
           ))}
+
+          <div
+            className="pointer-events-none absolute z-[20]"
+            style={{
+              bottom: "2%",
+              right: "-1%",
+              transform: "rotate(-6deg)",
+            }}
+          >
+            <FoundersMark />
+          </div>
         </div>
 
         <div className="mt-8 text-center md:mt-4">

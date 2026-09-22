@@ -115,7 +115,7 @@ export function CategoryAttributesForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-serif text-2xl">Category attributes</CardTitle>
+        <CardTitle className="font-serif text-2xl font-normal text-brand">Category attributes</CardTitle>
         <p className="text-sm text-muted-foreground">
           Specs sellers fill when listing products in this category (e.g. metal,
           purity, carat).

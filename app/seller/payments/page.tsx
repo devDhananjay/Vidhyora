@@ -17,7 +17,7 @@ export default async function SellerPaymentsPage() {
   if (!data) {
     return (
       <div className="space-y-6">
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+        <h1 className="font-serif text-3xl text-brand sm:text-4xl">
           Payments
         </h1>
         <Card>
@@ -34,7 +34,7 @@ export default async function SellerPaymentsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+        <h1 className="font-serif text-3xl text-brand sm:text-4xl">
           Payments
         </h1>
         <p className="mt-2 max-w-2xl text-muted-foreground">

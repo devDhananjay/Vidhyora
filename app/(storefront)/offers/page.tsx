@@ -43,7 +43,7 @@ export default async function OffersPage() {
         <p className="text-xs tracking-[0.2em] text-[#8b2e2e] uppercase">
           Campaigns
         </p>
-        <h1 className="mt-3 font-serif text-3xl text-neutral-900 sm:text-4xl md:text-5xl">
+        <h1 className="mt-3 font-serif text-3xl text-brand sm:text-4xl md:text-5xl">
           Offers & Contest Details
         </h1>
         <p className="mt-4 max-w-2xl text-neutral-600">
@@ -51,7 +51,7 @@ export default async function OffersPage() {
           add or pause them anytime. Contests have their own windows and rules.
         </p>
 
-        <h2 className="mt-12 font-serif text-3xl text-neutral-900">
+        <h2 className="mt-12 font-serif text-3xl text-brand">
           Live coupon codes
         </h2>
         {offers.length === 0 ? (
@@ -74,7 +74,7 @@ export default async function OffersPage() {
                 className="flex flex-col rounded-2xl border border-neutral-100 bg-white p-6"
               >
                 <Tag className="size-5 text-[#8b2e2e]" strokeWidth={1.5} />
-                <p className="mt-3 font-serif text-2xl text-neutral-900">
+                <p className="mt-3 font-serif text-2xl text-brand">
                   {couponHeadline(offer)}
                 </p>
                 <p className="mt-1 text-sm text-neutral-600">
@@ -126,7 +126,7 @@ export default async function OffersPage() {
           for how Razorpay and COD work with the final billed amount.
         </p>
 
-        <h2 className="mt-14 font-serif text-3xl text-neutral-900">Contests</h2>
+        <h2 className="mt-14 font-serif text-3xl text-brand">Contests</h2>
         <div className="mt-6 space-y-5">
           {CONTESTS.map((contest) => (
             <article
@@ -134,7 +134,7 @@ export default async function OffersPage() {
               className="rounded-2xl border border-neutral-100 bg-white p-6 md:p-8"
             >
               <div className="flex flex-wrap items-center gap-3">
-                <h3 className="font-serif text-2xl text-neutral-900">
+                <h3 className="font-serif text-2xl text-brand">
                   {contest.title}
                 </h3>
                 <span

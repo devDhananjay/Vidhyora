@@ -133,7 +133,9 @@ export function WishlistItem({ item, readOnly = false }: WishlistItemProps) {
             </Link>
 
             <div className="flex items-baseline gap-2">
-              <span className="text-lg font-bold">{formatCurrency(price)}</span>
+              <span className="font-serif text-lg text-brand">
+                {formatCurrency(price)}
+              </span>
               {comparePrice ? (
                 <span className="text-sm text-muted-foreground line-through">
                   {formatCurrency(comparePrice)}

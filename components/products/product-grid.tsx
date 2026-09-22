@@ -1,23 +1,12 @@
-import prisma from "@/lib/prisma";
-import { ProductCard } from "@/components/products/product-card";
-import { Pagination } from "@/components/products/pagination";
-import { PAGINATION } from "@/lib/constants";
 import { getWishlistProductIds } from "@/actions/wishlist/manage-wishlist";
 import { getCartLinesForPlp } from "@/actions/cart/get-cart";
+import { ProductInfiniteGrid } from "@/components/products/product-infinite-grid";
+import { PAGINATION } from "@/lib/constants";
 import {
-  buildProductWhere,
-  getProductOrderBy,
-  isRelevanceSort,
-  rankBySearchRelevance,
-  type ProductListParams,
-} from "@/lib/products/product-query";
-import {
-  imageUrlsForProduct,
-  jewelleryCardMeta,
-  mapCardVariants,
-  getProductBadgeSets,
-  resolveProductBadge,
-} from "@/lib/products/product-card-data";
+  fetchProductListPage,
+  productListFilterKey,
+} from "@/lib/products/list-products-page";
+import type { ProductListParams } from "@/lib/products/product-query";
 
 export async function ProductGrid({
   searchParams,
@@ -25,98 +14,25 @@ export async function ProductGrid({
   searchParams: Promise<ProductListParams>;
 }) {
   const params = await searchParams;
-  const page = parseInt(params.page || "1");
   const pageSize = PAGINATION.DEFAULT_PAGE_SIZE;
-  const skip = (page - 1) * pageSize;
-  const where = buildProductWhere(params);
-  const useRelevance = isRelevanceSort(params.sort, params.q);
-  const orderBy = getProductOrderBy(useRelevance ? "relevance" : params.sort);
+  // Infinite scroll always starts from page 1; ignore stale ?page=
+  const listParams: ProductListParams = { ...params, page: undefined };
 
-  const [rawProducts, total, wishlistIds, cartLines, badgeSets] =
-    await Promise.all([
-      prisma.product.findMany({
-        where,
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          brand: true,
-          basePrice: true,
-          compareAtPrice: true,
-          thumbnail: true,
-          attributes: true,
-          images: {
-            select: { url: true },
-            orderBy: { sortOrder: "asc" },
-          },
-          variants: {
-            where: { isActive: true },
-            select: {
-              id: true,
-              stock: true,
-              reservedStock: true,
-              attributes: true,
-            },
-            orderBy: { price: "asc" },
-          },
-        },
-        orderBy,
-        skip: useRelevance ? 0 : skip,
-        take: useRelevance
-          ? Math.min(pageSize * 3, PAGINATION.MAX_PAGE_SIZE)
-          : pageSize,
-      }),
-      prisma.product.count({ where }),
-      getWishlistProductIds(),
-      getCartLinesForPlp(),
-      getProductBadgeSets(),
-    ]);
-  const products = useRelevance
-    ? rankBySearchRelevance(rawProducts, params.q).slice(skip, skip + pageSize)
-    : rawProducts;
-  const savedIds = new Set(wishlistIds);
-
-  const totalPages = Math.ceil(total / pageSize);
-
-  if (products.length === 0) {
-    return (
-      <div className="flex min-h-[400px] items-center justify-center rounded-2xl border border-dashed border-neutral-200 p-12">
-        <div className="text-center">
-          <h3 className="mb-2 font-serif text-2xl">No jewellery found</h3>
-          <p className="text-sm text-neutral-500">
-            Try adjusting your filters or search query
-          </p>
-        </div>
-      </div>
-    );
-  }
+  const [result, wishlistIds, cartLines] = await Promise.all([
+    fetchProductListPage(listParams, 1, pageSize),
+    getWishlistProductIds(),
+    getCartLinesForPlp(),
+  ]);
 
   return (
-    <div className="space-y-10">
-      <div className="grid grid-cols-2 gap-x-4 gap-y-10 md:grid-cols-3">
-        {products.map((product) => (
-          <ProductCard
-            key={product.id}
-            isInWishlist={savedIds.has(product.id)}
-            cartLines={cartLines}
-            product={{
-              ...product,
-              basePrice: Number(product.basePrice),
-              compareAtPrice: product.compareAtPrice
-                ? Number(product.compareAtPrice)
-                : null,
-              images: imageUrlsForProduct(product),
-              badge: resolveProductBadge(product, badgeSets),
-              metalLabel: jewelleryCardMeta(product.attributes).label ?? null,
-              variants: mapCardVariants(product.variants),
-            }}
-          />
-        ))}
-      </div>
-
-      {totalPages > 1 && (
-        <Pagination currentPage={page} totalPages={totalPages} />
-      )}
-    </div>
+    <ProductInfiniteGrid
+      key={productListFilterKey(listParams)}
+      initialItems={result.items}
+      total={result.total}
+      pageSize={pageSize}
+      listParams={listParams}
+      wishlistIds={wishlistIds}
+      cartLines={cartLines}
+    />
   );
 }

@@ -29,7 +29,7 @@ export default async function ShippingPage() {
         courier partners. Orders of {threshold} and above have free delivery.
         Below that, a {fee} shipping fee is added at checkout.
       </p>
-      <h2 className="font-serif text-2xl text-neutral-900">India</h2>
+      <h2 className="font-serif text-2xl text-brand">India</h2>
       <p>
         Checkout supports India delivery addresses only. Most metro cities
         receive parcels in 3–5 working days after the seller marks the order
@@ -40,13 +40,13 @@ export default async function ShippingPage() {
         </Link>
         .
       </p>
-      <h2 className="font-serif text-2xl text-neutral-900">Cash on Delivery</h2>
+      <h2 className="font-serif text-2xl text-brand">Cash on Delivery</h2>
       <p>
         {commerce.codEnabled
           ? "COD is available on eligible pin codes when enabled in commerce settings. Payment stays pending until the order is delivered. Please keep the billed amount ready in cash or UPI as accepted by the courier."
           : "Cash on Delivery is currently unavailable. Please complete checkout with online payment."}
       </p>
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         International orders
       </h2>
       {commerce.internationalShippingEnabled ? (

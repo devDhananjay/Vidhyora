@@ -9,6 +9,7 @@ type CustomerOpts = {
   threadId: string;
   guestToken: string;
   onMessage: (message: SupportChatMessageDto) => void;
+  onThreadStatus?: (status: string) => void;
   enabled?: boolean;
 };
 
@@ -20,10 +21,12 @@ type AdminOpts = {
 
 export function useSupportChatRealtime(opts: CustomerOpts | AdminOpts) {
   const onMessageRef = useRef<CustomerOpts["onMessage"] | null>(null);
+  const onThreadStatusRef = useRef<CustomerOpts["onThreadStatus"] | null>(null);
   const onEventRef = useRef<AdminOpts["onEvent"] | null>(null);
 
   if (opts.mode === "customer") {
     onMessageRef.current = opts.onMessage;
+    onThreadStatusRef.current = opts.onThreadStatus ?? null;
   } else {
     onEventRef.current = opts.onEvent;
   }
@@ -58,6 +61,8 @@ export function useSupportChatRealtime(opts: CustomerOpts | AdminOpts) {
           if (mode === "customer") {
             if (payload.type === "message") {
               onMessageRef.current?.(payload.message);
+            } else if (payload.type === "thread" && payload.status) {
+              onThreadStatusRef.current?.(payload.status);
             }
           } else {
             onEventRef.current?.(payload);

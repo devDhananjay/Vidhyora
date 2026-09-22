@@ -17,6 +17,7 @@ type ProductBuyActionsProps = {
   productName: string;
   productText?: string;
   price: number;
+  sizeLabel?: string | null;
   weightLabel?: string | null;
   whatsappNumber?: string;
 };
@@ -29,6 +30,7 @@ export function ProductBuyActions({
   productName,
   productText,
   price,
+  sizeLabel,
   weightLabel,
   whatsappNumber,
 }: ProductBuyActionsProps) {
@@ -90,6 +92,7 @@ export function ProductBuyActions({
           productId={productId}
           variantId={variantId}
           price={price}
+          sizeLabel={sizeLabel}
           weightLabel={weightLabel}
           inStock={inStock}
           giftPackaging={giftPackaging}

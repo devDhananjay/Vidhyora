@@ -21,7 +21,7 @@ export function ReviewStatsCard({ stats }: ReviewStatsCardProps) {
     <div className="rounded-xl border p-5 sm:p-6">
       <div className="flex flex-col gap-5">
         <div className="flex items-end gap-3">
-          <div className="text-4xl font-bold leading-none text-neutral-900">
+          <div className="font-serif text-4xl leading-none text-brand">
             {stats.averageRating.toFixed(1)}
           </div>
           <div className="pb-0.5">

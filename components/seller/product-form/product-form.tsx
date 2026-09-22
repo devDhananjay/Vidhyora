@@ -128,8 +128,10 @@ export function ProductForm({ categories, product }: ProductFormProps) {
         certificateUrl: "",
         attributes: {
           metal: "",
+          size: "Free Size",
           karatage: "",
           purity: "",
+          quality: "",
           colour: "",
           materialColour: "",
           weight: "",

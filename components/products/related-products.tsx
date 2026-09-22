@@ -61,7 +61,9 @@ export async function RelatedProducts({
 
   return (
     <div>
-      <h2 className="mb-6 text-2xl font-bold">Related Products</h2>
+      <h2 className="mb-6 font-serif text-2xl text-brand md:text-3xl">
+        Related Products
+      </h2>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {relatedProducts.map((product) => (
           <ProductCard

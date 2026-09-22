@@ -11,7 +11,7 @@ export function ProductSpecs({
 
   return (
     <div className="rounded-[24px] border border-neutral-200 bg-white p-6 md:p-8">
-      <h2 className="mb-4 font-serif text-2xl text-[#8b2e2e]">Specifications</h2>
+      <h2 className="mb-4 font-serif text-2xl text-brand">Specifications</h2>
       <div className="grid gap-3 sm:grid-cols-2">
         {entries.map(([key, value]) => (
           <div

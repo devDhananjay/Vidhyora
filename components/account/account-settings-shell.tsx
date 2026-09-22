@@ -127,7 +127,7 @@ export function AccountSettingsShell({
                   Back to Account Settings
                 </button>
 
-                <h1 className="mt-4 font-serif text-3xl text-neutral-900 sm:text-4xl">
+                <h1 className="mt-4 font-serif text-3xl text-brand sm:text-4xl">
                   {activeMeta.label}
                 </h1>
                 <p className="mt-2 text-neutral-600">{activeMeta.description}</p>
@@ -169,7 +169,7 @@ export function AccountSettingsShell({
             <p className="text-xs tracking-[0.2em] text-[#8b2e2e] uppercase">
               Account
             </p>
-            <h1 className="mt-2 font-serif text-3xl text-neutral-900 sm:text-4xl">
+            <h1 className="mt-2 font-serif text-3xl text-brand sm:text-4xl">
               Account Settings
             </h1>
             <p className="mt-2 text-neutral-600">

@@ -19,7 +19,7 @@ export default async function NewCategoryPage() {
         >
           ← Back to Categories
         </Link>
-        <h1 className="mt-2 font-serif text-3xl text-neutral-900 sm:text-4xl">
+        <h1 className="mt-2 font-serif text-3xl text-brand sm:text-4xl">
           Create Category
         </h1>
         <p className="mt-2 text-muted-foreground">

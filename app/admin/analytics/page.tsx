@@ -35,7 +35,7 @@ export default async function AdminAnalyticsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Analytics</h1>
+          <h1 className="font-serif text-3xl text-brand sm:text-4xl">Analytics</h1>
           <p className="mt-2 text-muted-foreground">
             Platform performance across orders, payments, sellers and catalogue.
           </p>

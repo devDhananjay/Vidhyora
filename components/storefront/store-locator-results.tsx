@@ -132,7 +132,7 @@ export function StoreLocatorResults({ stores }: StoreLocatorResultsProps) {
           >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="font-serif text-2xl text-neutral-900">
+                <h2 className="font-serif text-2xl text-brand">
                   {store.name}
                 </h2>
                 <p className="mt-1 text-sm font-medium text-[#8b2e2e]">

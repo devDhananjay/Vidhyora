@@ -26,7 +26,7 @@ export type SupportChatThreadDto = {
   name: string;
   email: string;
   phone: string | null;
-  status: "OPEN" | "PENDING" | "CLOSED";
+  status: "OPEN" | "PENDING" | "CLOSED" | "ARCHIVED";
   messages: SupportChatMessageDto[];
   whatsappUrl: string;
   /** True when the shopper is not a logged-in user. */

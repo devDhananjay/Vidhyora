@@ -35,8 +35,17 @@ import type {
   AiProductDraft,
 } from "@/lib/validations/ai-product-draft";
 import type { CreateProductInput } from "@/lib/validations/product";
+import {
+  DEFAULT_PRODUCT_SIZE,
+  PRODUCT_SIZE_OPTIONS,
+  suggestProductSize,
+} from "@/lib/products/size-options";
+import {
+  DEFAULT_POLICY_WINDOW_DAYS,
+  POLICY_WINDOW_OPTIONS,
+} from "@/lib/products/policy-window-options";
 
-const MAX_AI_IMAGES = 3;
+const MAX_AI_IMAGES = 5;
 
 type CategoryOption = {
   id: string;
@@ -58,8 +67,10 @@ type GuideStepId =
   | "stock"
   | "metal"
   | "karatage"
+  | "quality"
   | "colour"
   | "weight"
+  | "size"
   | "returns"
   | "replace"
   | "done";
@@ -72,20 +83,29 @@ const GUIDE_ORDER: GuideStepId[] = [
   "stock",
   "metal",
   "karatage",
+  "quality",
   "colour",
   "weight",
+  "size",
   "returns",
   "replace",
   "done",
 ];
 
-const POLICY_WINDOW_OPTIONS = [
-  { value: "", label: "Not offered" },
-  { value: "7", label: "7 days" },
-  { value: "10", label: "10 days" },
-  { value: "15", label: "15 days" },
-  { value: "30", label: "30 days" },
-];
+const QUALITY_OPTIONS = [
+  "316L",
+  "304L",
+  "316",
+  "304",
+  "201",
+  "430",
+  "18/8",
+  "18/10",
+  "Surgical Grade",
+  "Food Grade",
+  "Hypoallergenic",
+  "Premium Grade",
+] as const;
 
 type AiProductPanelProps = {
   open: boolean;
@@ -97,6 +117,7 @@ type AiProductPanelProps = {
 function draftToFormValues(
   draft: AiProductDraft,
   imageUrls: string[],
+  categories: CategoryOption[],
 ): Partial<CreateProductInput> {
   const name = draft.name.trim();
   const price =
@@ -111,15 +132,32 @@ function draftToFormValues(
     typeof draft.stock === "number" && draft.stock >= 0 ? draft.stock : 0;
   const sku = (
     draft.sku?.trim() ||
-    `SKU-${slugify(name).slice(0, 12).toUpperCase() || "ITEM"}-${Date.now()
+    `SKU-${slugify(name).slice(0, 10).toUpperCase() || "ITEM"}-${Date.now()
       .toString(36)
-      .slice(-4)
-      .toUpperCase()}`
+      .toUpperCase()
+      .slice(-6)}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`
   ).slice(0, 50);
 
   const attributes: Record<string, string> = {
     ...(draft.attributes || {}),
   };
+  if (!attributes.size?.trim()) {
+    const cat = categories.find((c) => c.id === draft.categoryId);
+    attributes.size = suggestProductSize({
+      name: draft.name,
+      categoryName: draft.categoryName || cat?.name,
+      categorySlug: cat?.slug,
+    });
+  }
+  if (!attributes.metal?.trim()) {
+    attributes.metal = "Stainless Steel";
+  }
+  if (
+    !attributes.quality?.trim() &&
+    /stainless\s*steel/i.test(attributes.metal)
+  ) {
+    attributes.quality = "316L";
+  }
   if (draft.makingChargePercent) {
     attributes.makingChargePercent = draft.makingChargePercent;
   }
@@ -131,12 +169,16 @@ function draftToFormValues(
   if (draft.variantLabel) {
     variantAttributes.name = draft.variantLabel;
   }
+  if (attributes.size) {
+    variantAttributes.size = attributes.size;
+  }
 
   const images = imageUrls.slice(0, MAX_AI_IMAGES).map((url, index) => ({
     url,
     sourceUrl: url,
     altText: draft.imageAltText || name,
     kind: "IMAGE" as const,
+    role: "PRODUCT" as const,
     sortOrder: index,
   }));
 
@@ -222,15 +264,25 @@ function stepMeta(id: GuideStepId): { title: string; hint: string } {
         title: "Karatage",
         hint: "Optional for gold pieces — e.g. 22K / 18K.",
       };
+    case "quality":
+      return {
+        title: "Quality",
+        hint: "Useful for stainless steel — e.g. 316L / 304L.",
+      };
     case "colour":
       return {
         title: "Material colour",
-        hint: "Yellow, White, Rose, etc.",
+        hint: "Yellow, White, Rose, Silver, etc.",
       };
     case "weight":
       return {
         title: "Gross weight",
         hint: "Optional — e.g. 4.25g. Helps with price breakup.",
+      };
+    case "size":
+      return {
+        title: "Size",
+        hint: "Most pieces are Adjustable. Change only if you sell a fixed size.",
       };
     case "returns":
       return {
@@ -361,7 +413,8 @@ export function AiProductPanel({
         setAnswer(nextDraft.stock != null ? String(nextDraft.stock) : "1");
         break;
       case "metal":
-        setAnswer(nextDraft.attributes?.metal || "");
+        // Always pre-select Stainless Steel in Add with AI (seller can change).
+        setAnswer("Stainless Steel");
         break;
       case "karatage":
         setAnswer(
@@ -369,6 +422,9 @@ export function AiProductPanel({
             nextDraft.attributes?.purity ||
             "",
         );
+        break;
+      case "quality":
+        setAnswer(nextDraft.attributes?.quality || "316L");
         break;
       case "colour":
         setAnswer(
@@ -384,12 +440,24 @@ export function AiProductPanel({
             "",
         );
         break;
+      case "size":
+        setAnswer(
+          nextDraft.attributes?.size ||
+            suggestProductSize({
+              name: nextDraft.name,
+              categoryName: nextDraft.categoryName,
+              categorySlug: categories.find(
+                (c) => c.id === nextDraft.categoryId,
+              )?.slug,
+            }),
+        );
+        break;
       case "returns":
         setAnswer(
           policyWindowValue(
             nextDraft.returnAllowed,
             nextDraft.returnWindowDays,
-          ),
+          ) || String(DEFAULT_POLICY_WINDOW_DAYS),
         );
         break;
       case "replace":
@@ -397,7 +465,7 @@ export function AiProductPanel({
           policyWindowValue(
             nextDraft.replacementAllowed,
             nextDraft.replacementWindowDays,
-          ),
+          ) || String(DEFAULT_POLICY_WINDOW_DAYS),
         );
         break;
       default:
@@ -483,6 +551,15 @@ export function AiProductPanel({
             },
           };
           break;
+        case "quality":
+          updated = {
+            ...updated,
+            attributes: {
+              ...(updated.attributes || {}),
+              quality: trimmed,
+            },
+          };
+          break;
         case "colour":
           updated = {
             ...updated,
@@ -503,13 +580,24 @@ export function AiProductPanel({
             },
           };
           break;
+        case "size":
+          updated = {
+            ...updated,
+            attributes: {
+              ...(updated.attributes || {}),
+              size: trimmed || DEFAULT_PRODUCT_SIZE,
+            },
+          };
+          break;
         case "returns": {
           if (trimmed) {
             const days = Number.parseInt(trimmed, 10);
             updated = {
               ...updated,
               returnAllowed: true,
-              returnWindowDays: Number.isFinite(days) ? days : 7,
+              returnWindowDays: Number.isFinite(days)
+                ? days
+                : DEFAULT_POLICY_WINDOW_DAYS,
             };
           } else {
             updated = {
@@ -526,7 +614,9 @@ export function AiProductPanel({
             updated = {
               ...updated,
               replacementAllowed: true,
-              replacementWindowDays: Number.isFinite(days) ? days : 7,
+              replacementWindowDays: Number.isFinite(days)
+                ? days
+                : DEFAULT_POLICY_WINDOW_DAYS,
             };
           } else {
             updated = {
@@ -593,7 +683,7 @@ export function AiProductPanel({
 
     const remaining = MAX_AI_IMAGES - imageUrls.length;
     if (remaining <= 0) {
-      setError(`You can upload up to ${MAX_AI_IMAGES} images`);
+      setError(`You can upload up to ${MAX_AI_IMAGES} photos`);
       return;
     }
 
@@ -696,12 +786,12 @@ export function AiProductPanel({
 
   const handleApply = () => {
     if (!draft || imageUrls.length === 0) return;
-    onApply(draftToFormValues(draft, imageUrls));
+    onApply(draftToFormValues(draft, imageUrls, categories));
     handleOpenChange(false);
   };
 
   const busy = isUploading || isPending;
-  const canAddMore = imageUrls.length < MAX_AI_IMAGES;
+  const canAddPhoto = imageUrls.length < MAX_AI_IMAGES;
   const meta = guideStep ? stepMeta(guideStep) : null;
   const resolvedCategoryName =
     draft?.categoryName ||
@@ -723,8 +813,9 @@ export function AiProductPanel({
             Add product with AI
           </DialogTitle>
           <DialogDescription>
-            Upload photos → AI drafts the listing → answer quick questions (or
-            Skip) → apply to your form.
+            Upload up to {MAX_AI_IMAGES} photos → AI drafts the listing → answer
+            quick questions (or Skip) → apply to your form. Add a video later in
+            the Images step.
           </DialogDescription>
         </DialogHeader>
 
@@ -753,7 +844,7 @@ export function AiProductPanel({
                     {isUploading ? "Uploading…" : "Upload product photos"}
                   </p>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Up to {MAX_AI_IMAGES} images · JPG, PNG or WebP · 5MB each
+                    Up to {MAX_AI_IMAGES} photos · JPG, PNG or WebP · 5MB each
                   </p>
                 </div>
               </button>
@@ -789,7 +880,7 @@ export function AiProductPanel({
                       )}
                     </div>
                   ))}
-                  {canAddMore && (
+                  {canAddPhoto && (
                     <button
                       type="button"
                       disabled={busy || configured === false}
@@ -802,7 +893,7 @@ export function AiProductPanel({
                         <Upload className="size-5 text-[#8b2e2e]" />
                       )}
                       <span className="text-[11px] font-medium">
-                        Add ({imageUrls.length}/{MAX_AI_IMAGES})
+                        Photo ({imageUrls.length}/{MAX_AI_IMAGES})
                       </span>
                     </button>
                   )}
@@ -907,7 +998,7 @@ export function AiProductPanel({
                       onChange={(e) => setAnswer(e.target.value)}
                       disabled={busy}
                     >
-                      <option value="">Select metal finish…</option>
+                      <option value="Stainless Steel">Stainless Steel</option>
                       <option value="Gold Finish">Gold Finish</option>
                       <option value="Yellow Gold Finish">
                         Yellow Gold Finish
@@ -918,6 +1009,8 @@ export function AiProductPanel({
                       <option value="Rose Gold Finish">Rose Gold Finish</option>
                       <option value="Silver Finish">Silver Finish</option>
                       <option value="Platinum Finish">Platinum Finish</option>
+                      <option value="Titanium Finish">Titanium Finish</option>
+                      <option value="Brass Finish">Brass Finish</option>
                       <option value="Diamond Finish">Diamond Finish</option>
                       <option value="Oxidised Finish">Oxidised Finish</option>
                       <option value="Other Finish">Other Finish</option>
@@ -935,6 +1028,19 @@ export function AiProductPanel({
                       <option value="14K">14K</option>
                       <option value="9K">9K</option>
                     </NativeSelect>
+                  ) : guideStep === "quality" ? (
+                    <NativeSelect
+                      value={answer}
+                      onChange={(e) => setAnswer(e.target.value)}
+                      disabled={busy}
+                    >
+                      <option value="">Select quality…</option>
+                      {QUALITY_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </NativeSelect>
                   ) : guideStep === "colour" ? (
                     <NativeSelect
                       value={answer}
@@ -945,8 +1051,23 @@ export function AiProductPanel({
                       <option value="Yellow">Yellow</option>
                       <option value="White">White</option>
                       <option value="Rose">Rose</option>
+                      <option value="Silver">Silver</option>
+                      <option value="Black">Black</option>
+                      <option value="Gunmetal">Gunmetal</option>
                       <option value="Two Tone">Two Tone</option>
                       <option value="Tri Color">Tri Color</option>
+                    </NativeSelect>
+                  ) : guideStep === "size" ? (
+                    <NativeSelect
+                      value={answer}
+                      onChange={(e) => setAnswer(e.target.value)}
+                      disabled={busy}
+                    >
+                      {PRODUCT_SIZE_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
                     </NativeSelect>
                   ) : guideStep === "returns" || guideStep === "replace" ? (
                     <NativeSelect

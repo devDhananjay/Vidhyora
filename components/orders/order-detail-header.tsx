@@ -25,7 +25,9 @@ export function OrderDetailHeader({ order }: OrderDetailHeaderProps) {
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Order #{order.orderNumber}</h1>
+          <h1 className="font-serif text-3xl text-brand sm:text-4xl">
+            Order #{order.orderNumber}
+          </h1>
           <p className="mt-1 text-muted-foreground">
             Placed on {format(new Date(order.createdAt), "MMMM dd, yyyy 'at' hh:mm a")}
           </p>

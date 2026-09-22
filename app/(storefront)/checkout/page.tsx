@@ -84,7 +84,7 @@ export default async function CheckoutPage({
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-2 font-serif text-3xl text-neutral-900 sm:text-4xl">
+      <h1 className="mb-2 font-serif text-3xl text-brand sm:text-4xl">
         Checkout
       </h1>
       {buyNowItemId ? (

@@ -23,7 +23,7 @@ export default async function AdminCouponsPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+          <h1 className="font-serif text-3xl text-brand sm:text-4xl">
             Coupon Management
           </h1>
           <p className="mt-2 text-sm text-muted-foreground sm:text-base">

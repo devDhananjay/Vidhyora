@@ -123,8 +123,8 @@ function SectionHeading({
 }) {
   return (
     <div className="mb-10 text-center">
-      <h2 className="font-serif text-3xl text-primary md:text-5xl">{title}</h2>
-      <span className="mx-auto mt-4 block h-px w-12 bg-primary/35" />
+      <h2 className="font-serif text-3xl text-brand md:text-5xl">{title}</h2>
+      <span className="mx-auto mt-4 block h-px w-12 bg-brand/35" />
       <p className="mt-3 text-sm text-neutral-500 md:text-base">{subtitle}</p>
     </div>
   );
@@ -260,7 +260,7 @@ export default async function HomePage() {
             href={categories.viewAll.href}
             className="flex aspect-square flex-col items-center justify-center rounded-2xl border border-neutral-200 bg-white p-6 text-center"
           >
-            <p className="font-serif text-2xl text-[#8b2e2e]">
+            <p className="font-serif text-2xl text-brand">
               {categories.viewAll.countLabel}
             </p>
             <p className="mt-1 text-sm text-neutral-700">
@@ -418,9 +418,9 @@ export default async function HomePage() {
       <section className="border-y border-neutral-100 bg-[#faf8f6] py-16">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 md:grid-cols-2">
           <div>
-            <h2 className="font-serif text-4xl md:text-5xl">
+            <h2 className="font-serif text-4xl text-neutral-900 md:text-5xl">
               {assurance.titlePrefix}{" "}
-              <span className="text-[#8b2e2e]">{assurance.titleAccent}</span>
+              <span className="text-brand">{assurance.titleAccent}</span>
             </h2>
             <p className="mt-4 text-neutral-500">{assurance.subtitle}</p>
           </div>
@@ -446,7 +446,7 @@ export default async function HomePage() {
     exchange: (
       <section className="py-14">
         <div className="mx-auto mb-10 max-w-3xl px-4 text-center">
-          <h2 className="font-serif text-3xl md:text-4xl">{exchange.title}</h2>
+          <h2 className="font-serif text-3xl text-brand md:text-4xl">{exchange.title}</h2>
           <p className="mt-2 text-sm text-neutral-500">{exchange.subtitle}</p>
         </div>
         <div className="mx-auto grid max-w-5xl grid-cols-2 gap-8 px-4 md:grid-cols-4">

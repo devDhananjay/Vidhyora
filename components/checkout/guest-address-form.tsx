@@ -52,7 +52,7 @@ export function GuestAddressForm({ value, onChange }: GuestAddressFormProps) {
   return (
     <div className="space-y-4 rounded-2xl border border-neutral-200 bg-white p-5">
       <div>
-        <h2 className="font-serif text-xl text-neutral-900">Guest checkout</h2>
+        <h2 className="font-serif text-xl text-brand">Guest checkout</h2>
         <p className="mt-1 text-sm text-neutral-500">
           No account needed. We will email your order confirmation.
         </p>

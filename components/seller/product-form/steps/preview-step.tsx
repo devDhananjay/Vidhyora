@@ -105,7 +105,7 @@ export function PreviewStep({ watch, categories }: PreviewStepProps) {
           <div className="grid gap-3 md:grid-cols-3">
             <div>
               <div className="text-sm text-muted-foreground">Base Price</div>
-              <div className="text-2xl font-bold">{formatCurrency(formData.basePrice)}</div>
+              <div className="font-serif text-2xl text-brand">{formatCurrency(formData.basePrice)}</div>
               {formData.compareAtPrice && formData.compareAtPrice > formData.basePrice && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground line-through">

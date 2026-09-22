@@ -298,7 +298,7 @@ export function CheckoutSummary({
 
   return (
     <div className="rounded-xl border p-6">
-      <h2 className="mb-4 text-lg font-semibold">Price Summary</h2>
+      <h2 className="mb-4 font-serif text-xl text-brand md:text-2xl">Price Summary</h2>
 
       <div className="space-y-3 text-sm">
         {summary.mrpTotal > summary.subtotal ? (

@@ -45,7 +45,7 @@ export async function ProductFilters({
   return (
     <div className="space-y-6 rounded-xl border bg-card p-4">
       <div className="flex items-center justify-between">
-        <h3 className="font-semibold">Filters</h3>
+        <h3 className="font-serif text-xl text-brand">Filters</h3>
         {hasFilters && (
           <Button variant="ghost" size="sm" asChild>
             <Link href="/products">

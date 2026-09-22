@@ -87,7 +87,7 @@ export default async function SellerProfilePage() {
   if (!sellerProfile) {
     return (
       <div className="space-y-4 rounded-xl border border-dashed border-neutral-200 bg-white p-8 text-center">
-        <h1 className="font-serif text-2xl text-neutral-900">
+        <h1 className="font-serif text-2xl text-brand">
           Seller profile not found
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -111,7 +111,7 @@ export default async function SellerProfilePage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+        <h1 className="font-serif text-3xl text-brand sm:text-4xl">
           Profile & KYC
         </h1>
         <p className="mt-2 text-muted-foreground">

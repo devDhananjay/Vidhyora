@@ -47,7 +47,7 @@ export default function PaymentOptionsPage() {
         <p className="text-xs tracking-[0.2em] text-[#8b2e2e] uppercase">
           Checkout
         </p>
-        <h1 className="mt-3 font-serif text-3xl text-neutral-900 sm:text-4xl md:text-5xl">
+        <h1 className="mt-3 font-serif text-3xl text-brand sm:text-4xl md:text-5xl">
           Payment Options
         </h1>
         <p className="mt-4 max-w-2xl text-neutral-600">
@@ -66,7 +66,7 @@ export default function PaymentOptionsPage() {
                 className="size-6 text-[#8b2e2e]"
                 strokeWidth={1.5}
               />
-              <h2 className="mt-4 font-serif text-xl text-neutral-900">
+              <h2 className="mt-4 font-serif text-xl text-brand">
                 {method.title}
               </h2>
               <p className="mt-2 text-sm leading-6 text-neutral-600">
@@ -77,7 +77,7 @@ export default function PaymentOptionsPage() {
         </div>
 
         <section className="mt-14 space-y-5 text-[15px] leading-7 text-neutral-700">
-          <h2 className="font-serif text-2xl text-neutral-900">
+          <h2 className="font-serif text-2xl text-brand">
             How online payment works
           </h2>
           <p>
@@ -88,7 +88,7 @@ export default function PaymentOptionsPage() {
             as it is — try again, or switch to COD.
           </p>
 
-          <h2 className="font-serif text-2xl text-neutral-900">
+          <h2 className="font-serif text-2xl text-brand">
             How Cash on Delivery works
           </h2>
           <p>
@@ -103,7 +103,7 @@ export default function PaymentOptionsPage() {
             so there is no refund.
           </p>
 
-          <h2 className="font-serif text-2xl text-neutral-900">
+          <h2 className="font-serif text-2xl text-brand">
             Delivery fee and offers
           </h2>
           <p>
@@ -116,7 +116,7 @@ export default function PaymentOptionsPage() {
             .
           </p>
 
-          <h2 className="font-serif text-2xl text-neutral-900">Refunds</h2>
+          <h2 className="font-serif text-2xl text-brand">Refunds</h2>
           <p>
             Approved returns on Razorpay orders go back to the original UPI,
             card, net banking or wallet. COD refunds, when a paid-and-delivered

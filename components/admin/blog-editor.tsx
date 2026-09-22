@@ -71,7 +71,7 @@ export function BlogEditor({ initialPosts, source }: BlogEditorProps) {
       {posts.map((post, index) => (
         <Card key={`${post.slug}-${index}`}>
           <CardHeader className="flex flex-row items-start justify-between gap-4">
-            <CardTitle className="font-serif text-xl">
+            <CardTitle className="font-serif text-xl font-normal text-brand">
               Post {index + 1}
               {post.title ? `: ${post.title}` : ""}
             </CardTitle>

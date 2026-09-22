@@ -267,7 +267,7 @@ export default async function ProductDetailPage({
 
               <div className="rounded-2xl border border-neutral-200 bg-white px-4 py-4 md:px-5">
                 <div className="flex flex-wrap items-end gap-3">
-                  <span className="font-serif text-3xl text-neutral-900 md:text-4xl">
+                  <span className="font-serif text-3xl text-brand md:text-4xl">
                     {formatCurrency(basePrice)}
                   </span>
                   {compareAtPrice ? (
@@ -299,7 +299,11 @@ export default async function ProductDetailPage({
               </div>
 
               <ProductTrustStrip
-                returnWindowDays={commerce.returnWindowDays}
+                returnWindowDays={
+                  product.policy?.returnWindowDays ||
+                  commerce.returnWindowDays ||
+                  5
+                }
                 freeShippingThreshold={commerce.freeShippingThreshold}
               />
 
@@ -324,6 +328,14 @@ export default async function ProductDetailPage({
                             .grossWeight,
                         )
                       : null
+                }
+                sizeFallback={
+                  typeof (product.attributes as Record<string, unknown> | null)
+                    ?.size === "string"
+                    ? String(
+                        (product.attributes as Record<string, unknown>).size,
+                      )
+                    : null
                 }
               />
 
@@ -371,7 +383,7 @@ export default async function ProductDetailPage({
           </div>
 
           <div className="mt-14">
-            <h2 className="mb-6 font-serif text-2xl text-[#8b2e2e] md:text-3xl">
+            <h2 className="mb-6 font-serif text-2xl text-brand md:text-3xl">
               Customer Reviews
             </h2>
             <div className="grid gap-8 lg:grid-cols-3">

@@ -312,8 +312,10 @@ export function normalizeProductFormValues(product: any): CreateProductInput {
     certificateUrl: product.certificateUrl || "",
     attributes: {
       metal: "",
+      size: "Free Size",
       karatage: "",
       purity: "",
+      quality: "",
       colour: "",
       materialColour: "",
       weight: "",

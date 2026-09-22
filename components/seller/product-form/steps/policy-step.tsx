@@ -1,7 +1,11 @@
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { NativeSelect } from "@/components/ui/native-select";
+import {
+  DEFAULT_POLICY_WINDOW_DAYS,
+  POLICY_WINDOW_OPTIONS,
+} from "@/lib/products/policy-window-options";
 
 type PolicyStepProps = {
   register: any;
@@ -10,10 +14,18 @@ type PolicyStepProps = {
   errors: any;
 };
 
-export function PolicyStep({ register, watch, setValue, errors }: PolicyStepProps) {
+export function PolicyStep({ watch, setValue }: PolicyStepProps) {
   const returnAllowed = watch("policy.returnAllowed");
   const replacementAllowed = watch("policy.replacementAllowed");
   const warrantyAvailable = watch("policy.warrantyAvailable");
+  const returnWindowDays = watch("policy.returnWindowDays");
+  const replacementWindowDays = watch("policy.replacementWindowDays");
+  const warrantyMonths = watch("policy.warrantyMonths");
+
+  const windowSelectValue = (days: unknown) => {
+    if (days == null || days === "" || Number(days) <= 0) return "";
+    return String(days);
+  };
 
   return (
     <div className="space-y-6">
@@ -38,20 +50,41 @@ export function PolicyStep({ register, watch, setValue, errors }: PolicyStepProp
           <Switch
             id="returnAllowed"
             checked={returnAllowed}
-            onCheckedChange={(checked) => setValue("policy.returnAllowed", checked)}
+            onCheckedChange={(checked) => {
+              setValue("policy.returnAllowed", checked);
+              if (checked && !(Number(returnWindowDays) > 0)) {
+                setValue(
+                  "policy.returnWindowDays",
+                  DEFAULT_POLICY_WINDOW_DAYS,
+                );
+              }
+            }}
           />
         </div>
 
         {returnAllowed && (
           <div>
-            <Label htmlFor="returnWindowDays">Return Window (Days)</Label>
-            <Input
+            <Label htmlFor="returnWindowDays">Return Window</Label>
+            <NativeSelect
               id="returnWindowDays"
-              type="number"
-              {...register("policy.returnWindowDays", { valueAsNumber: true })}
-              placeholder="7"
               className="mt-2"
-            />
+              value={windowSelectValue(returnWindowDays)}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (!v) {
+                  setValue("policy.returnAllowed", false);
+                  setValue("policy.returnWindowDays", undefined);
+                  return;
+                }
+                setValue("policy.returnWindowDays", Number(v));
+              }}
+            >
+              {POLICY_WINDOW_OPTIONS.filter((o) => o.value !== "").map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </NativeSelect>
             <p className="mt-1 text-xs text-muted-foreground">
               Number of days after delivery for returns
             </p>
@@ -73,20 +106,41 @@ export function PolicyStep({ register, watch, setValue, errors }: PolicyStepProp
           <Switch
             id="replacementAllowed"
             checked={replacementAllowed}
-            onCheckedChange={(checked) => setValue("policy.replacementAllowed", checked)}
+            onCheckedChange={(checked) => {
+              setValue("policy.replacementAllowed", checked);
+              if (checked && !(Number(replacementWindowDays) > 0)) {
+                setValue(
+                  "policy.replacementWindowDays",
+                  DEFAULT_POLICY_WINDOW_DAYS,
+                );
+              }
+            }}
           />
         </div>
 
         {replacementAllowed && (
           <div>
-            <Label htmlFor="replacementWindowDays">Replacement Window (Days)</Label>
-            <Input
+            <Label htmlFor="replacementWindowDays">Replacement Window</Label>
+            <NativeSelect
               id="replacementWindowDays"
-              type="number"
-              {...register("policy.replacementWindowDays", { valueAsNumber: true })}
-              placeholder="7"
               className="mt-2"
-            />
+              value={windowSelectValue(replacementWindowDays)}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (!v) {
+                  setValue("policy.replacementAllowed", false);
+                  setValue("policy.replacementWindowDays", undefined);
+                  return;
+                }
+                setValue("policy.replacementWindowDays", Number(v));
+              }}
+            >
+              {POLICY_WINDOW_OPTIONS.filter((o) => o.value !== "").map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </NativeSelect>
             <p className="mt-1 text-xs text-muted-foreground">
               Number of days after delivery for replacements
             </p>
@@ -108,20 +162,32 @@ export function PolicyStep({ register, watch, setValue, errors }: PolicyStepProp
           <Switch
             id="warrantyAvailable"
             checked={warrantyAvailable}
-            onCheckedChange={(checked) => setValue("policy.warrantyAvailable", checked)}
+            onCheckedChange={(checked) =>
+              setValue("policy.warrantyAvailable", checked)
+            }
           />
         </div>
 
         {warrantyAvailable && (
           <div>
             <Label htmlFor="warrantyMonths">Warranty Period (Months)</Label>
-            <Input
+            <NativeSelect
               id="warrantyMonths"
-              type="number"
-              {...register("policy.warrantyMonths", { valueAsNumber: true })}
-              placeholder="12"
               className="mt-2"
-            />
+              value={
+                warrantyMonths != null && Number(warrantyMonths) > 0
+                  ? String(warrantyMonths)
+                  : "12"
+              }
+              onChange={(e) =>
+                setValue("policy.warrantyMonths", Number(e.target.value))
+              }
+            >
+              <option value="3">3 months</option>
+              <option value="6">6 months</option>
+              <option value="12">12 months</option>
+              <option value="24">24 months</option>
+            </NativeSelect>
             <p className="mt-1 text-xs text-muted-foreground">
               Warranty coverage in months
             </p>
@@ -131,10 +197,15 @@ export function PolicyStep({ register, watch, setValue, errors }: PolicyStepProp
 
       {/* Policy Description */}
       <div>
-        <Label htmlFor="policyDescription">Additional Policy Details (Optional)</Label>
+        <Label htmlFor="policyDescription">
+          Additional Policy Details (Optional)
+        </Label>
         <Textarea
           id="policyDescription"
-          {...register("policy.policyDescription")}
+          value={watch("policy.policyDescription") || ""}
+          onChange={(e) =>
+            setValue("policy.policyDescription", e.target.value)
+          }
           placeholder="Describe any additional terms, conditions, or policy details..."
           rows={4}
           className="mt-2"

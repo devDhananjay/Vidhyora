@@ -29,7 +29,7 @@ export default async function TermsAndConditionsPage() {
         or listing products as a seller, you agree to these Terms.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         1. About VIDYORA
       </h2>
       <p>
@@ -39,7 +39,7 @@ export default async function TermsAndConditionsPage() {
         details are shown on each product page.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         2. Eligibility &amp; accounts
       </h2>
       <p>
@@ -50,7 +50,7 @@ export default async function TermsAndConditionsPage() {
         that are abusive, fraudulent or in breach of these Terms.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         3. Orders &amp; pricing
       </h2>
       <p>
@@ -64,7 +64,7 @@ export default async function TermsAndConditionsPage() {
         applicable.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         4. Payments
       </h2>
       <p>
@@ -80,7 +80,7 @@ export default async function TermsAndConditionsPage() {
         .
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         5. Shipping &amp; delivery
       </h2>
       <p>
@@ -94,7 +94,7 @@ export default async function TermsAndConditionsPage() {
         allows.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         6. Returns, exchanges &amp; cancellations
       </h2>
       <p>
@@ -109,7 +109,7 @@ export default async function TermsAndConditionsPage() {
         flow.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         7. Sellers
       </h2>
       <p>
@@ -121,7 +121,7 @@ export default async function TermsAndConditionsPage() {
         agreement.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         8. Intellectual property
       </h2>
       <p>
@@ -131,7 +131,7 @@ export default async function TermsAndConditionsPage() {
         grant VIDYORA a licence to display them for marketplace operations.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         9. Prohibited use
       </h2>
       <p>
@@ -141,7 +141,7 @@ export default async function TermsAndConditionsPage() {
         action where appropriate.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         10. Limitation of liability
       </h2>
       <p>
@@ -153,7 +153,7 @@ export default async function TermsAndConditionsPage() {
         is limited to the amount you paid for that order.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">
+      <h2 className="font-serif text-2xl text-brand">
         11. Governing law
       </h2>
       <p>
@@ -162,14 +162,14 @@ export default async function TermsAndConditionsPage() {
         may apply to you.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">12. Changes</h2>
+      <h2 className="font-serif text-2xl text-brand">12. Changes</h2>
       <p>
         We may revise these Terms periodically. The &quot;Last updated&quot;
         date will reflect changes. Continued use after an update constitutes
         acceptance of the revised Terms.
       </p>
 
-      <h2 className="font-serif text-2xl text-neutral-900">13. Contact</h2>
+      <h2 className="font-serif text-2xl text-brand">13. Contact</h2>
       <p>
         Questions about these Terms:{" "}
         <a

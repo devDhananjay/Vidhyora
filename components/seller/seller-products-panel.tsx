@@ -113,7 +113,7 @@ export function SellerProductsPanel({
         <span className="mx-auto mb-4 flex size-12 items-center justify-center rounded-full bg-[#f6ead7] text-[#8b2e2e]">
           <Package className="size-6" strokeWidth={1.5} />
         </span>
-        <h3 className="font-serif text-xl text-neutral-900">No products yet</h3>
+        <h3 className="font-serif text-xl text-brand">No products yet</h3>
         <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
           Add your first listing. New products go live after Super Admin
           approval.
@@ -179,7 +179,7 @@ export function SellerProductsPanel({
                       <div className="min-w-0">
                         <Link
                           href={`/seller/products/${product.id}`}
-                          className="font-serif text-xl text-neutral-900 transition hover:text-[#8b2e2e]"
+                          className="font-serif text-xl text-brand transition hover:text-[#8b2e2e]"
                         >
                           {product.name}
                         </Link>

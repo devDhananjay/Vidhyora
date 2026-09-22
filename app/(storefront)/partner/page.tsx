@@ -24,7 +24,7 @@ export default async function PartnerPage() {
         <p className="text-xs tracking-[0.2em] text-[#8b2e2e] uppercase">
           Seller Admin
         </p>
-        <h1 className="mt-3 font-serif text-3xl text-neutral-900 sm:text-4xl md:text-5xl">
+        <h1 className="mt-3 font-serif text-3xl text-brand sm:text-4xl md:text-5xl">
           Partner with VIDYORA
         </h1>
         <p className="mt-4 max-w-2xl text-neutral-600">
@@ -79,7 +79,7 @@ function Step({
   return (
     <div className="rounded-2xl border border-neutral-100 bg-white p-6">
       <Icon className="size-6 text-[#8b2e2e]" strokeWidth={1.5} />
-      <h2 className="mt-4 font-serif text-xl text-neutral-900">{title}</h2>
+      <h2 className="mt-4 font-serif text-xl text-brand">{title}</h2>
       <p className="mt-2 text-sm leading-6 text-neutral-600">{text}</p>
     </div>
   );

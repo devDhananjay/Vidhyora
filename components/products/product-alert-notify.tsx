@@ -238,7 +238,7 @@ export function ProductAlertNotify({
                   strokeWidth={1.6}
                 />
               </div>
-              <h3 className="mt-4 font-serif text-2xl text-neutral-900">
+              <h3 className="mt-4 font-serif text-2xl text-brand">
                 You&apos;re all set
               </h3>
               <p className="mt-2 text-sm text-neutral-500">
@@ -262,7 +262,7 @@ export function ProductAlertNotify({
                   strokeWidth={1.6}
                 />
               </div>
-              <h3 className="mt-4 font-serif text-2xl text-neutral-900">
+              <h3 className="mt-4 font-serif text-2xl text-brand">
                 Alert is on
               </h3>
               <p className="mt-2 text-sm text-neutral-500">
@@ -293,7 +293,7 @@ export function ProductAlertNotify({
                     strokeWidth={1.6}
                   />
                 </div>
-                <DialogTitle className="font-serif text-2xl text-neutral-900">
+                <DialogTitle className="font-serif text-2xl text-brand">
                   {dialogTitle}
                 </DialogTitle>
                 <DialogDescription className="text-sm text-neutral-500">

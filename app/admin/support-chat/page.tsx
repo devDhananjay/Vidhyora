@@ -23,6 +23,7 @@ const TABS = [
   { id: "OPEN", label: "Open" },
   { id: "PENDING", label: "Pending" },
   { id: "CLOSED", label: "Closed" },
+  { id: "ARCHIVED", label: "Archive" },
   { id: "ALL", label: "All" },
 ] as const;
 
@@ -38,17 +39,18 @@ export default async function AdminSupportChatPage({
   const active = activeId ? await getAdminSupportThread(activeId) : null;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+    <div className="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
+      <div className="shrink-0">
+        <h1 className="font-serif text-3xl text-brand sm:text-4xl">
           Support chat
         </h1>
         <p className="mt-2 text-sm text-muted-foreground sm:text-base">
-          Live conversations from the VIDYORA concierge widget.
+          Live conversations from the VIDYORA concierge widget. Inactive
+          customers (30 min) move to Archive for 72 hours, then are deleted.
         </p>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex shrink-0 flex-wrap gap-2">
         {TABS.map((tab) => (
           <Link
             key={tab.id}
@@ -69,8 +71,8 @@ export default async function AdminSupportChatPage({
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[340px_minmax(0,1fr)]">
-        <div className="space-y-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden lg:flex-row">
+        <div className="min-h-0 max-h-40 shrink-0 space-y-3 overflow-y-auto overscroll-contain lg:max-h-none lg:h-full lg:w-[340px] lg:shrink-0">
           {threads.length === 0 ? (
             <Card>
               <CardContent className="py-10 text-center text-muted-foreground">
@@ -120,10 +122,12 @@ export default async function AdminSupportChatPage({
                       className={
                         thread.status === "OPEN"
                           ? "bg-[#8b2e2e] text-white"
-                          : undefined
+                          : thread.status === "ARCHIVED"
+                            ? "bg-neutral-200 text-neutral-700"
+                            : undefined
                       }
                     >
-                      {thread.status}
+                      {thread.status === "ARCHIVED" ? "ARCHIVE" : thread.status}
                     </Badge>
                   </div>
                   <p className="mt-2 line-clamp-2 text-sm text-neutral-600">
@@ -139,16 +143,16 @@ export default async function AdminSupportChatPage({
           )}
         </div>
 
-        <Card>
-          <CardContent className="p-0">
+        <Card className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+          <CardContent className="flex min-h-0 flex-1 flex-col p-0">
             {!active ? (
               <p className="p-8 text-center text-muted-foreground">
                 Select a conversation.
               </p>
             ) : (
-              <div className="flex h-[min(70vh,720px)] flex-col">
-                <div className="border-b border-neutral-100 px-5 py-4">
-                  <p className="font-serif text-xl text-[#8b2e2e]">
+              <div className="flex min-h-0 flex-1 flex-col">
+                <div className="shrink-0 border-b border-neutral-100 px-5 py-4">
+                  <p className="font-serif text-xl text-brand">
                     {isGuestThreadEmail(active.email) &&
                     (!active.name || active.name === "Guest")
                       ? "Guest shopper"
@@ -168,8 +172,11 @@ export default async function AdminSupportChatPage({
                   threadId={active.id}
                   initialMessages={active.messages}
                 />
-                <div className="border-t border-neutral-100 p-4">
-                  <AdminSupportReplyForm threadId={active.id} />
+                <div className="shrink-0 border-t border-neutral-100 p-4">
+                  <AdminSupportReplyForm
+                    threadId={active.id}
+                    threadStatus={active.status}
+                  />
                 </div>
               </div>
             )}

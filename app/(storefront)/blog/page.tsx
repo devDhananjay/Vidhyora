@@ -22,7 +22,7 @@ export default async function BlogPage() {
         <p className="text-xs tracking-[0.2em] text-[#8b2e2e] uppercase">
           Journal
         </p>
-        <h1 className="mt-3 font-serif text-3xl text-neutral-900 sm:text-4xl md:text-5xl">
+        <h1 className="mt-3 font-serif text-3xl text-brand sm:text-4xl md:text-5xl">
           Blog
         </h1>
         <p className="mt-4 max-w-2xl text-neutral-600">
@@ -49,7 +49,7 @@ export default async function BlogPage() {
               <p className="text-xs tracking-[0.18em] text-[#8b2e2e] uppercase">
                 {featured.category} · {featured.readMinutes} min read
               </p>
-              <h2 className="mt-3 font-serif text-3xl text-neutral-900">
+              <h2 className="mt-3 font-serif text-3xl text-brand">
                 {featured.title}
               </h2>
               <p className="mt-3 text-sm leading-6 text-neutral-600">
@@ -80,7 +80,7 @@ export default async function BlogPage() {
                 <p className="text-xs tracking-[0.18em] text-[#8b2e2e] uppercase">
                   {post.category} · {post.date}
                 </p>
-                <h2 className="mt-2 font-serif text-2xl text-neutral-900">
+                <h2 className="mt-2 font-serif text-2xl text-brand">
                   {post.title}
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-neutral-600">

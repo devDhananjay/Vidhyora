@@ -22,7 +22,7 @@ export default async function SellerInventoryPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+        <h1 className="font-serif text-3xl text-brand sm:text-4xl">
           Inventory Management
         </h1>
         <p className="mt-2 text-sm text-muted-foreground sm:text-base">
@@ -82,7 +82,7 @@ export default async function SellerInventoryPage() {
           {inventory.length === 0 ? (
             <div className="py-12 text-center">
               <Package className="mx-auto mb-4 size-12 text-muted-foreground" />
-              <h3 className="mb-2 text-lg font-semibold">No products yet</h3>
+              <h3 className="mb-2 font-serif text-2xl text-brand">No products yet</h3>
               <p className="mb-4 text-muted-foreground">
                 Start by adding your first product
               </p>

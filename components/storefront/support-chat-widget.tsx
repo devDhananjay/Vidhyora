@@ -289,7 +289,7 @@ export function SupportChatWidget() {
         setGuide(DEFAULT_GUIDE);
       } else {
         setThread(result.data);
-        if (result.data.status === "CLOSED") {
+        if (result.data.status === "CLOSED" || result.data.status === "ARCHIVED") {
           clearSession();
           setThread(null);
           setGuide(DEFAULT_GUIDE);
@@ -413,6 +413,12 @@ export function SupportChatWidget() {
       onMinimize={() => setOpen(false)}
       onClose={() => setOpen(false)}
       onStartNew={startNewChat}
+      onDisposed={() => {
+        clearSession();
+        setThread(null);
+        setGuide(DEFAULT_GUIDE);
+        setError(null);
+      }}
       onRetryStart={() => {
         startAttempted.current = false;
         ensureThread();
@@ -564,6 +570,7 @@ function SupportChatPanel({
   onClose,
   onStartNew,
   onRetryStart,
+  onDisposed,
   mobileFullScreen = false,
   starting = false,
 }: {
@@ -583,6 +590,7 @@ function SupportChatPanel({
   onClose: () => void;
   onStartNew: () => void;
   onRetryStart: () => void;
+  onDisposed?: () => void;
   mobileFullScreen?: boolean;
   starting?: boolean;
 }) {
@@ -663,6 +671,7 @@ function SupportChatPanel({
           error={error}
           setError={setError}
           mobileFullScreen={mobileFullScreen}
+          onDisposed={onDisposed}
         />
       ) : (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 bg-[#faf8f6] px-6 text-center">
@@ -703,6 +712,7 @@ function ChatRoom({
   error,
   setError,
   mobileFullScreen = false,
+  onDisposed,
 }: {
   thread: SupportChatThreadDto;
   setThread: Dispatch<SetStateAction<SupportChatThreadDto | null>>;
@@ -717,6 +727,7 @@ function ChatRoom({
   error: string | null;
   setError: (e: string | null) => void;
   mobileFullScreen?: boolean;
+  onDisposed?: () => void;
 }) {
   const [draft, setDraft] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -740,6 +751,11 @@ function ChatRoom({
         if (prev.messages.some((m) => m.id === message.id)) return prev;
         return { ...prev, messages: [...prev.messages, message] };
       });
+    },
+    onThreadStatus: (status) => {
+      if (status === "CLOSED" || status === "ARCHIVED") {
+        onDisposed?.();
+      }
     },
   });
 

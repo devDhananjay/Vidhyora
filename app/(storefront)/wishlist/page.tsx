@@ -18,7 +18,7 @@ export default async function WishlistPage() {
         <AccountBackLink />
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+            <h1 className="font-serif text-3xl text-brand sm:text-4xl">
               My Wishlist
             </h1>
             <p className="mt-2 text-sm text-muted-foreground sm:text-base">

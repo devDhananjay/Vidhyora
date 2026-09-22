@@ -36,6 +36,7 @@ import {
   type SupportChatThreadDto,
 } from "@/lib/support-chat/types";
 import { productSearch } from "@/lib/search/product-search";
+import { maintainSupportChatLifecycle } from "@/lib/support-chat/lifecycle";
 
 export type {
   SupportChatMessageDto,
@@ -107,7 +108,7 @@ function mapThread(
     name: string;
     email: string;
     phone: string | null;
-    status: "OPEN" | "PENDING" | "CLOSED";
+    status: "OPEN" | "PENDING" | "CLOSED" | "ARCHIVED";
     messages: Array<{
       id: string;
       sender: "CUSTOMER" | "AGENT" | "SYSTEM";
@@ -457,8 +458,14 @@ export async function sendSupportChatMessage(
     if (!thread) {
       return { success: false, error: "Chat session expired. Please start again." };
     }
-    if (thread.status === "CLOSED") {
-      return { success: false, error: "This chat is closed." };
+    if (thread.status === "CLOSED" || thread.status === "ARCHIVED") {
+      return {
+        success: false,
+        error:
+          thread.status === "ARCHIVED"
+            ? "This chat ended due to inactivity. Please start a new chat."
+            : "This chat is closed.",
+      };
     }
 
     const created = await prisma.supportChatMessage.create({
@@ -697,12 +704,24 @@ export async function getSupportChatBootstrap(): Promise<{
 export async function getAdminSupportThreads(status?: string) {
   try {
     await requireAdmin();
+    // Keep Open/Pending clean without waiting only on cron
+    try {
+      await maintainSupportChatLifecycle();
+    } catch (lifecycleError) {
+      console.error("support-chat lifecycle (admin load):", lifecycleError);
+    }
     const statusFilter =
       status && status !== "ALL"
-        ? (status.toUpperCase() as "OPEN" | "PENDING" | "CLOSED")
+        ? (status.toUpperCase() as
+            | "OPEN"
+            | "PENDING"
+            | "CLOSED"
+            | "ARCHIVED")
         : undefined;
     return prisma.supportChatThread.findMany({
-      where: statusFilter ? { status: statusFilter } : undefined,
+      where: statusFilter
+        ? { status: statusFilter }
+        : { status: { not: "ARCHIVED" } },
       orderBy: { lastMessageAt: "desc" },
       include: {
         messages: {
@@ -746,6 +765,12 @@ export async function replySupportChatAsAgent(options: {
       where: { id: options.threadId },
     });
     if (!thread) return { success: false, error: "Thread not found" };
+    if (thread.status === "ARCHIVED") {
+      return {
+        success: false,
+        error: "This chat is archived (inactive). Re-open it first.",
+      };
+    }
 
     const agentMsg = await prisma.supportChatMessage.create({
       data: {
@@ -799,13 +824,21 @@ export async function replySupportChatAsAgent(options: {
 
 export async function updateSupportChatStatus(options: {
   threadId: string;
-  status: "OPEN" | "PENDING" | "CLOSED";
+  status: "OPEN" | "PENDING" | "CLOSED" | "ARCHIVED";
 }): Promise<ActionResult<void>> {
   try {
     await requireAdmin();
     await prisma.supportChatThread.update({
       where: { id: options.threadId },
-      data: { status: options.status },
+      data: {
+        status: options.status,
+        archivedAt:
+          options.status === "ARCHIVED"
+            ? new Date()
+            : options.status === "OPEN" || options.status === "PENDING"
+              ? null
+              : undefined,
+      },
     });
     publishSupportChatEvent({
       type: "thread",

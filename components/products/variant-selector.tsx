@@ -93,7 +93,7 @@ export function VariantSelector({ variants }: VariantSelectorProps) {
       {selectedVariant && (
         <div className="text-sm text-muted-foreground">
           Price:{" "}
-          <span className="font-semibold text-foreground">
+          <span className="font-semibold text-brand">
             {formatCurrency(Number(selectedVariant.price))}
           </span>
           {" • "}

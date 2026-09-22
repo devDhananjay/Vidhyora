@@ -155,7 +155,9 @@ export function ProductGallery({
   } | null>(null);
   const stageRef = useRef<HTMLDivElement>(null);
 
+  const hasOnModel = gallery.some((item) => item.role === "ON_MODEL");
   const hasDetail = gallery.some((item) => item.role === "DETAIL");
+  const showFilterChips = hasOnModel || hasDetail;
   const visibleGallery =
     filter === "ALL"
       ? gallery
@@ -179,6 +181,12 @@ export function ProductGallery({
   useEffect(() => {
     setActive(0);
   }, [thumbnail, videoUrl, images, filter]);
+
+  useEffect(() => {
+    // If seller removed on-model / detail shots, leave that empty filter.
+    if (filter === "ON_MODEL" && !hasOnModel) setFilter("ALL");
+    if (filter === "DETAIL" && !hasDetail) setFilter("ALL");
+  }, [filter, hasOnModel, hasDetail]);
 
   const resetZoom = useCallback(() => {
     setZoom(1);
@@ -475,46 +483,50 @@ export function ProductGallery({
 
   return (
     <div className="space-y-3 lg:sticky lg:top-28">
-      <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setFilter("ALL")}
-          className={cn(
-            "rounded-full px-3 py-1.5 text-xs font-medium transition",
-            filter === "ALL"
-              ? "bg-[#8b2e2e] text-white"
-              : "border border-neutral-200 bg-white text-neutral-600 hover:border-[#8b2e2e]/40",
-          )}
-        >
-          All
-        </button>
-        <button
-          type="button"
-          onClick={() => setFilter("ON_MODEL")}
-          className={cn(
-            "rounded-full px-3 py-1.5 text-xs font-medium transition",
-            filter === "ON_MODEL"
-              ? "bg-[#8b2e2e] text-white"
-              : "border border-neutral-200 bg-white text-neutral-600 hover:border-[#8b2e2e]/40",
-          )}
-        >
-          On model
-        </button>
-        {hasDetail ? (
+      {showFilterChips ? (
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={() => setFilter("DETAIL")}
+            onClick={() => setFilter("ALL")}
             className={cn(
               "rounded-full px-3 py-1.5 text-xs font-medium transition",
-              filter === "DETAIL"
+              filter === "ALL"
                 ? "bg-[#8b2e2e] text-white"
                 : "border border-neutral-200 bg-white text-neutral-600 hover:border-[#8b2e2e]/40",
             )}
           >
-            Detail
+            All
           </button>
-        ) : null}
-      </div>
+          {hasOnModel ? (
+            <button
+              type="button"
+              onClick={() => setFilter("ON_MODEL")}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-xs font-medium transition",
+                filter === "ON_MODEL"
+                  ? "bg-[#8b2e2e] text-white"
+                  : "border border-neutral-200 bg-white text-neutral-600 hover:border-[#8b2e2e]/40",
+              )}
+            >
+              On model
+            </button>
+          ) : null}
+          {hasDetail ? (
+            <button
+              type="button"
+              onClick={() => setFilter("DETAIL")}
+              className={cn(
+                "rounded-full px-3 py-1.5 text-xs font-medium transition",
+                filter === "DETAIL"
+                  ? "bg-[#8b2e2e] text-white"
+                  : "border border-neutral-200 bg-white text-neutral-600 hover:border-[#8b2e2e]/40",
+              )}
+            >
+              Detail
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       <div className="group relative aspect-square overflow-hidden rounded-[28px] border border-[#ead9c4]/70 bg-[#f4efea] shadow-[0_20px_50px_rgba(43,26,22,0.08)]">
         <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.35),transparent_55%)]" />
@@ -566,7 +578,7 @@ export function ProductGallery({
                 priority
                 sizes="(max-width: 1024px) 100vw, 50vw"
               />
-              <span className="absolute bottom-4 right-4 z-[2] inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-medium tracking-[0.1em] text-[#8b2e2e] uppercase shadow-sm backdrop-blur-sm opacity-0 transition group-hover:opacity-100">
+              <span className="absolute bottom-4 right-4 z-[2] inline-flex items-center gap-1.5 rounded-full bg-white/90 px-3 py-1.5 text-[10px] font-medium tracking-[0.1em] text-[#8b2e2e] uppercase shadow-sm backdrop-blur-sm">
                 <ZoomIn className="size-3" strokeWidth={1.8} />
                 Zoom
               </span>
@@ -599,7 +611,7 @@ export function ProductGallery({
               type="button"
               onClick={() => go(-1)}
               aria-label="Previous media"
-              className="absolute left-3 top-1/2 z-[2] flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#8b2e2e] opacity-0 shadow-md backdrop-blur transition group-hover:opacity-100"
+              className="absolute left-3 top-1/2 z-[2] flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#8b2e2e] shadow-md backdrop-blur transition hover:bg-white"
             >
               <ChevronLeft className="size-4" strokeWidth={1.8} />
             </button>
@@ -607,7 +619,7 @@ export function ProductGallery({
               type="button"
               onClick={() => go(1)}
               aria-label="Next media"
-              className="absolute right-3 top-1/2 z-[2] flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#8b2e2e] opacity-0 shadow-md backdrop-blur transition group-hover:opacity-100"
+              className="absolute right-3 top-1/2 z-[2] flex size-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-[#8b2e2e] shadow-md backdrop-blur transition hover:bg-white"
             >
               <ChevronRight className="size-4" strokeWidth={1.8} />
             </button>

@@ -22,7 +22,7 @@ export default async function ReturnsPolicyPage() {
         window shown on the product page, as long as the piece is unused and in
         original packaging with tags and certificates.
       </p>
-      <h2 className="font-serif text-2xl text-neutral-900">How to raise a request</h2>
+      <h2 className="font-serif text-2xl text-brand">How to raise a request</h2>
       <p>
         Open{" "}
         <Link href={ROUTES.orders} className="text-[#8b2e2e] underline">
@@ -32,7 +32,7 @@ export default async function ReturnsPolicyPage() {
         photos if asked. Super Admin reviews the request. Approved returns restore
         stock; paid orders are refunded to the original payment method.
       </p>
-      <h2 className="font-serif text-2xl text-neutral-900">What cannot be returned</h2>
+      <h2 className="font-serif text-2xl text-brand">What cannot be returned</h2>
       <p>
         Customised, engraved or made-to-order pieces, and jewellery showing wear,
         are not eligible. COD orders that are refused at the door are cancelled

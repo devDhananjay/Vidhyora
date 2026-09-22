@@ -4,6 +4,7 @@ import {
   type AiProductDraft,
 } from "@/lib/validations/ai-product-draft";
 import type { ImagePayload } from "@/lib/ai/load-product-image";
+import { suggestProductSize } from "@/lib/products/size-options";
 
 type CategoryOption = { id: string; name: string; slug?: string };
 
@@ -69,10 +70,18 @@ Categories:
 ${categoryLines || "(none provided)"}
 
 For jewellery attributes object, also try to fill when visible in the photo:
-- metal: Gold Finish | Yellow Gold Finish | White Gold Finish | Rose Gold Finish | Silver Finish | Platinum Finish | Diamond Finish | Oxidised Finish | Other Finish
+- metal: Default to "Stainless Steel" unless the piece is clearly another finish. Allowed: Gold Finish | Yellow Gold Finish | White Gold Finish | Rose Gold Finish | Silver Finish | Platinum Finish | Stainless Steel | Diamond Finish | Oxidised Finish | Other Finish
 - karatage / purity: e.g. 22K, 18K
+- quality: Default to "316L" when metal is Stainless Steel; otherwise e.g. 22K / 18K related notes if relevant
 - colour / materialColour: Yellow | White | Rose
 - weight / grossWeight: e.g. 4.25g
+- size: Choose by jewellery type when not labeled on the photo:
+  - Rings / Finger Rings → "Adjustable"
+  - Bracelets / Bangles / Kadas / Anklets → "Free Size"
+  - Earrings / Jhumkas / Studs / Hoops / Nose Pins → "One Size"
+  - Necklaces / Chains / Pendants / Mangalsutra / Chokers → "18 inches" (or "16 inches" / "20 inches" if clearly that length)
+  - Jewellery Sets → "Free Size"
+  If a fixed size is clearly labeled (e.g. "Size 12", "2.6"), use that instead.
 - stone, finish when obvious
 
 Always respond with ONE JSON object only (no markdown), matching this shape:
@@ -278,6 +287,26 @@ function parseDraft(
     categories.find((c) => c.id === categoryId)?.name ||
     (typeof obj.categoryName === "string" ? obj.categoryName : null);
 
+  const attributes = coerceAttributes(obj.attributes) || {};
+  if (!attributes.size?.trim()) {
+    const cat = categories.find((c) => c.id === categoryId);
+    attributes.size = suggestProductSize({
+      name,
+      categoryName: categoryName || cat?.name,
+      categorySlug: cat?.slug,
+    });
+  }
+  // Catalog default — sellers can change in the guided Metal finish step.
+  if (!attributes.metal?.trim()) {
+    attributes.metal = "Stainless Steel";
+  }
+  if (
+    !attributes.quality?.trim() &&
+    /stainless\s*steel/i.test(attributes.metal)
+  ) {
+    attributes.quality = "316L";
+  }
+
   const draft = aiProductDraftSchema.parse({
     ...obj,
     name,
@@ -298,7 +327,7 @@ function parseDraft(
       "This handcrafted piece features careful finishing and a timeless design suited to Indian occasions. Pair it with ethnic or contemporary outfits for a refined look.",
     ).slice(0, 5000),
     sku,
-    attributes: coerceAttributes(obj.attributes),
+    attributes,
     questions: Array.isArray(obj.questions) ? obj.questions : [],
   });
 

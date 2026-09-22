@@ -75,7 +75,7 @@ export function ReturnRequestForm({ orderItem, order, eligibility }: ReturnReque
       <Card className="mt-6">
         <CardContent className="py-12 text-center">
           <AlertCircle className="mx-auto mb-4 size-12 text-yellow-600" />
-          <h3 className="mb-2 text-lg font-semibold">Not Eligible</h3>
+          <h3 className="mb-2 font-serif text-2xl text-brand">Not Eligible</h3>
           <p className="text-muted-foreground">
             {eligibility.reason || "This item is not eligible for return or replacement"}
           </p>
@@ -89,7 +89,9 @@ export function ReturnRequestForm({ orderItem, order, eligibility }: ReturnReque
       {/* Order Item Info */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Item Details</CardTitle>
+          <CardTitle className="font-serif text-xl font-normal text-brand">
+            Item Details
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4">
@@ -116,7 +118,7 @@ export function ReturnRequestForm({ orderItem, order, eligibility }: ReturnReque
       {/* Request Type */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Request Type</CardTitle>
+          <CardTitle className="font-serif text-xl font-normal text-brand">Request Type</CardTitle>
         </CardHeader>
         <CardContent>
           <RadioGroup
@@ -152,7 +154,7 @@ export function ReturnRequestForm({ orderItem, order, eligibility }: ReturnReque
       {/* Reason */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Reason</CardTitle>
+          <CardTitle className="font-serif text-xl font-normal text-brand">Reason</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -197,7 +199,7 @@ export function ReturnRequestForm({ orderItem, order, eligibility }: ReturnReque
       {/* Upload Images */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Upload Images (Optional)</CardTitle>
+          <CardTitle className="font-serif text-xl font-normal text-brand">Upload Images (Optional)</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="mb-4 text-sm text-muted-foreground">

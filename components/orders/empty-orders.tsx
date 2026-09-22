@@ -11,7 +11,7 @@ export function EmptyOrders() {
         </div>
       </div>
 
-      <h1 className="mb-2 font-serif text-2xl text-neutral-900">No orders yet</h1>
+      <h1 className="mb-2 font-serif text-2xl text-brand">No orders yet</h1>
       <p className="mb-6 text-muted-foreground">
         You haven&apos;t placed any orders yet. Start shopping to see your
         orders here!

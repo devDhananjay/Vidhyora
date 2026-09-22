@@ -41,7 +41,7 @@ export function EmptyWishlist() {
 
         <div className="mt-6 h-px w-14 bg-gradient-to-r from-transparent via-[#c9a227]/80 to-transparent" />
 
-        <h2 className="mt-5 font-serif text-2xl text-neutral-900 sm:text-3xl">
+        <h2 className="mt-5 font-serif text-2xl text-brand sm:text-3xl">
           Your wishlist is waiting
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-neutral-600 sm:text-base">

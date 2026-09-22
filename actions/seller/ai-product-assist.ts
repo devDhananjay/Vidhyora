@@ -29,7 +29,7 @@ function resolveImageUrls(input: {
     ...(input.imageUrls || []),
     ...(input.imageUrl ? [input.imageUrl] : []),
   ].filter(Boolean);
-  return [...new Set(urls)].slice(0, 3);
+  return [...new Set(urls)].slice(0, 5);
 }
 
 export async function getAiProductAssistStatus(): Promise<

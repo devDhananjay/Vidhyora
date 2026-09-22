@@ -25,7 +25,7 @@ export default async function MyReviewsPage() {
       <div className="container mx-auto px-4 py-8">
         <AccountBackLink />
         <div className="mb-8">
-          <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+          <h1 className="font-serif text-3xl text-brand sm:text-4xl">
             My Reviews
           </h1>
           <p className="mt-2 text-muted-foreground">
@@ -35,7 +35,7 @@ export default async function MyReviewsPage() {
 
         {reviews.length === 0 ? (
           <div className="rounded-2xl border border-neutral-100 bg-white p-12 text-center">
-            <h2 className="mb-2 font-serif text-xl text-neutral-900">
+            <h2 className="mb-2 font-serif text-xl text-brand">
               No reviews yet
             </h2>
             <p className="mb-6 text-muted-foreground">

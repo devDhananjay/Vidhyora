@@ -35,7 +35,7 @@ export default async function EditProductPage({
           <ArrowLeft className="size-4" />
           Back to Products
         </Link>
-        <h1 className="mt-3 font-serif text-3xl text-neutral-900 sm:text-4xl">
+        <h1 className="mt-3 font-serif text-3xl text-brand sm:text-4xl">
           Edit Product
         </h1>
         <p className="mt-2 text-sm text-muted-foreground sm:text-base">

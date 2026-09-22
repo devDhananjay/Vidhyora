@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { JewelleryLineIcon } from "@/components/storefront/jewellery-icons";
+import { PRODUCT_SIZE_OPTIONS, suggestProductSize } from "@/lib/products/size-options";
 
 type BasicInfoStepProps = {
   register: any;
@@ -107,9 +108,19 @@ export function BasicInfoStep({
       <div>
         <Label htmlFor="categoryId">Category *</Label>
         <Select
-          onValueChange={(value) =>
-            setValue("categoryId", value, { shouldValidate: true, shouldDirty: true })
-          }
+          onValueChange={(value) => {
+            setValue("categoryId", value, {
+              shouldValidate: true,
+              shouldDirty: true,
+            });
+            const cat = categories.find((c: { id: string }) => c.id === value);
+            const suggested = suggestProductSize({
+              name: watch("name"),
+              categoryName: cat?.name,
+              categorySlug: cat?.slug,
+            });
+            setAttributeValue("size", suggested);
+          }}
           value={categoryId || undefined}
         >
           <SelectTrigger className="mt-2">
@@ -200,11 +211,36 @@ export function BasicInfoStep({
         <div>
           <p className="text-sm font-medium text-neutral-900">Metal details</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            These show under Metal Details on the product page (Karatage,
-            colour, weight, metal).
+            These show under Metal Details on the product page (metal, size,
+            karatage, quality, colour, weight).
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="attr-size">Size</Label>
+            <NativeSelect
+              id="attr-size"
+              value={
+                productAttributes.size ||
+                suggestProductSize({
+                  name: watch("name"),
+                  categoryName: selectedCategory?.name,
+                  categorySlug: selectedCategory?.slug,
+                })
+              }
+              onChange={(e) => setAttributeValue("size", e.target.value)}
+            >
+              {PRODUCT_SIZE_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </NativeSelect>
+            <p className="text-xs text-muted-foreground">
+              Rings → Adjustable · Bracelets → Free Size · Chains → 18 inches
+            </p>
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="attr-metal">Metal</Label>
             <NativeSelect
@@ -219,6 +255,9 @@ export function BasicInfoStep({
               <option value="Rose Gold Finish">Rose Gold Finish</option>
               <option value="Silver Finish">Silver Finish</option>
               <option value="Platinum Finish">Platinum Finish</option>
+              <option value="Stainless Steel">Stainless Steel</option>
+              <option value="Titanium Finish">Titanium Finish</option>
+              <option value="Brass Finish">Brass Finish</option>
               <option value="Diamond Finish">Diamond Finish</option>
               <option value="Oxidised Finish">Oxidised Finish</option>
               <option value="Other Finish">Other Finish</option>
@@ -245,6 +284,32 @@ export function BasicInfoStep({
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="attr-quality">Quality</Label>
+            <NativeSelect
+              id="attr-quality"
+              value={productAttributes.quality || ""}
+              onChange={(e) => setAttributeValue("quality", e.target.value)}
+            >
+              <option value="">Select quality…</option>
+              <option value="316L">316L</option>
+              <option value="304L">304L</option>
+              <option value="316">316</option>
+              <option value="304">304</option>
+              <option value="201">201</option>
+              <option value="430">430</option>
+              <option value="18/8">18/8</option>
+              <option value="18/10">18/10</option>
+              <option value="Surgical Grade">Surgical Grade</option>
+              <option value="Food Grade">Food Grade</option>
+              <option value="Hypoallergenic">Hypoallergenic</option>
+              <option value="Premium Grade">Premium Grade</option>
+            </NativeSelect>
+            <p className="text-xs text-muted-foreground">
+              Useful for stainless steel (e.g. 316L / 304L)
+            </p>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="attr-colour">Material colour</Label>
             <NativeSelect
               id="attr-colour"
@@ -262,6 +327,9 @@ export function BasicInfoStep({
               <option value="Yellow">Yellow</option>
               <option value="White">White</option>
               <option value="Rose">Rose</option>
+              <option value="Silver">Silver</option>
+              <option value="Black">Black</option>
+              <option value="Gunmetal">Gunmetal</option>
               <option value="Two Tone">Two Tone</option>
               <option value="Tri Color">Tri Color</option>
             </NativeSelect>

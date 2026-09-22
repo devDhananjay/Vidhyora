@@ -38,7 +38,7 @@ export default async function AdminDashboardPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+        <h1 className="font-serif text-3xl text-brand sm:text-4xl">
           {roleLabel}
         </h1>
         <p className="mt-2 text-sm text-neutral-500">

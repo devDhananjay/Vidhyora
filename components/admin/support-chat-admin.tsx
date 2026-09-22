@@ -14,11 +14,30 @@ import { useSupportChatRealtime } from "@/lib/hooks/use-support-chat-realtime";
 import { Button } from "@/components/ui/button";
 import { cn, formatCurrency } from "@/lib/utils";
 
-export function AdminSupportReplyForm({ threadId }: { threadId: string }) {
+export function AdminSupportReplyForm({
+  threadId,
+  threadStatus,
+}: {
+  threadId: string;
+  threadStatus?: "OPEN" | "PENDING" | "CLOSED" | "ARCHIVED";
+}) {
   const router = useRouter();
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const isArchived = threadStatus === "ARCHIVED";
+
+  if (isArchived) {
+    return (
+      <div className="space-y-3">
+        <p className="text-sm text-muted-foreground">
+          This chat was disposed for inactivity and is in Archive. It will be
+          permanently deleted after 72 hours unless you re-open it.
+        </p>
+        <StatusButton threadId={threadId} status="OPEN" label="Re-open chat" />
+      </div>
+    );
+  }
 
   return (
     <form
@@ -66,7 +85,7 @@ function StatusButton({
   label,
 }: {
   threadId: string;
-  status: "OPEN" | "PENDING" | "CLOSED";
+  status: "OPEN" | "PENDING" | "CLOSED" | "ARCHIVED";
   label: string;
 }) {
   const router = useRouter();

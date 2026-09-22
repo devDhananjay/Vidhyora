@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "@/components/brand/brand-logo";
+import type { AdminNavBadges } from "@/lib/admin/nav-badges";
 // Dark / light mode — on hold for now
 // import { ThemeToggle } from "@/components/theme/theme-toggle";
 
@@ -80,16 +81,35 @@ const SUPER_ADMIN_ONLY_HREFS = new Set([
   "/admin/emails",
 ]);
 
+function badgeForHref(
+  href: string,
+  badges: AdminNavBadges | undefined,
+): number | null {
+  if (!badges) return null;
+  if (href === "/admin/products") {
+    return badges.pendingProductApprovals > 0
+      ? badges.pendingProductApprovals
+      : null;
+  }
+  if (href === "/admin/support-chat") {
+    return badges.openLiveChats > 0 ? badges.openLiveChats : null;
+  }
+  return null;
+}
+
 export function DashboardShell({
   variant,
   userName,
   userRole,
+  navBadges,
   extraLinks,
   children,
 }: {
   variant: "admin" | "seller";
   userName?: string | null;
   userRole?: string | null;
+  /** Super Admin only — pending approvals + open chats */
+  navBadges?: AdminNavBadges;
   extraLinks?: { href: string; label: string }[];
   children: React.ReactNode;
 }) {
@@ -100,6 +120,8 @@ export function DashboardShell({
           (item) => isSuper || !SUPER_ADMIN_ONLY_HREFS.has(item.href),
         )
       : SELLER_NAV;
+  // Only Super Admin sees sidebar count badges
+  const badges = isSuper ? navBadges : undefined;
   const badge =
     variant === "admin"
       ? isSuper
@@ -122,9 +144,11 @@ export function DashboardShell({
     };
   }, [mobileOpen]);
 
+  const lockMainScroll = pathname === "/admin/support-chat";
+
   return (
-    <div className="min-h-screen bg-surface text-foreground">
-      <header className="sticky top-0 z-50 border-b border-border bg-background">
+    <div className="flex h-dvh flex-col overflow-hidden bg-surface text-foreground">
+      <header className="z-50 shrink-0 border-b border-border bg-background">
         <div className="flex h-14 items-center justify-between gap-3 px-4 sm:h-16 sm:px-6">
           <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <button
@@ -168,7 +192,12 @@ export function DashboardShell({
         <div className="border-t border-border lg:hidden">
           <div className="flex gap-1 overflow-x-auto px-3 py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {items.slice(0, 6).map((item) => (
-              <NavLink key={item.href} item={item} compact />
+              <NavLink
+                key={item.href}
+                item={item}
+                count={badgeForHref(item.href, badges)}
+                compact
+              />
             ))}
           </div>
         </div>
@@ -202,7 +231,12 @@ export function DashboardShell({
             </div>
             <nav className="flex-1 space-y-1 overflow-y-auto p-3">
               {items.map((item) => (
-                <NavLink key={item.href} item={item} onNavigate={() => setMobileOpen(false)} />
+                <NavLink
+                  key={item.href}
+                  item={item}
+                  count={badgeForHref(item.href, badges)}
+                  onNavigate={() => setMobileOpen(false)}
+                />
               ))}
             </nav>
             {extraLinks?.length ? (
@@ -223,15 +257,26 @@ export function DashboardShell({
         </div>
       ) : null}
 
-      <div className="flex">
-        <aside className="sticky top-16 hidden h-[calc(100vh-4rem)] w-64 overflow-y-auto border-r border-border bg-background lg:block">
+      <div className="flex min-h-0 flex-1">
+        <aside className="hidden h-full w-64 shrink-0 overflow-y-auto border-r border-border bg-background lg:block">
           <nav className="space-y-1 p-4">
             {items.map((item) => (
-              <NavLink key={item.href} item={item} />
+              <NavLink
+                key={item.href}
+                item={item}
+                count={badgeForHref(item.href, badges)}
+              />
             ))}
           </nav>
         </aside>
-        <main className="min-w-0 flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:p-8">
+        <main
+          className={cn(
+            "min-h-0 min-w-0 flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:p-8",
+            lockMainScroll
+              ? "flex flex-col overflow-hidden"
+              : "overflow-y-auto",
+          )}
+        >
           {children}
         </main>
       </div>
@@ -239,12 +284,39 @@ export function DashboardShell({
   );
 }
 
+function NavCountBadge({
+  count,
+  active,
+  compact,
+}: {
+  count: number;
+  active?: boolean;
+  compact?: boolean;
+}) {
+  const label = count > 99 ? "99+" : String(count);
+  return (
+    <span
+      className={cn(
+        "inline-flex min-w-[1.25rem] items-center justify-center rounded-full px-1.5 text-[10px] font-semibold tabular-nums",
+        compact ? "ml-0.5 h-4 min-w-4 px-1" : "ml-auto h-5",
+        active
+          ? "bg-white/20 text-white"
+          : "bg-[#8b2e2e] text-white",
+      )}
+    >
+      {label}
+    </span>
+  );
+}
+
 function NavLink({
   item,
+  count = null,
   compact = false,
   onNavigate,
 }: {
   item: (typeof ADMIN_NAV)[number];
+  count?: number | null;
   compact?: boolean;
   onNavigate?: () => void;
 }) {
@@ -273,6 +345,9 @@ function NavLink({
       >
         <Icon className="size-3.5" strokeWidth={1.75} />
         {item.label}
+        {count != null ? (
+          <NavCountBadge count={count} active={active} compact />
+        ) : null}
       </Link>
     );
   }
@@ -288,8 +363,9 @@ function NavLink({
           : "text-muted-foreground hover:bg-muted hover:text-brand",
       )}
     >
-      <Icon className="size-4" strokeWidth={1.5} />
-      {item.label}
+      <Icon className="size-4 shrink-0" strokeWidth={1.5} />
+      <span className="min-w-0 flex-1 truncate">{item.label}</span>
+      {count != null ? <NavCountBadge count={count} active={active} /> : null}
     </Link>
   );
 }

@@ -11,6 +11,7 @@ import {
   replaceProductImages,
   syncProductVariants,
 } from "@/lib/products/sync-product-variants";
+import { ensureUniqueVariantSkus } from "@/lib/products/unique-sku";
 import type { ActionResult } from "@/lib/utils";
 
 export async function createProduct(
@@ -30,7 +31,7 @@ export async function createProduct(
     const commerce = await getCommerceSettings();
     const needsApproval = commerce.productApprovalRequired;
     const returnWindowDays =
-      validated.policy.returnWindowDays || commerce.returnWindowDays || 7;
+      validated.policy.returnWindowDays || commerce.returnWindowDays || 5;
 
     // Check if slug already exists
     const existingProduct = await prisma.product.findUnique({
@@ -43,6 +44,10 @@ export async function createProduct(
         error: "A product with this slug already exists. Please choose a different name.",
       };
     }
+
+    const uniqueSkus = await ensureUniqueVariantSkus(
+      validated.variants.map((variant) => variant.sku),
+    );
 
     // Create product with variants and policy
     const product = await prisma.product.create({
@@ -88,8 +93,8 @@ export async function createProduct(
         
         // Create variants
         variants: {
-          create: validated.variants.map((variant) => ({
-            sku: variant.sku,
+          create: validated.variants.map((variant, index) => ({
+            sku: uniqueSkus[index] ?? variant.sku,
             attributes: variant.attributes,
             price: variant.price,
             compareAtPrice: variant.compareAtPrice,
@@ -133,6 +138,32 @@ export async function createProduct(
         error: error.issues[0]?.message || "Invalid product data",
       };
     }
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      const target = Array.isArray(error.meta?.target)
+        ? (error.meta?.target as string[]).join(", ")
+        : String(error.meta?.target || "");
+      if (/sku/i.test(target)) {
+        return {
+          success: false,
+          error:
+            "This SKU is already used on another product. Change the variant SKU and try again.",
+        };
+      }
+      if (/slug/i.test(target)) {
+        return {
+          success: false,
+          error:
+            "A product with this name/slug already exists. Please choose a different name.",
+        };
+      }
+      return {
+        success: false,
+        error: "A unique field conflict occurred. Please review SKU/slug and retry.",
+      };
+    }
     return {
       success: false,
       error: error instanceof Error ? error.message : "Failed to create product",
@@ -158,7 +189,7 @@ export async function updateProduct(
     const commerce = await getCommerceSettings();
     const needsApproval = commerce.productApprovalRequired;
     const returnWindowDays =
-      validated.policy.returnWindowDays || commerce.returnWindowDays || 7;
+      validated.policy.returnWindowDays || commerce.returnWindowDays || 5;
 
     // Check if product belongs to seller
     const existingProduct = await prisma.product.findUnique({
@@ -608,6 +639,14 @@ export async function saveProductDraft(
       uniqueSlug = `${slugBase}-${Date.now()}`;
     }
 
+    const uniqueDraftSkus = await ensureUniqueVariantSkus(
+      variantPayload.map((variant) => variant.sku),
+    );
+    const variantsWithUniqueSkus = variantPayload.map((variant, index) => ({
+      ...variant,
+      sku: uniqueDraftSkus[index] ?? variant.sku,
+    }));
+
     const product = await prisma.product.create({
       data: {
         ...productData,
@@ -624,7 +663,7 @@ export async function saveProductDraft(
             sortOrder: image.sortOrder ?? index,
           })),
         },
-        variants: { create: variantPayload },
+        variants: { create: variantsWithUniqueSkus },
         policy: { create: policy },
       },
     });

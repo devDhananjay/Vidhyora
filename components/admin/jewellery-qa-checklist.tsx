@@ -60,7 +60,7 @@ export function JewelleryQaChecklistPanel({
   return (
     <div className="space-y-4 rounded-xl border border-[#e8d5d0] bg-[#faf7f5] p-4">
       <div>
-        <h3 className="font-semibold text-neutral-900">Jewellery QA checklist</h3>
+        <h3 className="font-serif text-xl text-brand">Jewellery QA checklist</h3>
         <p className="mt-1 text-sm text-muted-foreground">
           Optional review aid — tick items as you check the listing. Does not block approve.
         </p>

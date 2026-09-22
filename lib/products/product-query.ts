@@ -62,6 +62,7 @@ const METAL_TERMS: Record<string, string[]> = {
   Gold: ["yellow gold"],
   "White Gold": ["white gold"],
   "Rose Gold": ["rose gold"],
+  "Stainless Steel": ["stainless steel", "steel", "316l", "304l"],
 };
 
 const OCCASION_TERMS: Record<string, string[]> = {
@@ -81,7 +82,25 @@ const ITEM_FILTERS: Record<string, { terms: string[]; exclude?: string[] }> = {
   hoops: { terms: ["hoop", "huggie"] },
   jhumkas: { terms: ["jhumka"] },
   studs: { terms: ["stud"] },
-  rings: { terms: ["ring"], exclude: ["earring"] },
+  // "ring" is a substring of string/sterling — always exclude those in text fallback
+  rings: {
+    terms: ["ring"],
+    exclude: [
+      "earring",
+      "string",
+      "sterling",
+      "necklace",
+      "bracelet",
+      "bangle",
+      "pendant",
+      "chain",
+      "choker",
+      "anklet",
+      "jhumka",
+      "mangalsutra",
+      "nosepin",
+    ],
+  },
   pendants: { terms: ["pendant"] },
   necklaces: { terms: ["necklace", "choker"] },
   chains: { terms: ["chain"] },
@@ -110,6 +129,32 @@ const ITEM_FILTERS: Record<string, { terms: string[]; exclude?: string[] }> = {
   emerald: { terms: ["emerald"] },
   ruby: { terms: ["ruby"] },
 };
+
+/** Real Category.slug values for each item filter (preferred over name matching). */
+const ITEM_CATEGORY_SLUGS: Record<string, string[]> = {
+  earrings: ["earrings", "studs", "drops", "hoops", "jhumkas"],
+  drops: ["drops"],
+  hoops: ["hoops"],
+  jhumkas: ["jhumkas"],
+  studs: ["studs"],
+  rings: ["rings"],
+  pendants: ["pendants"],
+  necklaces: ["necklaces", "pendants", "choker"],
+  chains: ["chains"],
+  bangles: ["bangles"],
+  bracelets: ["bracelets"],
+  mangalsutra: ["mangalsutra"],
+  nosepin: ["nosepin"],
+  kadas: ["kadas"],
+  sets: ["sets"],
+  choker: ["choker"],
+  anklets: ["anklets"],
+  tikka: ["tikka"],
+  coins: ["coins"],
+};
+
+/** Products still on a catch-all category may use name/slug text matching. */
+const CATCH_ALL_CATEGORY_SLUGS = ["jewelry", "jewellery"];
 
 const ITEM_LABELS: Record<string, string> = {
   earrings: "Earrings",
@@ -148,11 +193,32 @@ function nameMatch(terms: string[]): Prisma.ProductWhereInput {
 
 function itemClause(key: string): Prisma.ProductWhereInput {
   const config = ITEM_FILTERS[key];
-  if (!config) return nameMatch([key]);
+  const categorySlugs = ITEM_CATEGORY_SLUGS[key] ?? [key];
+  const byCategory: Prisma.ProductWhereInput = {
+    category: { slug: { in: categorySlugs } },
+  };
+
+  const textFallback = (matched: Prisma.ProductWhereInput): Prisma.ProductWhereInput => ({
+    AND: [
+      { category: { slug: { in: CATCH_ALL_CATEGORY_SLUGS } } },
+      matched,
+    ],
+  });
+
+  if (!config) {
+    return {
+      OR: [byCategory, textFallback(nameMatch([key]))],
+    };
+  }
+
   const matched = nameMatch(config.terms);
-  if (!config.exclude?.length) return matched;
+  const textFilter = config.exclude?.length
+    ? { AND: [matched, { NOT: nameMatch(config.exclude) }] }
+    : matched;
+
+  // Prefer real category assignment; only use name heuristics for catch-all catalog leftovers.
   return {
-    AND: [matched, { NOT: nameMatch(config.exclude) }],
+    OR: [byCategory, textFallback(textFilter)],
   };
 }
 

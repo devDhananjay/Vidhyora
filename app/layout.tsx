@@ -49,14 +49,14 @@ export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
   icons: {
     icon: [
-      { url: "/favicon-32.png?v=3", type: "image/png", sizes: "32x32" },
-      { url: "/favicon-48.png?v=3", type: "image/png", sizes: "48x48" },
-      { url: "/favicon-64.png?v=3", type: "image/png", sizes: "64x64" },
-      { url: "/icon-192.png?v=3", type: "image/png", sizes: "192x192" },
-      { url: "/favicon.ico?v=3", sizes: "any" },
+      { url: "/favicon-32.png?v=5", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-48.png?v=5", type: "image/png", sizes: "48x48" },
+      { url: "/favicon-64.png?v=5", type: "image/png", sizes: "64x64" },
+      { url: "/icon-192.png?v=5", type: "image/png", sizes: "192x192" },
+      { url: "/favicon.ico?v=5", sizes: "any" },
     ],
     apple: [
-      { url: "/apple-touch-icon.png?v=3", sizes: "180x180", type: "image/png" },
+      { url: "/apple-touch-icon.png?v=5", sizes: "180x180", type: "image/png" },
     ],
   },
   openGraph: {

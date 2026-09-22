@@ -54,7 +54,7 @@ export function SizeGuideDialog({ open, onOpenChange }: SizeGuideDialogProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg gap-0 overflow-hidden rounded-[24px] p-0 sm:rounded-[28px]">
         <DialogHeader className="border-b border-[#ead9c4]/70 bg-[#fffcf8] px-6 py-5 text-left">
-          <DialogTitle className="flex items-center gap-2 font-serif text-2xl font-normal text-[#2b1a16]">
+          <DialogTitle className="flex items-center gap-2 font-serif text-2xl font-normal text-brand">
             <Ruler className="size-5 text-[#8b2e2e]" strokeWidth={1.7} />
             Size guide
           </DialogTitle>
@@ -63,14 +63,14 @@ export function SizeGuideDialog({ open, onOpenChange }: SizeGuideDialogProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex gap-2 border-b border-neutral-100 px-6 pt-4">
+        <div className="flex justify-center gap-2 border-b border-neutral-100 px-6 py-2.5">
           {TABS.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => setTab(item.id)}
               className={cn(
-                "rounded-full px-3 py-1.5 text-xs font-medium transition",
+                "rounded-full px-3.5 py-1.5 text-xs font-medium transition",
                 tab === item.id
                   ? "bg-[#8b2e2e] text-white"
                   : "bg-[#f6ebe8] text-[#8b2e2e] hover:bg-[#efdfd9]",

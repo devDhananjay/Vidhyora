@@ -58,7 +58,7 @@ export function DeliveryPincodeChecker({
       <div className="flex items-start gap-3">
         <Truck className="mt-0.5 size-5 shrink-0 text-[#8b2e2e]" strokeWidth={1.6} />
         <div className="min-w-0 flex-1">
-          <p className="font-medium text-neutral-900">Check delivery date</p>
+          <p className="font-medium text-brand">Check delivery date</p>
           <p className="mt-0.5 text-sm text-neutral-500">
             Enter your pincode to see estimated delivery time
           </p>
@@ -150,7 +150,7 @@ export function DeliveryPincodeChecker({
       <div className="flex items-center gap-3 border-t border-neutral-100 pt-4">
         <Shield className="size-5 shrink-0 text-[#8b2e2e]" strokeWidth={1.6} />
         <div>
-          <p className="font-medium text-neutral-900">Secure Transaction</p>
+          <p className="font-medium text-brand">Secure Transaction</p>
           <p className="text-sm text-neutral-500">100% payment protection</p>
         </div>
       </div>

@@ -111,7 +111,7 @@ export function ProductShareButton({
             <div className="flex size-12 items-center justify-center rounded-full bg-[#8b2e2e]/10">
               <Link2 className="size-5 text-[#8b2e2e]" strokeWidth={1.6} />
             </div>
-            <DialogTitle className="mt-3 font-serif text-xl text-neutral-900 sm:text-2xl">
+            <DialogTitle className="mt-3 font-serif text-xl text-brand sm:text-2xl">
               Share this jewellery
             </DialogTitle>
             <p className="mt-2 max-w-[32ch] text-sm leading-relaxed text-neutral-500">

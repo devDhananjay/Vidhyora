@@ -28,7 +28,7 @@ export function AuthFrame({
           <Link href="/" className="inline-flex justify-center" aria-label="VIDYORA home">
             <BrandLogo size="lg" priority />
           </Link>
-          <h1 className="mt-6 font-serif text-3xl text-foreground">{title}</h1>
+          <h1 className="mt-6 font-serif text-3xl text-brand">{title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{subtitle}</p>
         </div>
         <div className="mt-8 rounded-2xl border border-border bg-card p-6 shadow-[0_12px_40px_rgba(43,26,22,0.06)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.35)] md:p-8">

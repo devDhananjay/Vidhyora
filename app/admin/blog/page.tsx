@@ -19,7 +19,7 @@ export default async function AdminBlogPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">Blog</h1>
+        <h1 className="font-serif text-3xl text-brand sm:text-4xl">Blog</h1>
         <p className="mt-2 text-sm text-muted-foreground sm:text-base">
           Edit storefront journal posts. Empty CMS falls back to built-in
           articles.

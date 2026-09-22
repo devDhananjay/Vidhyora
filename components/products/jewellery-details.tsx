@@ -38,6 +38,28 @@ function parseWeightGrams(weight: string) {
   return match ? Number.parseFloat(match[1]) : 0;
 }
 
+/** e.g. "2.2" → "2.2 Gram", "500mg" → "500 Milligram" */
+function formatGrossWeightDisplay(weight: string, weightGrams: number): string {
+  const raw = weight.trim();
+  const source = raw || (weightGrams > 0 ? String(weightGrams) : "");
+  if (!source) return "—";
+
+  const match = source.match(
+    /([\d.]+)\s*(mg|milligrams?|g|grams?|kg|kilograms?)?/i,
+  );
+  if (!match) return raw || "—";
+
+  const amount = match[1];
+  const unit = (match[2] || "g").toLowerCase();
+  if (unit.startsWith("mg") || unit.startsWith("milli")) {
+    return `${amount} Milligram`;
+  }
+  if (unit.startsWith("kg") || unit.startsWith("kilo")) {
+    return `${amount} Kilogram`;
+  }
+  return `${amount} Gram`;
+}
+
 function detectKaratage(metal: string, purity: string) {
   if (purity) {
     const fromPurity = purity.match(/(\d{1,2})\s*K/i);
@@ -53,8 +75,10 @@ function detectColour(metal: string) {
   if (/white/i.test(metal)) return "White";
   if (/rose/i.test(metal)) return "Rose";
   if (/yellow/i.test(metal)) return "Yellow";
+  if (/gunmetal|gun\s*metal/i.test(metal)) return "Gunmetal";
+  if (/black/i.test(metal)) return "Black";
   if (/gold/i.test(metal)) return "Yellow";
-  if (/platinum|silver/i.test(metal)) return "White";
+  if (/platinum|silver|stainless|steel|titanium/i.test(metal)) return "Silver";
   return "—";
 }
 
@@ -65,6 +89,9 @@ function detectMetalLabel(metal: string) {
   if (/white\s*gold/i.test(raw)) return "White Gold Finish";
   if (/rose\s*gold/i.test(raw)) return "Rose Gold Finish";
   if (/platinum/i.test(raw)) return "Platinum Finish";
+  if (/stainless\s*steel|steel/i.test(raw)) return "Stainless Steel";
+  if (/titanium/i.test(raw)) return "Titanium Finish";
+  if (/brass/i.test(raw)) return "Brass Finish";
   if (/silver/i.test(raw)) return "Silver Finish";
   if (/oxidised|oxidized/i.test(raw)) return "Oxidised Finish";
   if (/diamond/i.test(raw)) return "Diamond Finish";
@@ -111,6 +138,8 @@ export function JewelleryDetails({
     const style = asString(source.style);
     const quantity = asString(source.quantity);
     const diameter = asString(source.diameter);
+    const quality = asString(source.quality);
+    const size = asString(source.size);
     const explicitColour =
       asString(source.colour) || asString(source.materialColour);
     const explicitKaratage = asString(source.karatage);
@@ -125,6 +154,8 @@ export function JewelleryDetails({
       style,
       quantity,
       diameter,
+      quality,
+      size,
       karatage: explicitKaratage || detectKaratage(metal, purity),
       colour: explicitColour || detectColour(metal),
       metalLabel: detectMetalLabel(metal),
@@ -179,13 +210,17 @@ export function JewelleryDetails({
   const hasCertificateFile = Boolean(certificateUrl?.trim());
 
   const metalItems = [
-    { label: "Karatage", value: attrs.karatage },
+    { label: "Metal", value: attrs.metalLabel },
+    ...(attrs.quality
+      ? [{ label: "Quality", value: attrs.quality }]
+      : []),
+    ...(attrs.size ? [{ label: "Size", value: attrs.size }] : []),
     { label: "Material Colour", value: attrs.colour },
     {
       label: "Gross Weight",
-      value: attrs.weight || (attrs.weightGrams ? `${attrs.weightGrams}g` : "—"),
+      value: formatGrossWeightDisplay(attrs.weight, attrs.weightGrams),
     },
-    { label: "Metal", value: attrs.metalLabel },
+    { label: "Karatage", value: attrs.karatage },
   ];
 
   function toggle(id: AccordionId) {
@@ -194,7 +229,7 @@ export function JewelleryDetails({
 
   return (
     <section className="rounded-[28px] border border-neutral-200 bg-white px-4 py-8 md:px-8 md:py-10">
-      <h2 className="text-center font-serif text-3xl text-neutral-900 md:text-4xl">
+      <h2 className="text-center font-serif text-3xl text-brand md:text-4xl">
         Jewellery Details
       </h2>
 
@@ -239,7 +274,7 @@ export function JewelleryDetails({
                 <div className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3">
                   {metalItems.map((item) => (
                     <div key={item.label}>
-                      <p className="text-sm font-semibold text-neutral-900">
+                      <p className="text-sm font-semibold text-brand">
                         {item.value}
                       </p>
                       <p className="mt-0.5 text-xs text-neutral-500">
@@ -261,7 +296,7 @@ export function JewelleryDetails({
                   <div className="grid grid-cols-2 gap-x-4 gap-y-5 sm:grid-cols-3">
                     {generalItems.map((item) => (
                       <div key={item.label}>
-                        <p className="text-sm font-semibold text-neutral-900">
+                        <p className="text-sm font-semibold text-brand">
                           {item.value}
                         </p>
                         <p className="mt-0.5 text-xs text-neutral-500">
@@ -284,7 +319,7 @@ export function JewelleryDetails({
                     className="mt-5 inline-flex items-center gap-2 rounded-full border border-[#8b2e2e]/25 bg-[#faf4f0] px-4 py-2 text-sm font-medium text-[#8b2e2e] transition hover:bg-[#f3ebe4]"
                   >
                     <FileText className="size-4" strokeWidth={1.6} />
-                    Download certificate / hallmark
+                    Download certificate
                   </a>
                 ) : null}
               </AccordionCard>
@@ -447,7 +482,7 @@ function AccordionCard({
         className="flex w-full items-center gap-3 px-4 py-4 text-left transition hover:bg-[#faf7f5]"
       >
         <span className="text-[#8b2e2e]">{icon}</span>
-        <span className="flex-1 text-sm font-semibold tracking-[0.12em] text-neutral-800 uppercase">
+        <span className="flex-1 text-sm font-semibold tracking-[0.12em] text-brand uppercase">
           {title}
         </span>
         <ChevronDown

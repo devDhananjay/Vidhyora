@@ -12,7 +12,9 @@ export function EmptyCart() {
           </div>
         </div>
 
-        <h1 className="mb-2 text-2xl font-bold">Your cart is empty</h1>
+        <h1 className="mb-2 font-serif text-2xl text-brand sm:text-3xl">
+          Your cart is empty
+        </h1>
         <p className="mb-6 text-muted-foreground">
           Looks like you haven&apos;t added anything to your cart yet. Start
           shopping to fill it up!

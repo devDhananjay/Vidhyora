@@ -947,6 +947,7 @@ enum SupportChatStatus {
   OPEN
   PENDING
   CLOSED
+  ARCHIVED
 }
 
 enum SupportChatSender {
@@ -963,6 +964,8 @@ model SupportChatThread {
   email         String
   phone         String?
   status        SupportChatStatus @default(OPEN)
+  /** Set when status becomes ARCHIVED (inactive dispose). Used for 72h purge. */
+  archivedAt    DateTime?
   lastMessageAt DateTime          @default(now())
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
@@ -973,6 +976,7 @@ model SupportChatThread {
   @@index([status])
   @@index([lastMessageAt])
   @@index([email])
+  @@index([archivedAt])
 }
 
 model SupportChatMessage {

@@ -83,7 +83,13 @@ const OCCASION_DEFS = [
     },
   ] as const;
 
-const METAL_ORDER = ["Yellow Gold", "White Gold", "Rose Gold", "Gold"] as const;
+const METAL_ORDER = [
+  "Yellow Gold",
+  "White Gold",
+  "Rose Gold",
+  "Gold",
+  "Stainless Steel",
+] as const;
 
 function blobOf(product: {
   name: string;
@@ -133,6 +139,7 @@ function normalizeMetalLabel(raw: string) {
   if (/yellow\s*gold/i.test(raw)) return "Yellow Gold";
   if (/white\s*gold/i.test(raw)) return "White Gold";
   if (/rose\s*gold/i.test(raw)) return "Rose Gold";
+  if (/stainless\s*steel|steel/i.test(raw)) return "Stainless Steel";
   if (/^gold$/i.test(raw) || /gold\s*finish/i.test(raw)) return "Gold";
   return "";
 }

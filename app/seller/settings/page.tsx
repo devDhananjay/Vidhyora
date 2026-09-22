@@ -25,7 +25,7 @@ export default async function SellerSettingsPage() {
   if (!profile) {
     return (
       <div className="space-y-6">
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+        <h1 className="font-serif text-3xl text-brand sm:text-4xl">
           Settings
         </h1>
         <Card>
@@ -40,7 +40,7 @@ export default async function SellerSettingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-serif text-3xl text-neutral-900 sm:text-4xl">
+        <h1 className="font-serif text-3xl text-brand sm:text-4xl">
           Settings
         </h1>
         <p className="mt-2 text-muted-foreground">

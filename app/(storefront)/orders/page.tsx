@@ -6,7 +6,7 @@ import { BuyerOrdersPanel } from "@/components/orders/buyer-orders-panel";
 import { ShoppingBag } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "My Orders | VIDYORA",
+  title: "My Orders",
   description: "Track and manage your orders",
 };
 

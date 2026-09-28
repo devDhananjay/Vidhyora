@@ -5,7 +5,7 @@ import { ROUTES } from "@/lib/constants";
 import { getSiteSettings } from "@/lib/content/get-site-settings";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | VIDYORA",
+  title: "Privacy Policy",
   description:
     "How VIDYORA collects, uses and protects your personal data for jewellery orders, accounts and seller services.",
   alternates: {

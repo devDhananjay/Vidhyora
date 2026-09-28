@@ -25,15 +25,32 @@ export const homepageHeroSlideSchema = z.object({
   id: z.string().min(1),
   image: z.string().min(1),
   alt: z.string().min(1),
+  /**
+   * overlay = classic text + CTA panel.
+   * mediaOnly = full-bleed image/video with no copy or buttons.
+   */
+  layout: z.enum(["overlay", "mediaOnly"]).optional().default("overlay"),
   panelColor: z.string().min(1),
   panelClassName: z.string().min(1),
   contentAlign: z.enum(["right", "right-soft"]),
   eyebrow: z.string().optional(),
   titleMode: z.enum(["script", "stacked", "serif"]),
-  titleLines: z.array(z.string().min(1)).min(1),
-  subtitle: z.string().min(1),
-  cta: z.string().min(1),
-  ctaHref: z.string().min(1),
+  // Allow empty while editing; fill a placeholder so save never crashes.
+  titleLines: z
+    .array(z.string())
+    .transform((lines) => {
+      const cleaned = lines.map((l) => l.trim()).filter(Boolean);
+      return cleaned.length > 0 ? cleaned : ["Banner"];
+    }),
+  subtitle: z
+    .string()
+    .transform((s) => (s.trim().length > 0 ? s : " ")),
+  cta: z
+    .string()
+    .transform((s) => (s.trim().length > 0 ? s : "SHOP NOW")),
+  ctaHref: z
+    .string()
+    .transform((s) => (s.trim().length > 0 ? s : "/products")),
   ctaClassName: z.string().min(1),
   /** When false, slide is hidden on the storefront. Default true. */
   isActive: z.boolean().optional(),

@@ -10,6 +10,7 @@ import {
 import { ROUTES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { generateArticleStructuredData } from "@/lib/structured-data";
+import { getSiteUrl } from "@/lib/site-url";
 
 type BlogPostPageProps = {
   params: Promise<{ slug: string }>;
@@ -22,7 +23,7 @@ export async function generateMetadata({
   const post = await getBlogPostBySlug(slug);
   if (!post) notFound();
   return {
-    title: `${post.title} | VIDYORA Blog`,
+    title: post.title,
     description: post.excerpt,
     alternates: {
       canonical: `/blog/${slug}`,
@@ -43,11 +44,11 @@ export default async function BlogPostPage({ params }: BlogPostPageProps) {
   if (!post) notFound();
 
   const more = posts.filter((item) => item.slug !== post.slug).slice(0, 3);
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://vidyora.co.in";
+  const siteUrl = getSiteUrl();
   const articleLd = generateArticleStructuredData({
     title: post.title,
     description: post.excerpt,
-    url: `${appUrl}/blog/${post.slug}`,
+    url: `${siteUrl}/blog/${post.slug}`,
     image: post.image,
     datePublished: post.date,
   });

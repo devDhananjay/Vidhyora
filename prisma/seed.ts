@@ -24,14 +24,14 @@ async function main() {
 
   // ─── Users ───────────────────────────────────────────────────────────────
   await prisma.user.upsert({
-    where: { email: "admin@vidyora.com" },
+    where: { email: "support@vidyora.co.in" },
     update: {
       role: UserRole.SUPER_ADMIN,
       isActive: true,
       name: "VIDYORA Super Admin",
     },
     create: {
-      email: "admin@vidyora.com",
+      email: "support@vidyora.co.in",
       name: "VIDYORA Super Admin",
       phone: "+919000000001",
       passwordHash,
@@ -643,7 +643,7 @@ async function main() {
 
   console.log("✅ Seed completed successfully!");
   console.log("\n📋 Test credentials (password: Password@123):");
-  console.log("  Super Admin:  admin@vidyora.com");
+  console.log("  Super Admin:  support@vidyora.co.in");
   console.log("  Seller Admin: seller1@vidyora.com");
   console.log("  Seller Admin: seller2@vidyora.com");
   console.log("  Customer:     customer1@example.com");

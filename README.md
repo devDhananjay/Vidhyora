@@ -44,7 +44,7 @@ Password for all seed users: `Password@123`
 
 | Role     | Email                  |
 |----------|------------------------|
-| Admin    | admin@vidyora.com      |
+| Admin    | support@vidyora.co.in  |
 | Seller 1 | seller1@vidyora.com    |
 | Seller 2 | seller2@vidyora.com    |
 | Customer | customer1@example.com  |

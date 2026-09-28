@@ -48,6 +48,7 @@ export async function getSellerProducts(filters?: {
           select: {
             stock: true,
             price: true,
+            compareAtPrice: true,
           },
         },
         _count: {

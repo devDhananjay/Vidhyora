@@ -15,7 +15,7 @@ import { SavedForLaterSection } from "@/components/cart/saved-for-later-section"
 import { ShoppingBag } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Shopping Cart | VIDYORA",
+  title: "Shopping Cart",
   description: "Review your cart and proceed to checkout",
 };
 

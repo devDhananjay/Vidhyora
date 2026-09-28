@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { changePassword } from "@/actions/account/change-password";
+import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 type ChangePasswordFormProps = {
@@ -56,9 +56,8 @@ export function ChangePasswordForm({
       {hasExistingPassword ? (
         <div className="space-y-2">
           <Label htmlFor="current-password">Current password</Label>
-          <Input
+          <PasswordInput
             id="current-password"
-            type="password"
             autoComplete="current-password"
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
@@ -69,9 +68,8 @@ export function ChangePasswordForm({
 
       <div className="space-y-2">
         <Label htmlFor="new-password">New password</Label>
-        <Input
+        <PasswordInput
           id="new-password"
-          type="password"
           autoComplete="new-password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
@@ -84,9 +82,8 @@ export function ChangePasswordForm({
 
       <div className="space-y-2">
         <Label htmlFor="confirm-password">Confirm new password</Label>
-        <Input
+        <PasswordInput
           id="confirm-password"
-          type="password"
           autoComplete="new-password"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}

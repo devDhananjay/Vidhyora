@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getPublicStores, getStoreCities } from "@/actions/content/get-stores";
 import { StoreLocatorResults } from "@/components/storefront/store-locator-results";
+import { generateLocalBusinessStructuredData } from "@/lib/structured-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NativeSelect } from "@/components/ui/native-select";
 
 export const metadata: Metadata = {
-  title: "Store Locator | VIDYORA",
+  title: "Store Locator",
   description: "Find a VIDYORA jewellery store near you.",
   alternates: { canonical: "/store-locator" },
 };
@@ -25,8 +26,16 @@ export default async function StoreLocatorPage({
     getStoreCities(),
   ]);
 
+  const localBusinessLd = generateLocalBusinessStructuredData(stores);
+
   return (
     <div className="bg-[#faf8f6]">
+      {localBusinessLd ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessLd) }}
+        />
+      ) : null}
       <div className="mx-auto max-w-7xl px-4 py-12 md:px-6">
         <p className="text-xs tracking-[0.2em] text-[#8b2e2e] uppercase">Visit us</p>
         <h1 className="mt-2 font-serif text-3xl text-brand sm:text-4xl md:text-5xl">

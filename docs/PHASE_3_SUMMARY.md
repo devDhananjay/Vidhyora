@@ -115,7 +115,7 @@ VIDYORA/
 
 | Role | Email | Password |
 |------|-------|----------|
-| **Admin** | admin@vidyora.com | Password@123 |
+| **Admin** | support@vidyora.co.in | Password@123 |
 | **Seller 1** | seller1@vidyora.com | Password@123 |
 | **Seller 2** | seller2@vidyora.com | Password@123 |
 | **Customer** | customer1@example.com | Password@123 |

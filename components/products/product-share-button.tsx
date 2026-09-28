@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Copy, Link2, MessageCircle, Share2, X } from "lucide-react";
+import { Check, Copy, Link2, Share2, X } from "lucide-react";
 import {
   Dialog,
   DialogClose,
@@ -11,6 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { WhatsAppIcon } from "@/components/shared/whatsapp-icon";
 import { cn } from "@/lib/utils";
 import { whatsappHref } from "@/lib/content/site-settings-defaults";
 
@@ -159,7 +160,7 @@ export function ProductShareButton({
               rel="noopener noreferrer"
               className="flex h-10 w-full items-center justify-center gap-2 rounded-full border border-[#25D366]/40 bg-[#25D366]/10 text-sm font-medium text-[#128C7E] transition hover:bg-[#25D366]/20"
             >
-              <MessageCircle className="size-4" strokeWidth={1.7} />
+              <WhatsAppIcon className="size-4 text-[#25D366]" />
               Share on WhatsApp
             </a>
 
@@ -170,7 +171,7 @@ export function ProductShareButton({
                 rel="noopener noreferrer"
                 className="flex h-10 w-full items-center justify-center gap-2 rounded-full border border-neutral-200 bg-white text-sm font-medium text-neutral-700 transition hover:border-[#8b2e2e]/35 hover:text-[#8b2e2e]"
               >
-                <MessageCircle className="size-4" strokeWidth={1.7} />
+                <WhatsAppIcon className="size-4 text-[#25D366]" />
                 Ask on WhatsApp
               </a>
             ) : null}

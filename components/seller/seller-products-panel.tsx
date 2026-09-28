@@ -5,6 +5,7 @@ import Image from "next/image";
 import { AlertCircle, Package } from "lucide-react";
 import { FilteredList } from "@/components/dashboard/filtered-list";
 import { CloneProductButton } from "@/components/seller/clone-product-button";
+import { QuickPriceUpdateButton } from "@/components/seller/quick-price-update-button";
 import { SellerProductDeleteButton } from "@/components/seller/seller-product-delete-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +25,7 @@ export type SellerProductRow = {
   resubmissionCount: number;
   categoryName: string;
   minPrice: number;
+  compareAtPrice: number | null;
   totalStock: number;
   orderCount: number;
   reviewCount: number;
@@ -221,8 +223,26 @@ export function SellerProductsPanel({
                         <div className="text-[11px] tracking-wide text-neutral-500 uppercase">
                           Price
                         </div>
-                        <div className="mt-0.5 font-serif text-lg text-brand tabular-nums">
-                          {formatCurrency(product.minPrice)}
+                        <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                          <span className="font-serif text-lg text-brand tabular-nums">
+                            {formatCurrency(product.minPrice)}
+                          </span>
+                          {product.compareAtPrice != null &&
+                          product.compareAtPrice > product.minPrice ? (
+                            <>
+                              <span className="text-xs text-neutral-400 line-through tabular-nums">
+                                {formatCurrency(product.compareAtPrice)}
+                              </span>
+                              <span className="inline-flex shrink-0 rounded-md bg-[#f6ead7] px-1.5 py-0.5 text-[11px] font-medium text-[#8b2e2e]">
+                                {Math.round(
+                                  ((product.compareAtPrice - product.minPrice) /
+                                    product.compareAtPrice) *
+                                    100,
+                                )}
+                                % OFF
+                              </span>
+                            </>
+                          ) : null}
                         </div>
                       </div>
                       <div>
@@ -262,6 +282,12 @@ export function SellerProductsPanel({
                     </div>
 
                     <div className="flex flex-wrap gap-2">
+                      <QuickPriceUpdateButton
+                        productId={product.id}
+                        productName={product.name}
+                        sellingPrice={product.minPrice}
+                        compareAtPrice={product.compareAtPrice}
+                      />
                       <Link href={`/seller/products/${product.id}/edit`}>
                         <Button
                           variant={isRejected ? "default" : "outline"}

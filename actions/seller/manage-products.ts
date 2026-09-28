@@ -2,7 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
-import { ZodError } from "zod";
+import { ZodError, z } from "zod";
 import { getActingSeller } from "@/lib/seller-context";
 import { revalidatePath } from "next/cache";
 import { createProductSchema, type CreateProductInput } from "@/lib/validations/product";
@@ -860,3 +860,140 @@ export async function deleteSellerProduct(
     };
   }
 }
+
+const quickPricingSchema = z.object({
+  productId: z.string().min(1),
+  sellingPrice: z.number().positive("Selling price must be greater than 0"),
+  compareAtPrice: z
+    .number()
+    .positive("Compare-at price must be greater than 0")
+    .optional()
+    .nullable(),
+});
+
+/** Quick update selling price + MRP from My Products list (no full edit). */
+export async function updateSellerProductPricing(
+  productId: string,
+  sellingPrice: number,
+  compareAtPrice?: number | null,
+): Promise<ActionResult<{ id: string }>> {
+  try {
+    const acting = await getActingSeller();
+    if (!acting) {
+      return { success: false, error: "Seller profile not found" };
+    }
+
+    const validated = quickPricingSchema.parse({
+      productId,
+      sellingPrice,
+      compareAtPrice:
+        compareAtPrice == null || Number.isNaN(compareAtPrice)
+          ? null
+          : compareAtPrice,
+    });
+
+    if (
+      validated.compareAtPrice != null &&
+      validated.compareAtPrice < validated.sellingPrice
+    ) {
+      return {
+        success: false,
+        error: "Compare-at / MRP must be ≥ selling price",
+      };
+    }
+
+    const existing = await prisma.product.findFirst({
+      where: {
+        id: validated.productId,
+        sellerId: acting.sellerUserId,
+        status: { not: "ARCHIVED" },
+      },
+      include: {
+        variants: {
+          where: { isActive: true },
+          select: { id: true, price: true },
+        },
+      },
+    });
+
+    if (!existing) {
+      return { success: false, error: "Product not found" };
+    }
+
+    const previousBasePrice = Number(existing.basePrice);
+    const previousVariantPrices = new Map(
+      existing.variants.map((v) => [v.id, Number(v.price)]),
+    );
+
+    const compareValue =
+      validated.compareAtPrice == null
+        ? null
+        : new Prisma.Decimal(validated.compareAtPrice);
+
+    await prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id: existing.id },
+        data: {
+          basePrice: validated.sellingPrice,
+          compareAtPrice: compareValue,
+        },
+      });
+
+      if (existing.variants.length > 0) {
+        await tx.productVariant.updateMany({
+          where: {
+            productId: existing.id,
+            isActive: true,
+          },
+          data: {
+            price: validated.sellingPrice,
+            compareAtPrice: compareValue,
+          },
+        });
+      }
+    });
+
+    revalidatePath("/seller/products");
+    revalidatePath(`/seller/products/${existing.id}`);
+    revalidatePath(`/seller/products/${existing.id}/edit`);
+    revalidatePath(`/products/${existing.slug}`);
+    revalidatePath("/products");
+
+    try {
+      const priceDropped =
+        validated.sellingPrice < previousBasePrice ||
+        [...previousVariantPrices.values()].some(
+          (prev) => validated.sellingPrice < prev,
+        );
+      if (priceDropped) {
+        const { processPriceDropAlerts } = await import(
+          "@/lib/email/product-alerts"
+        );
+        await processPriceDropAlerts({
+          productId: existing.id,
+          productName: existing.name,
+          productSlug: existing.slug,
+        });
+      }
+    } catch (error) {
+      console.error("Price-drop notify failed:", error);
+    }
+
+    return { success: true, data: { id: existing.id } };
+  } catch (error) {
+    console.error("Update seller product pricing error:", error);
+    if (error instanceof ZodError) {
+      const first = error.issues[0];
+      return {
+        success: false,
+        error: first?.message || "Validation failed",
+      };
+    }
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to update price",
+    };
+  }
+}
+

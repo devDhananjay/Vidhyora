@@ -18,6 +18,10 @@ type MediaFillProps = {
   height?: number;
   /** Videos autoplay when true (default). Pass false for inactive carousel slides. */
   play?: boolean;
+  /** When false, video plays once (hero carousel). Default true. */
+  videoLoop?: boolean;
+  /** Called when a non-looping video finishes. */
+  onVideoEnded?: () => void;
 };
 
 /**
@@ -35,12 +39,16 @@ export function MediaFill({
   width,
   height,
   play = true,
+  videoLoop = true,
+  onVideoEnded,
 }: MediaFillProps) {
   if (isVideoUrl(src)) {
     return (
       <WorldBannerVideo
         src={src}
         active={play}
+        loop={videoLoop}
+        onEnded={onVideoEnded}
         className={cn(
           fill && "absolute inset-0 h-full w-full",
           "object-cover",

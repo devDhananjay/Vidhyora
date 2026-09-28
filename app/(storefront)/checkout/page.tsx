@@ -16,7 +16,7 @@ import { ClientCheckout } from "@/components/checkout/client-checkout";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Checkout | VIDYORA",
+  title: "Checkout",
   description: "Complete your purchase",
 };
 

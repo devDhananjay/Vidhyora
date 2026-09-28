@@ -38,12 +38,6 @@ import {
 import { productSearch } from "@/lib/search/product-search";
 import { maintainSupportChatLifecycle } from "@/lib/support-chat/lifecycle";
 
-export type {
-  SupportChatMessageDto,
-  SupportChatProductCard,
-  SupportChatThreadDto,
-};
-
 const sendSchema = z.object({
   threadId: z.string().min(1),
   guestToken: z.string().min(1),

@@ -190,30 +190,85 @@ You'll hear from us again when it ships.`,
     sellerName: string;
     productName: string;
     productLink: string;
-  }): EmailTemplate => ({
-    subject: `Product Approved: ${data.productName}`,
-    html: `<p>Hi ${escapeHtml(data.sellerName)}, "${escapeHtml(data.productName)}" is live. <a href="${escapeHtml(data.productLink)}">View</a></p>`,
-    text: `Your product "${data.productName}" has been approved!`,
-  }),
+  }): EmailTemplate => {
+    const firstName =
+      data.sellerName.split(/\s+/)[0] || data.sellerName || "there";
+    return {
+      subject: `Approved — ${data.productName} is now live`,
+      html: wrapBrandEmail({
+        preheader: `"${data.productName}" is live on VIDYORA.`,
+        eyebrow: "Catalogue update",
+        title: "Your product is live",
+        bodyHtml: `<p style="margin:0 0 16px;">Dear ${escapeHtml(firstName)},</p>
+        <p style="margin:0 0 12px;">Great news — <strong>${escapeHtml(data.productName)}</strong> has been approved and is now visible to shoppers on VIDYORA.</p>
+        <p style="margin:0 0 12px;">You can open the listing anytime to check images, price and stock.</p>`,
+        cta: { label: "View product", url: data.productLink },
+        footnote:
+          "Keep stock and details up to date so customers get a smooth experience.",
+      }),
+      text: `Hi ${data.sellerName}, "${data.productName}" is live on VIDYORA. View: ${data.productLink}`,
+    };
+  },
   productRejected: (data: {
     sellerName: string;
     productName: string;
     reason: string;
-  }): EmailTemplate => ({
-    subject: `Product Needs Changes: ${data.productName}`,
-    html: `<p>Hi ${escapeHtml(data.sellerName)}, "${escapeHtml(data.productName)}" needs changes. Reason: ${escapeHtml(data.reason)}</p>`,
-    text: `Your product "${data.productName}" needs changes. Reason: ${data.reason}`,
-  }),
-  welcome: (data: { name: string; role: string }): EmailTemplate => ({
-    subject: "Welcome to VIDYORA!",
-    html: `<p>Hi ${escapeHtml(data.name)}, welcome to VIDYORA as a ${escapeHtml(data.role.toLowerCase())}.</p>`,
-    text: `Welcome to VIDYORA, ${data.name}!`,
-  }),
-  passwordReset: (data: { name: string; resetLink: string }): EmailTemplate => ({
-    subject: "Reset Your Password",
-    html: `<p>Hi ${escapeHtml(data.name)}, <a href="${escapeHtml(data.resetLink)}">reset your password</a>. Expires in 1 hour.</p>`,
-    text: `Reset your password: ${data.resetLink}`,
-  }),
+  }): EmailTemplate => {
+    const firstName =
+      data.sellerName.split(/\s+/)[0] || data.sellerName || "there";
+    return {
+      subject: `Needs changes — ${data.productName}`,
+      html: wrapBrandEmail({
+        preheader: `"${data.productName}" needs a few updates before it can go live.`,
+        eyebrow: "Catalogue review",
+        title: "Product needs changes",
+        bodyHtml: `<p style="margin:0 0 16px;">Dear ${escapeHtml(firstName)},</p>
+        <p style="margin:0 0 12px;">We reviewed <strong>${escapeHtml(data.productName)}</strong> and it needs a few updates before it can go live.</p>
+        <p style="margin:0 0 8px;color:#7a6a64;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;">Reason</p>
+        <p style="margin:0 0 12px;padding:14px 16px;background:#faf8f6;border:1px solid #efe8e2;border-radius:12px;">${escapeHtml(data.reason)}</p>
+        <p style="margin:0;">Please update the listing in your seller console and resubmit for review.</p>`,
+        footnote: "Our team is here if you need help with images or details.",
+      }),
+      text: `Hi ${data.sellerName}, "${data.productName}" needs changes. Reason: ${data.reason}`,
+    };
+  },
+  welcome: (data: { name: string; role: string }): EmailTemplate => {
+    const firstName = data.name.split(/\s+/)[0] || data.name || "there";
+    return {
+      subject: "Welcome to VIDYORA",
+      html: wrapBrandEmail({
+        preheader: "Welcome to VIDYORA — Beyond Ornaments.",
+        eyebrow: "Welcome",
+        title: "You're in",
+        bodyHtml: `<p style="margin:0 0 16px;">Dear ${escapeHtml(firstName)},</p>
+        <p style="margin:0 0 12px;">Welcome to VIDYORA as a ${escapeHtml(data.role.toLowerCase())}. We're glad you're here.</p>
+        <p style="margin:0;">Explore collections, track orders, and reach us anytime from your account.</p>`,
+        cta: { label: "Visit VIDYORA", url: "/" },
+        footnote: "Beyond Ornaments.",
+      }),
+      text: `Welcome to VIDYORA, ${data.name}!`,
+    };
+  },
+  passwordReset: (data: {
+    name: string;
+    resetLink: string;
+  }): EmailTemplate => {
+    const firstName = data.name.split(/\s+/)[0] || data.name || "there";
+    return {
+      subject: "Reset your VIDYORA password",
+      html: wrapBrandEmail({
+        preheader: "Reset your password — link expires in 1 hour.",
+        eyebrow: "Account security",
+        title: "Reset your password",
+        bodyHtml: `<p style="margin:0 0 16px;">Dear ${escapeHtml(firstName)},</p>
+        <p style="margin:0 0 12px;">We received a request to reset your password. Use the button below — this link expires in 1 hour.</p>
+        <p style="margin:0;">If you didn't ask for this, you can ignore this email.</p>`,
+        cta: { label: "Reset password", url: data.resetLink },
+        footnote: "For your security, never share this link with anyone.",
+      }),
+      text: `Hi ${data.name}, reset your password: ${data.resetLink}`,
+    };
+  },
   orderCancelled: (data: {
     customerName: string;
     orderNumber: string;

@@ -8,6 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { isVideoUrl } from "@/lib/media/is-video-url";
+import {
+  HOMEPAGE_MEDIA_FITS,
+  type HomepageMediaFit,
+} from "@/lib/media/homepage-media-fit";
 import { cn } from "@/lib/utils";
 
 type MediaUrlFieldProps = {
@@ -17,6 +21,11 @@ type MediaUrlFieldProps = {
   hint?: string;
   className?: string;
   previewClassName?: string;
+  /**
+   * When set, uploads are auto-cropped/resized to the homepage canvas
+   * (hero = 1920×576 10:3, square = 1200×1200, etc.).
+   */
+  fit?: HomepageMediaFit;
 };
 
 /**
@@ -30,11 +39,14 @@ export function MediaUrlField({
   hint,
   className,
   previewClassName,
+  fit,
 }: MediaUrlFieldProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fittedNote, setFittedNote] = useState<string | null>(null);
   const isVideo = isVideoUrl(value);
+  const fitMeta = fit ? HOMEPAGE_MEDIA_FITS[fit] : null;
 
   async function handleFile(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -42,22 +54,27 @@ export function MediaUrlField({
     if (!file) return;
 
     setError(null);
+    setFittedNote(null);
     setUploading(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
+      if (fit) formData.append("fit", fit);
       const result = await uploadHomepageMedia(formData);
       if (!result.success) {
         setError(result.error);
         return;
       }
       onChange(result.data.url);
+      if (result.data.fitted && fitMeta) {
+        setFittedNote(`Auto-fitted to ${fitMeta.aspectLabel} for homepage.`);
+      }
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to upload media";
       if (/Body exceeded|413|too large/i.test(message)) {
         setError(
-          "File is too large for upload. Use an image ≤5 MB or video ≤40 MB.",
+          "File is too large for upload. Use an image ≤8 MB or video ≤40 MB.",
         );
       } else {
         setError("Failed to upload media. Please try again.");
@@ -69,22 +86,37 @@ export function MediaUrlField({
 
   return (
     <div className={cn("space-y-2", className)}>
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <Label>{label}</Label>
-        {value ? (
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
-            {isVideo ? (
-              <>
-                <Film className="size-3" /> Video
-              </>
-            ) : (
-              <>
-                <ImageIcon className="size-3" /> Image
-              </>
-            )}
-          </span>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {fitMeta ? (
+            <span className="rounded-md bg-[#8b2e2e]/10 px-2 py-0.5 text-[11px] font-semibold tracking-wide text-[#8b2e2e]">
+              Size: {fitMeta.width}×{fitMeta.height}px
+            </span>
+          ) : null}
+          {value ? (
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium tracking-wide text-muted-foreground uppercase">
+              {isVideo ? (
+                <>
+                  <Film className="size-3" /> Video
+                </>
+              ) : (
+                <>
+                  <ImageIcon className="size-3" /> Image
+                </>
+              )}
+            </span>
+          ) : null}
+        </div>
       </div>
+      {fitMeta ? (
+        <div className="rounded-lg border border-[#ead9c4] bg-[#faf7f5] px-3 py-2 text-xs text-neutral-700">
+          <p className="font-semibold text-[#8b2e2e]">
+            Banner size: {fitMeta.aspectLabel}
+          </p>
+          <p className="mt-0.5 text-muted-foreground">{fitMeta.hint}</p>
+        </div>
+      ) : null}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Input
           value={value}
@@ -111,22 +143,40 @@ export function MediaUrlField({
           ) : (
             <Upload className="size-4" />
           )}
-          {uploading ? "Uploading…" : "Upload"}
+          {uploading
+            ? fit
+              ? "Fitting…"
+              : "Uploading…"
+            : "Upload"}
         </Button>
       </div>
       {hint ? (
         <p className="text-xs text-muted-foreground">{hint}</p>
-      ) : (
+      ) : !fitMeta ? (
         <p className="text-xs text-muted-foreground">
-          Upload image (JPG/PNG/WEBP ≤5 MB) or video (MP4/WEBM ≤40 MB), or paste a
+          Upload image (JPG/PNG/WEBP ≤8 MB) or video (MP4/WEBM ≤40 MB), or paste a
           URL. Swap anytime — image slots accept video and vice versa.
         </p>
+      ) : (
+        <p className="text-xs text-muted-foreground">
+          JPG/PNG/WEBP ≤8 MB or MP4/WEBM ≤40 MB. Prefer designing at{" "}
+          {fitMeta.width}×{fitMeta.height} so important faces stay in the safe
+          center.
+        </p>
       )}
+      {fittedNote ? (
+        <p className="text-xs font-medium text-[#8b2e2e]">{fittedNote}</p>
+      ) : null}
       {error ? <p className="text-xs text-red-600">{error}</p> : null}
       {value ? (
         <div
           className={cn(
-            "relative mt-1 h-28 w-full overflow-hidden rounded-lg bg-muted sm:w-48",
+            "relative mt-1 w-full overflow-hidden rounded-lg bg-muted",
+            fit === "hero"
+              ? "aspect-[10/3] sm:max-w-xl"
+              : fit === "square"
+                ? "aspect-square sm:w-40"
+                : "h-28 sm:w-48",
             previewClassName,
           )}
         >

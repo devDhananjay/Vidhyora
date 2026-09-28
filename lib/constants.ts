@@ -6,8 +6,11 @@ export const APP_DESCRIPTION =
  * Google / search-engine display name only.
  * UI, logos, and on-site copy keep APP_NAME ("VIDYORA").
  */
-export const SEO_BRAND_NAME = "Vidyora Jewels";
+export const SEO_BRAND_NAME =
+  "Vidyora by Vidushi - Beyond Ornaments & Modern Everyday Luxury Jewels";
 export const BRAND_LOGO_SRC = "/brand/vidyora-logo.png";
+/** Default Open Graph / Twitter share image (1200×630) */
+export const BRAND_OG_IMAGE_SRC = "/brand/vidyora-og.png";
 /** Default seal / watermark asset */
 export const BRAND_MONOGRAM_SRC = "/brand/vidyora-watermark.png";
 /** Clean V mark for page loader (transparent) */

@@ -155,7 +155,7 @@ npm run dev
 Visit: `http://localhost:3000`
 
 **Seed Credentials:**
-- Admin: `admin@vidyora.com` / `Password@123`
+- Admin: `support@vidyora.co.in` / `Password@123`
 - Seller: `seller1@vidyora.com` / `Password@123`
 - Customer: `customer1@example.com` / `Password@123`
 

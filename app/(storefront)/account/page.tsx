@@ -9,7 +9,7 @@ import prisma from "@/lib/prisma";
 import { roleLabel } from "@/lib/roles";
 
 export const metadata: Metadata = {
-  title: "Account Settings | VIDYORA",
+  title: "Account Settings",
   description: "Manage your VIDYORA profile, password and saved addresses.",
 };
 

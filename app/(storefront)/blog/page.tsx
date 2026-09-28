@@ -4,7 +4,7 @@ import Link from "next/link";
 import { getBlogPosts } from "@/lib/content/get-blog-posts";
 
 export const metadata: Metadata = {
-  title: "Blog | VIDYORA",
+  title: "Blog",
   description:
     "Guides on gold, diamonds, gifting and jewellery care from VIDYORA.",
   alternates: {

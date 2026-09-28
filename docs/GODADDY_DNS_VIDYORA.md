@@ -21,7 +21,7 @@ Server IP: `52.66.204.66`
 On EC2:
 
 ```bash
-sudo certbot --nginx -d vidyora.co.in -d www.vidyora.co.in --non-interactive --agree-tos -m admin@vidyora.co.in --redirect
+sudo certbot --nginx -d vidyora.co.in -d www.vidyora.co.in --non-interactive --agree-tos -m support@vidyora.co.in --redirect
 ```
 
 Verify:

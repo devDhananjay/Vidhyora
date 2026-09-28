@@ -25,6 +25,7 @@ import {
   Send,
   X,
 } from "lucide-react";
+import { WhatsAppIcon } from "@/components/shared/whatsapp-icon";
 import {
   getSupportChatBootstrap,
   getSupportChatThread,
@@ -32,9 +33,6 @@ import {
   sendSupportChatMessage,
   startSupportChat,
   uploadSupportChatFile,
-  type SupportChatMessageDto,
-  type SupportChatProductCard,
-  type SupportChatThreadDto,
 } from "@/actions/support/support-chat";
 import { useSupportChatRealtime } from "@/lib/hooks/use-support-chat-realtime";
 import {
@@ -45,6 +43,11 @@ import {
   type GuideOccasionId,
   type GuideStep,
 } from "@/lib/support-chat/guide";
+import type {
+  SupportChatMessageDto,
+  SupportChatProductCard,
+  SupportChatThreadDto,
+} from "@/lib/support-chat/types";
 import { cn, formatCurrency } from "@/lib/utils";
 
 const STORAGE_KEY = "vidyora-support-chat-v2";
@@ -1204,8 +1207,9 @@ function ChatRoom({
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-auto text-[11px] text-[#8b2e2e] hover:underline"
+            className="ml-auto inline-flex items-center gap-1 text-[11px] text-[#8b2e2e] hover:underline"
           >
+            <WhatsAppIcon className="size-3.5 text-[#25D366]" />
             WhatsApp
           </Link>
         </div>

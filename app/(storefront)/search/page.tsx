@@ -11,7 +11,7 @@ import {
 import { getProductFacets } from "@/lib/products/product-facets";
 
 export const metadata: Metadata = {
-  title: "Search Jewellery | VIDYORA",
+  title: "Search Jewellery",
   description: "Search gold, diamond and fine jewellery on VIDYORA",
   alternates: { canonical: "/search" },
   robots: { index: false, follow: true },

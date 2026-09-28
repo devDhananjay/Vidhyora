@@ -11,7 +11,7 @@ import { ROUTES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "Payment Options | VIDYORA",
+  title: "Payment Options",
   description:
     "Pay for VIDYORA jewellery with UPI, cards, net banking, wallets via Razorpay, or Cash on Delivery.",
   alternates: { canonical: "/payment-options" },

@@ -7,7 +7,7 @@ import { ReviewCard } from "@/components/reviews/review-card";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "My Reviews | VIDYORA",
+  title: "My Reviews",
   description: "View and manage your product reviews",
 };
 

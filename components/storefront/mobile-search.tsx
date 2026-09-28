@@ -6,6 +6,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Search, X } from "lucide-react";
+import { VoiceSearchButton } from "@/components/storefront/voice-search-button";
+import { useVoiceSearch } from "@/lib/hooks/use-voice-search";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -62,6 +64,16 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
   const [items, setItems] = useState<SuggestItem[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const voice = useVoiceSearch({
+    onFinal: (transcript) => {
+      setQuery(transcript);
+      window.setTimeout(() => {
+        onClose();
+        router.push(`${ROUTES.search}?q=${encodeURIComponent(transcript)}`);
+      }, 50);
+    },
+  });
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -86,7 +98,7 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
 
   useEffect(() => {
     const q = query.trim();
-    if (q.length < 2) {
+    if (voice.listening || q.length < 2) {
       setItems([]);
       setLoading(false);
       return;
@@ -115,7 +127,7 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [query]);
+  }, [query, voice.listening]);
 
   function goSearch(nextQuery = query) {
     const q = nextQuery.trim();
@@ -132,7 +144,7 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
   if (!mounted) return null;
 
   const trimmed = query.trim();
-  const showResults = trimmed.length >= 2;
+  const showResults = !voice.listening && trimmed.length >= 2;
 
   return createPortal(
     <div
@@ -162,33 +174,48 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
             ref={inputRef}
             type="search"
             name="q"
-            value={query}
+            value={voice.listening && voice.interim ? voice.interim : query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search gold, diamond, rings…"
+            placeholder={
+              voice.listening ? "Listening… speak now" : "Search gold, diamond, rings…"
+            }
             autoComplete="off"
             enterKeyHint="search"
             aria-autocomplete="list"
             aria-controls={listId}
             aria-label="Search jewellery"
-            className="h-11 w-full rounded-full border border-border bg-[#faf8f6] py-2 pr-10 pl-4 text-base text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-[#8b2e2e]"
+            className={cn(
+              "h-11 w-full rounded-full border border-border bg-[#faf8f6] py-2 pr-20 pl-11 text-base text-neutral-900 outline-none placeholder:text-neutral-400 focus:border-brand [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden",
+              voice.listening && "border-brand ring-2 ring-brand/15",
+            )}
           />
-          {trimmed ? (
-            <button
-              type="button"
-              aria-label="Clear search"
-              className="absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-700"
-              onClick={() => {
-                setQuery("");
-                inputRef.current?.focus();
+          <span className="pointer-events-none absolute top-1/2 left-3.5 -translate-y-1/2 text-brand">
+            <Search className="size-4" strokeWidth={1.75} />
+          </span>
+          <div className="absolute top-1/2 right-2 flex -translate-y-1/2 items-center gap-0.5">
+            {trimmed ? (
+              <button
+                type="button"
+                aria-label="Clear search"
+                className="rounded-full p-1.5 text-brand/60 hover:bg-brand/5 hover:text-brand"
+                onClick={() => {
+                  setQuery("");
+                  inputRef.current?.focus();
+                }}
+              >
+                <X className="size-4" strokeWidth={2} />
+              </button>
+            ) : null}
+            <VoiceSearchButton
+              supported={voice.supported}
+              listening={voice.listening}
+              size="md"
+              onToggle={() => {
+                if (voice.listening) voice.stop();
+                else voice.start();
               }}
-            >
-              <X className="size-4" strokeWidth={2} />
-            </button>
-          ) : (
-            <span className="pointer-events-none absolute top-1/2 right-3.5 -translate-y-1/2 text-neutral-400">
-              <Search className="size-4" />
-            </span>
-          )}
+            />
+          </div>
         </form>
         <button
           type="button"
@@ -198,9 +225,21 @@ function MobileSearchOverlay({ onClose }: { onClose: () => void }) {
           Cancel
         </button>
       </div>
+      {voice.error ? (
+        <p className="border-b border-border bg-white px-4 py-2 text-xs text-[#8b2e2e]">
+          {voice.error}
+        </p>
+      ) : null}
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
-        {!showResults ? (
+        {voice.listening ? (
+          <div className="px-4 pt-8 text-center">
+            <p className="text-sm font-medium text-[#8b2e2e]">Listening…</p>
+            <p className="mt-1 text-xs text-neutral-500">
+              Speak a product name — results will open below
+            </p>
+          </div>
+        ) : !showResults ? (
           <div className="px-4 pt-5">
             <p className="mb-3 text-[11px] tracking-[0.18em] text-[#c4a574] uppercase">
               Popular searches

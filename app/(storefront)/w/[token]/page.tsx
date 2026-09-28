@@ -6,7 +6,7 @@ import { WishlistItem } from "@/components/wishlist/wishlist-item";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "Shared wishlist | VIDYORA",
+  title: "Shared wishlist",
   robots: { index: false, follow: false },
 };
 

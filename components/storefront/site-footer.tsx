@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Mail, MessageCircle } from "lucide-react";
+import { Mail } from "lucide-react";
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { FooterLiveChatButton } from "@/components/storefront/footer-live-chat-button";
+import { WhatsAppIcon } from "@/components/shared/whatsapp-icon";
 import { APP_NAME, ROUTES } from "@/lib/constants";
 import {
   phoneTelHref,
@@ -82,12 +83,9 @@ export function SiteFooter({ settings }: SiteFooterProps) {
               {contact.supportEmail}
             </a>
             <h3 className="mt-7 mb-5 font-serif text-[22px]">Chat With Us</h3>
-            <a href={wa} className="text-sm tracking-wide hover:text-white">
-              {contact.supportPhone}
-            </a>
-            <div className="mt-5 flex gap-3">
+            <div className="flex gap-3">
               <CircleIcon href={wa} label="WhatsApp">
-                <MessageCircle className="size-4" strokeWidth={1.6} />
+                <WhatsAppIcon className="size-4" />
               </CircleIcon>
               <CircleIcon
                 href={`mailto:${contact.supportEmail}`}
@@ -100,32 +98,50 @@ export function SiteFooter({ settings }: SiteFooterProps) {
           </div>
         </div>
 
-        {socialLinks.length > 0 ? (
-          <div className="mt-12 flex flex-wrap items-center gap-5 border-t border-white/15 pt-7">
-            <p className="font-serif text-[22px]">Social</p>
-            <div className="flex flex-wrap items-center gap-3">
-              {socialLinks.map((item) => (
-                <SocialIcon
-                  key={item.label}
-                  label={item.label}
-                  href={item.href}
-                >
+        <div className="mt-12 flex flex-wrap items-center gap-5 border-t border-white/15 pt-7">
+          <p className="font-serif text-[22px]">Social</p>
+          <div className="flex flex-wrap items-center gap-5">
+            {social.instagram ? (
+              <a
+                href={social.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2.5 text-sm tracking-wide text-[#f4ece6]/90 transition hover:text-white"
+              >
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/10">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="size-4 fill-current"
+                    aria-hidden
+                  >
+                    <path d="M7 3h10a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7a4 4 0 0 1 4-4Zm5 4.5A4.5 4.5 0 1 0 16.5 12 4.5 4.5 0 0 0 12 7.5Zm0 7.4A2.9 2.9 0 1 1 14.9 12 2.9 2.9 0 0 1 12 14.9ZM17.3 6.2a1 1 0 1 0 1 1 1 1 0 0 0-1-1Z" />
+                  </svg>
+                </span>
+                @vidyora_official
+              </a>
+            ) : null}
+            {contact.whatsappNumber ? (
+              <a
+                href={wa}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2.5 text-sm tracking-wide text-[#f4ece6]/90 transition hover:text-white"
+              >
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white/10">
+                  <WhatsAppIcon className="size-4" />
+                </span>
+                {contact.supportPhone}
+              </a>
+            ) : null}
+            {socialLinks
+              .filter((item) => item.label !== "Instagram")
+              .map((item) => (
+                <SocialIcon key={item.label} label={item.label} href={item.href}>
                   <path d={item.path} />
                 </SocialIcon>
               ))}
-              {social.instagram ? (
-                <a
-                  href={social.instagram}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm tracking-wide text-[#f4ece6]/90 hover:text-white"
-                >
-                  @vidyora_official
-                </a>
-              ) : null}
-            </div>
           </div>
-        ) : null}
+        </div>
 
         <div className="mt-6 flex flex-wrap items-center gap-6 border-t border-white/15 pt-7 text-white">
           <VisaMark />

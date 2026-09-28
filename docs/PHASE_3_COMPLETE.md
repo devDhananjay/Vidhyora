@@ -187,7 +187,7 @@ http://localhost:3000/login
 # Use seed credentials:
 # Customer: customer1@example.com / Password@123
 # Seller: seller1@vidyora.com / Password@123
-# Admin: admin@vidyora.com / Password@123
+# Admin: support@vidyora.co.in / Password@123
 ```
 
 ### Password Reset

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
+import { ArrowLeft } from "lucide-react";
 import { getProductById } from "@/actions/seller/get-products";
 import { SellerProductDeleteButton } from "@/components/seller/seller-product-delete-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,7 +33,14 @@ export default async function ProductDetailPage({
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <h1 className="font-serif text-2xl text-neutral-900 sm:text-3xl md:text-4xl">
+          <Link
+            href="/seller/products"
+            className="inline-flex items-center gap-1.5 text-sm font-medium text-[#8b2e2e] hover:underline"
+          >
+            <ArrowLeft className="size-4" />
+            Back to Products
+          </Link>
+          <h1 className="mt-3 font-serif text-2xl text-neutral-900 sm:text-3xl md:text-4xl">
             {product.name}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground sm:text-base">

@@ -42,7 +42,12 @@ import {
 import { getSiteSettings } from "@/lib/content/get-site-settings";
 import { getCartLinesForPlp } from "@/actions/cart/get-cart";
 import type { ReactNode } from "react";
-import { APP_DESCRIPTION, APP_NAME, SEO_BRAND_NAME } from "@/lib/constants";
+import {
+  APP_DESCRIPTION,
+  APP_NAME,
+  BRAND_OG_IMAGE_SRC,
+  SEO_BRAND_NAME,
+} from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site-url";
 
 export const metadata: Metadata = {
@@ -56,10 +61,21 @@ export const metadata: Metadata = {
     title: SEO_BRAND_NAME,
     siteName: SEO_BRAND_NAME,
     description: APP_DESCRIPTION,
+    url: "/",
+    images: [
+      {
+        url: BRAND_OG_IMAGE_SRC,
+        width: 1200,
+        height: 630,
+        alt: APP_NAME,
+      },
+    ],
   },
   twitter: {
+    card: "summary_large_image",
     title: SEO_BRAND_NAME,
     description: APP_DESCRIPTION,
+    images: [BRAND_OG_IMAGE_SRC],
   },
 };
 
@@ -481,6 +497,11 @@ export default async function HomePage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteLd) }}
       />
+
+      {/* Primary page heading for SEO / a11y — visually hidden so hero stays brand-led */}
+      <h1 className="sr-only">
+        {SEO_BRAND_NAME} — gold, diamond and fine jewellery
+      </h1>
 
       {sectionOrder.map((id) =>
         visibility[id] ? <div key={id}>{sections[id]}</div> : null,

@@ -9,8 +9,8 @@ import {
   type ResetPasswordInput,
 } from "@/lib/validations/auth";
 import { resetPasswordAction } from "@/actions/auth/reset-password";
+import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, CheckCircle2 } from "lucide-react";
@@ -103,9 +103,8 @@ export function ResetPasswordForm({
 
       <div className="space-y-2">
         <Label htmlFor="password">New Password</Label>
-        <Input
+        <PasswordInput
           id="password"
-          type="password"
           placeholder="••••••••"
           {...register("password")}
           disabled={isLoading}
@@ -117,9 +116,8 @@ export function ResetPasswordForm({
 
       <div className="space-y-2">
         <Label htmlFor="confirmPassword">Confirm New Password</Label>
-        <Input
+        <PasswordInput
           id="confirmPassword"
-          type="password"
           placeholder="••••••••"
           {...register("confirmPassword")}
           disabled={isLoading}

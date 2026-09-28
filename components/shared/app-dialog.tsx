@@ -186,7 +186,7 @@ export function AppDialogProvider({ children }: { children: ReactNode }) {
       {children}
       {open && current ? (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+          className="pointer-events-auto fixed inset-0 z-[200] flex items-center justify-center p-4"
           role="presentation"
         >
           <button

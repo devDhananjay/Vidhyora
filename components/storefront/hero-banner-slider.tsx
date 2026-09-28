@@ -1,13 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DEFAULT_HOMEPAGE_CONFIG } from "@/lib/content/homepage-defaults";
 import type { HomepageHeroSlide } from "@/lib/validations/homepage";
 import { MediaFill } from "@/components/storefront/media-fill";
+import { isVideoUrl } from "@/lib/media/is-video-url";
 import { cn } from "@/lib/utils";
+
+/** Image slides auto-advance after this many ms. */
+const IMAGE_SLIDE_MS = 4000;
+/** Safety net if a video never fires `ended` (approx 10s videos + buffer). */
+const VIDEO_FALLBACK_MS = 12000;
 
 function renderSlideTitle(slide: HomepageHeroSlide) {
   if (slide.titleMode === "script") {
@@ -56,102 +62,132 @@ export function HeroBannerSlider({
 }: HeroBannerSliderProps) {
   const [active, setActive] = useState(0);
   const slideCount = slides.length;
+  const activeSlide = slides[active];
+  const activeIsVideo = activeSlide ? isVideoUrl(activeSlide.image) : false;
 
+  const goNext = useCallback(() => {
+    if (slideCount === 0) return;
+    setActive((current) => (current + 1) % slideCount);
+  }, [slideCount]);
+
+  const go = useCallback(
+    (delta: number) => {
+      if (slideCount === 0) return;
+      setActive((current) => (current + delta + slideCount) % slideCount);
+    },
+    [slideCount],
+  );
+
+  // Image slides: timed advance. Video slides: wait for `ended` (+ fallback).
   useEffect(() => {
-    if (slideCount === 0) return;
-    const id = window.setInterval(() => {
-      setActive((current) => (current + 1) % slideCount);
-    }, 4000);
-    return () => window.clearInterval(id);
-  }, [active, slideCount]);
+    if (slideCount <= 1) return;
 
-  function go(delta: number) {
-    if (slideCount === 0) return;
-    setActive((current) => (current + delta + slideCount) % slideCount);
-  }
+    if (activeIsVideo) {
+      const fallback = window.setTimeout(goNext, VIDEO_FALLBACK_MS);
+      return () => window.clearTimeout(fallback);
+    }
+
+    const timer = window.setTimeout(goNext, IMAGE_SLIDE_MS);
+    return () => window.clearTimeout(timer);
+  }, [active, activeIsVideo, slideCount, goNext]);
 
   if (slideCount === 0) return null;
 
   return (
     <section className="relative w-full overflow-hidden bg-[#5c7a6a]">
+      {/* Desktop frame = 10:3 — upload media at 1920×576 for a perfect fit */}
       <div className="relative aspect-[8/7] w-full min-h-[196px] sm:aspect-[5/2] sm:min-h-[210px] md:aspect-[10/3] md:min-h-[238px] lg:min-h-[280px]">
         <div
           className="flex h-full transition-transform duration-700 ease-in-out"
           style={{ transform: `translateX(-${active * 100}%)` }}
         >
-          {slides.map((slide, index) => (
-            <div
-              key={slide.id}
-              className="relative h-full w-full shrink-0"
-              aria-hidden={index !== active}
-            >
-              <MediaFill
-                src={slide.image}
-                alt={slide.alt}
-                priority={index === 0}
-                quality={95}
-                className="object-cover object-left"
-                sizes="100vw"
-                play={index === active}
-              />
-
-              {slide.contentAlign === "right" ? (
-                <div
-                  className={cn(
-                    "absolute inset-y-0 right-0 hidden sm:block",
-                    slide.panelClassName,
-                  )}
-                  style={{ backgroundColor: slide.panelColor }}
+          {slides.map((slide, index) => {
+            const isMediaOnly = slide.layout === "mediaOnly";
+            const isVideo = isVideoUrl(slide.image);
+            return (
+              <div
+                key={slide.id}
+                className="relative h-full w-full shrink-0 bg-[#5c7a6a]"
+                aria-hidden={index !== active}
+              >
+                <MediaFill
+                  src={slide.image}
+                  alt={slide.alt}
+                  priority={index === 0}
+                  quality={95}
+                  className="object-cover object-center"
+                  sizes="100vw"
+                  play={index === active}
+                  videoLoop={!isVideo ? true : false}
+                  onVideoEnded={
+                    index === active && isVideo ? goNext : undefined
+                  }
                 />
-              ) : (
-                <div
-                  className={cn(
-                    "absolute inset-y-0 right-0 hidden bg-gradient-to-l from-black/50 via-black/30 to-transparent sm:block",
-                    slide.panelClassName,
-                  )}
-                />
-              )}
 
-              <div className="absolute inset-x-0 bottom-0 flex w-full items-end justify-center bg-gradient-to-t from-black/55 via-black/25 to-transparent px-4 pb-10 pt-16 sm:inset-y-0 sm:right-0 sm:left-auto sm:w-[50%] sm:items-center sm:bg-none sm:px-8 sm:pb-0 sm:pt-0 md:w-[48%] md:px-10 lg:px-14">
-                <div className="flex max-w-md flex-col items-center text-center">
-                  <Image
-                    src="/brand/vidyora-monogram-clear.png"
-                    alt="VIDYORA"
-                    width={120}
-                    height={120}
-                    className="h-12 w-12 object-contain drop-shadow-md sm:h-20 sm:w-20 md:h-24 md:w-24"
-                    unoptimized
-                  />
-                  <p className="mt-1 font-serif text-sm tracking-[0.28em] text-white sm:mt-1.5 sm:text-lg md:text-xl">
-                    VIDYORA
-                  </p>
-                  {slide.eyebrow ? (
-                    <p className="mt-1.5 text-[8px] tracking-[0.35em] text-white/85 uppercase sm:mt-2 sm:text-[10px]">
-                      {slide.eyebrow}
-                    </p>
-                  ) : null}
-                  <div className="mt-2 sm:mt-4">{renderSlideTitle(slide)}</div>
-                  <p
-                    className={cn(
-                      "mt-1.5 max-w-xs text-[11px] text-white/90 sm:mt-3 sm:text-sm md:text-[15px]",
-                      slide.id === "joy-of-dressing" && "italic",
+                {!isMediaOnly ? (
+                  <>
+                    {slide.contentAlign === "right" ? (
+                      <div
+                        className={cn(
+                          "absolute inset-y-0 right-0 hidden sm:block",
+                          slide.panelClassName,
+                        )}
+                        style={{ backgroundColor: slide.panelColor }}
+                      />
+                    ) : (
+                      <div
+                        className={cn(
+                          "absolute inset-y-0 right-0 hidden bg-gradient-to-l from-black/50 via-black/30 to-transparent sm:block",
+                          slide.panelClassName,
+                        )}
+                      />
                     )}
-                  >
-                    {slide.subtitle}
-                  </p>
-                  <Link
-                    href={slide.ctaHref}
-                    className={cn(
-                      "mt-3 px-5 py-2 text-[10px] tracking-[0.22em] uppercase transition sm:mt-6 sm:px-7 sm:py-2.5 sm:text-xs",
-                      slide.ctaClassName,
-                    )}
-                  >
-                    {slide.cta}
-                  </Link>
-                </div>
+
+                    <div className="absolute inset-x-0 bottom-0 flex w-full items-end justify-center bg-gradient-to-t from-black/55 via-black/25 to-transparent px-4 pb-8 pt-10 sm:inset-y-0 sm:right-0 sm:left-auto sm:w-[50%] sm:items-center sm:overflow-hidden sm:bg-none sm:px-6 sm:pb-0 sm:pt-0 md:w-[48%] md:px-8 lg:px-12">
+                      <div className="flex max-w-md flex-col items-center text-center">
+                        <Image
+                          src="/brand/vidyora-monogram-clear.png"
+                          alt="VIDYORA"
+                          width={120}
+                          height={120}
+                          className="h-10 w-10 object-contain drop-shadow-md sm:h-14 sm:w-14 md:h-20 md:w-20 lg:h-24 lg:w-24"
+                          unoptimized
+                        />
+                        <p className="mt-1 font-serif text-xs tracking-[0.28em] text-white sm:mt-1 sm:text-base md:text-lg lg:text-xl">
+                          VIDYORA
+                        </p>
+                        {slide.eyebrow ? (
+                          <p className="mt-1 text-[8px] tracking-[0.35em] text-white/85 uppercase sm:mt-1.5 sm:text-[10px]">
+                            {slide.eyebrow}
+                          </p>
+                        ) : null}
+                        <div className="mt-1.5 sm:mt-2 md:mt-3">
+                          {renderSlideTitle(slide)}
+                        </div>
+                        <p
+                          className={cn(
+                            "mt-1 max-w-xs text-[11px] text-white/90 sm:mt-2 sm:text-sm md:text-[15px]",
+                            slide.id === "joy-of-dressing" && "italic",
+                          )}
+                        >
+                          {slide.subtitle}
+                        </p>
+                        <Link
+                          href={slide.ctaHref}
+                          className={cn(
+                            "mt-2.5 inline-flex shrink-0 px-5 py-2 text-[10px] tracking-[0.22em] uppercase transition sm:mt-4 sm:px-7 sm:py-2.5 sm:text-xs md:mt-5",
+                            slide.ctaClassName,
+                          )}
+                        >
+                          {slide.cta}
+                        </Link>
+                      </div>
+                    </div>
+                  </>
+                ) : null}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <button

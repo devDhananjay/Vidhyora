@@ -11,8 +11,7 @@ import { NavigationLoader } from "@/components/shared/navigation-loader";
 import {
   APP_NAME,
   APP_DESCRIPTION,
-  APP_TAGLINE,
-  BRAND_LOGO_SRC,
+  BRAND_OG_IMAGE_SRC,
   SEO_BRAND_NAME,
 } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site-url";
@@ -42,21 +41,21 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: `${APP_NAME} — ${APP_TAGLINE}`,
+    default: SEO_BRAND_NAME,
     template: `%s | ${APP_NAME}`,
   },
   description: APP_DESCRIPTION,
   metadataBase: new URL(getSiteUrl()),
   icons: {
     icon: [
-      { url: "/favicon-32.png?v=5", type: "image/png", sizes: "32x32" },
-      { url: "/favicon-48.png?v=5", type: "image/png", sizes: "48x48" },
-      { url: "/favicon-64.png?v=5", type: "image/png", sizes: "64x64" },
-      { url: "/icon-192.png?v=5", type: "image/png", sizes: "192x192" },
-      { url: "/favicon.ico?v=5", sizes: "any" },
+      { url: "/favicon-32.png?v=7", type: "image/png", sizes: "32x32" },
+      { url: "/favicon-48.png?v=7", type: "image/png", sizes: "48x48" },
+      { url: "/favicon-64.png?v=7", type: "image/png", sizes: "64x64" },
+      { url: "/icon-192.png?v=7", type: "image/png", sizes: "192x192" },
+      { url: "/favicon.ico?v=7", sizes: "any" },
     ],
     apple: [
-      { url: "/apple-touch-icon.png?v=5", sizes: "180x180", type: "image/png" },
+      { url: "/apple-touch-icon.png?v=7", sizes: "180x180", type: "image/png" },
     ],
   },
   openGraph: {
@@ -64,15 +63,22 @@ export const metadata: Metadata = {
     url: "/",
     // Search engines only — on-site UI branding stays APP_NAME (VIDYORA)
     siteName: SEO_BRAND_NAME,
-    title: `${APP_NAME} — ${APP_TAGLINE}`,
+    title: SEO_BRAND_NAME,
     description: APP_DESCRIPTION,
-    images: [{ url: BRAND_LOGO_SRC }],
+    images: [
+      {
+        url: BRAND_OG_IMAGE_SRC,
+        width: 1200,
+        height: 630,
+        alt: APP_NAME,
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${APP_NAME} — ${APP_TAGLINE}`,
+    title: SEO_BRAND_NAME,
     description: APP_DESCRIPTION,
-    images: [BRAND_LOGO_SRC],
+    images: [BRAND_OG_IMAGE_SRC],
   },
   robots: {
     index: true,

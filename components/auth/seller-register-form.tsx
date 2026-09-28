@@ -11,6 +11,7 @@ import {
 import { registerSellerAction } from "@/actions/auth/register-seller";
 import { lookupAddressByPincode } from "@/actions/maps/google-places";
 import { AddressAutocomplete } from "@/components/address/address-autocomplete";
+import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -143,9 +144,8 @@ export function SellerRegisterForm() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="password">Password</Label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               {...register("password")}
               disabled={isLoading}
             />
@@ -156,9 +156,8 @@ export function SellerRegisterForm() {
 
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
+            <PasswordInput
               id="confirmPassword"
-              type="password"
               {...register("confirmPassword")}
               disabled={isLoading}
             />

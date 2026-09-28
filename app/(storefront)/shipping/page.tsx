@@ -7,7 +7,7 @@ import { getCommerceSettings } from "@/lib/content/commerce-settings";
 import { formatCurrency } from "@/lib/utils";
 
 export const metadata: Metadata = {
-  title: "Delivery Information | VIDYORA",
+  title: "Delivery Information",
   description:
     "Shipping, delivery timelines and international enquire-only support for VIDYORA jewellery.",
   alternates: { canonical: "/shipping" },

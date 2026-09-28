@@ -5,6 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search } from "lucide-react";
+import { VoiceSearchButton } from "@/components/storefront/voice-search-button";
+import { useVoiceSearch } from "@/lib/hooks/use-voice-search";
 import { ROUTES } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
@@ -33,18 +35,47 @@ export function SearchTypeahead({
   const router = useRouter();
   const listId = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const suppressSuggestionsRef = useRef(false);
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<SuggestItem[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
 
+  const voice = useVoiceSearch({
+    onFinal: (transcript) => {
+      suppressSuggestionsRef.current = true;
+      setQuery(transcript);
+      setOpen(false);
+      setItems([]);
+      window.setTimeout(() => {
+        router.push(`${ROUTES.search}?q=${encodeURIComponent(transcript)}`);
+      }, 50);
+    },
+  });
+
+  useEffect(() => {
+    if (voice.listening) {
+      suppressSuggestionsRef.current = true;
+      setOpen(false);
+      setItems([]);
+      setActiveIndex(-1);
+    }
+  }, [voice.listening]);
+
   useEffect(() => {
     const q = query.trim();
-    if (q.length < 2) {
-      setItems([]);
-      setLoading(false);
-      setActiveIndex(-1);
+    if (suppressSuggestionsRef.current || voice.listening || q.length < 2) {
+      if (suppressSuggestionsRef.current || voice.listening) {
+        setItems([]);
+        setOpen(false);
+        setLoading(false);
+        setActiveIndex(-1);
+      } else if (q.length < 2) {
+        setItems([]);
+        setLoading(false);
+        setActiveIndex(-1);
+      }
       return;
     }
 
@@ -57,6 +88,7 @@ export function SearchTypeahead({
           { signal: controller.signal },
         );
         if (!res.ok) throw new Error("suggest failed");
+        if (suppressSuggestionsRef.current || voice.listening) return;
         const data = (await res.json()) as { items?: SuggestItem[] };
         setItems(Array.isArray(data.items) ? data.items : []);
         setOpen(true);
@@ -73,7 +105,7 @@ export function SearchTypeahead({
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [query]);
+  }, [query, voice.listening]);
 
   useEffect(() => {
     function onPointerDown(event: MouseEvent) {
@@ -96,6 +128,7 @@ export function SearchTypeahead({
     if (event.key === "Escape") {
       setOpen(false);
       setActiveIndex(-1);
+      if (voice.listening) voice.stop();
       return;
     }
     if (!open || items.length === 0) {
@@ -127,7 +160,12 @@ export function SearchTypeahead({
     }
   }
 
-  const showPanel = open && query.trim().length >= 2;
+  const showPanel =
+    open &&
+    !voice.listening &&
+    !suppressSuggestionsRef.current &&
+    query.trim().length >= 2;
+  const displayValue = voice.listening && voice.interim ? voice.interim : query;
 
   return (
     <div ref={rootRef} className={cn("relative w-full", className)}>
@@ -143,38 +181,72 @@ export function SearchTypeahead({
         <input
           type="search"
           name="q"
-          value={query}
+          value={displayValue}
           onChange={(event) => {
+            suppressSuggestionsRef.current = false;
             setQuery(event.target.value);
             setOpen(true);
           }}
           onFocus={() => {
-            if (query.trim().length >= 2) setOpen(true);
+            if (
+              !suppressSuggestionsRef.current &&
+              !voice.listening &&
+              query.trim().length >= 2
+            ) {
+              setOpen(true);
+            }
           }}
           onKeyDown={onKeyDown}
-          placeholder={placeholder}
+          placeholder={voice.listening ? "Listening… speak now" : placeholder}
           autoComplete="off"
           aria-autocomplete="list"
           aria-controls={listId}
           aria-expanded={showPanel}
           aria-label="Search jewellery"
           className={cn(
-            "h-10 w-full rounded-full border border-border bg-card px-5 pr-11 text-sm text-foreground outline-none placeholder:text-muted-foreground transition-[padding,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] focus:border-brand",
-            compact && "h-9 px-3 pr-9 shadow-sm",
+            "h-10 w-full rounded-full border border-border bg-card py-2 pl-11 pr-12 text-sm text-foreground outline-none placeholder:text-muted-foreground transition-[padding,box-shadow] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] focus:border-brand [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden",
+            compact && "h-9 pl-10 pr-11 shadow-sm",
+            voice.listening && "border-brand ring-2 ring-brand/15",
             inputClassName,
           )}
         />
         <button
           type="submit"
           className={cn(
-            "absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground",
-            compact && "right-3",
+            "absolute top-1/2 left-2 inline-flex size-8 -translate-y-1/2 items-center justify-center text-brand hover:text-brand/80",
+            compact && "left-1.5 size-7",
           )}
           aria-label="Search"
         >
-          <Search className="size-4" />
+          <Search className={cn("size-4", compact && "size-3.5")} strokeWidth={1.75} />
         </button>
+        <div
+          className={cn(
+            "absolute top-1/2 right-1.5 -translate-y-1/2",
+            compact && "right-1",
+          )}
+        >
+          <VoiceSearchButton
+            supported={voice.supported}
+            listening={voice.listening}
+            onToggle={() => {
+              if (voice.listening) {
+                voice.stop();
+              } else {
+                suppressSuggestionsRef.current = true;
+                setOpen(false);
+                setItems([]);
+                voice.start();
+              }
+            }}
+            size="sm"
+          />
+        </div>
       </form>
+
+      {voice.error ? (
+        <p className="mt-1.5 px-1 text-[11px] text-[#8b2e2e]">{voice.error}</p>
+      ) : null}
 
       {showPanel ? (
         <div

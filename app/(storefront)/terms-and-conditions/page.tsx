@@ -5,7 +5,7 @@ import { ROUTES } from "@/lib/constants";
 import { getSiteSettings } from "@/lib/content/get-site-settings";
 
 export const metadata: Metadata = {
-  title: "Terms & Conditions | VIDYORA",
+  title: "Terms & Conditions",
   description:
     "Terms of use for shopping on VIDYORA — orders, payments, sellers, returns and account rules.",
   alternates: {

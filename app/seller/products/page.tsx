@@ -27,6 +27,17 @@ export default async function SellerProductsPage() {
     const minPrice = product.variants.length
       ? Math.min(...product.variants.map((v) => Number(v.price)))
       : Number(product.basePrice);
+    const variantCompares = product.variants
+      .map((v) => (v.compareAtPrice != null ? Number(v.compareAtPrice) : null))
+      .filter((n): n is number => n != null && n > 0);
+    const productCompare =
+      product.compareAtPrice != null ? Number(product.compareAtPrice) : null;
+    const compareAtPrice =
+      productCompare != null && productCompare > 0
+        ? productCompare
+        : variantCompares.length
+          ? Math.max(...variantCompares)
+          : null;
 
     return {
       id: product.id,
@@ -41,6 +52,7 @@ export default async function SellerProductsPage() {
       resubmissionCount: product.resubmissionCount,
       categoryName: product.category.name,
       minPrice,
+      compareAtPrice,
       totalStock,
       orderCount: product._count.orderItems,
       reviewCount: product._count.reviews,

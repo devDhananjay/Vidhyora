@@ -6,7 +6,7 @@ import { getSiteSettings } from "@/lib/content/get-site-settings";
 import { phoneTelHref } from "@/lib/content/site-settings-defaults";
 
 export const metadata: Metadata = {
-  title: "Returns | VIDYORA",
+  title: "Returns",
   description: "Return and replacement policy for VIDYORA jewellery.",
   alternates: { canonical: "/returns" },
 };

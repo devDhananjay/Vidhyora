@@ -9,6 +9,10 @@ type WorldBannerVideoProps = {
   className?: string;
   /** When false, video pauses (e.g. inactive hero slide). Default true — always autoplay. */
   active?: boolean;
+  /** Loop playback. Hero carousel should pass false so `onEnded` can advance slides. */
+  loop?: boolean;
+  /** Fires when the video finishes (only when loop is false). */
+  onEnded?: () => void;
 };
 
 /**
@@ -21,9 +25,13 @@ export function WorldBannerVideo({
   src,
   className,
   active = true,
+  loop = true,
+  onEnded,
 }: WorldBannerVideoProps) {
   const ref = useRef<HTMLVideoElement>(null);
   const [needsTap, setNeedsTap] = useState(false);
+  const onEndedRef = useRef(onEnded);
+  onEndedRef.current = onEnded;
 
   const tryPlay = useCallback(async () => {
     const el = ref.current;
@@ -55,10 +63,13 @@ export function WorldBannerVideo({
     el.muted = true;
     el.volume = 0;
     el.playsInline = true;
+    el.loop = loop;
     el.setAttribute("muted", "");
     el.setAttribute("playsinline", "");
     el.setAttribute("webkit-playsinline", "true");
     el.setAttribute("x-webkit-airplay", "deny");
+    if (loop) el.setAttribute("loop", "");
+    else el.removeAttribute("loop");
 
     if (!active) {
       el.pause();
@@ -66,9 +77,14 @@ export function WorldBannerVideo({
       return;
     }
 
-    // Assign src after mute, then load
+    // Assign src after mute, then load from start
     if (el.getAttribute("src") !== src) {
       el.setAttribute("src", src);
+    }
+    try {
+      el.currentTime = 0;
+    } catch {
+      // ignore seek errors before metadata
     }
     el.load();
 
@@ -76,11 +92,15 @@ export function WorldBannerVideo({
       if (!cancelled) void tryPlay();
     };
 
+    const handleEnded = () => {
+      if (!cancelled) onEndedRef.current?.();
+    };
+
     el.addEventListener("loadeddata", kick);
     el.addEventListener("canplay", kick);
     el.addEventListener("canplaythrough", kick);
+    if (!loop) el.addEventListener("ended", handleEnded);
 
-    // First attempt after a tick (hydration)
     const t1 = window.setTimeout(kick, 50);
     const t2 = window.setTimeout(kick, 400);
 
@@ -105,9 +125,10 @@ export function WorldBannerVideo({
       el.removeEventListener("loadeddata", kick);
       el.removeEventListener("canplay", kick);
       el.removeEventListener("canplaythrough", kick);
+      el.removeEventListener("ended", handleEnded);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [src, tryPlay, active]);
+  }, [src, tryPlay, active, loop]);
 
   return (
     <>
@@ -115,11 +136,10 @@ export function WorldBannerVideo({
         ref={ref}
         muted
         autoPlay
-        loop
+        loop={loop}
         playsInline
         preload="auto"
         controls={false}
-        // IMPORTANT: no `src` prop — set in effect after mute (Safari)
         aria-hidden
         className={cn("pointer-events-none bg-[#faf6f0]", className)}
       />

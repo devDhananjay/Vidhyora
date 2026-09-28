@@ -7,11 +7,12 @@ import {
 } from "@/actions/content/get-help";
 import { getSiteSettings } from "@/lib/content/get-site-settings";
 import { phoneTelHref } from "@/lib/content/site-settings-defaults";
+import { generateFaqStructuredData } from "@/lib/structured-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export const metadata: Metadata = {
-  title: "Help & FAQs | VIDYORA",
+  title: "Help & FAQs",
   description: "Answers about orders, payments, returns, jewellery care and stores.",
   alternates: { canonical: "/help" },
 };
@@ -37,8 +38,21 @@ export default async function HelpPage({
     return acc;
   }, {});
 
+  const faqLd = generateFaqStructuredData(
+    articles.map((article) => ({
+      question: article.question,
+      answer: article.answer,
+    })),
+  );
+
   return (
     <div className="bg-[#faf8f6]">
+      {faqLd ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }}
+        />
+      ) : null}
       <div className="mx-auto max-w-4xl px-4 py-12 md:px-6">
         <p className="text-xs tracking-[0.2em] text-[#8b2e2e] uppercase">Support</p>
         <h1 className="mt-2 font-serif text-3xl text-brand sm:text-4xl md:text-5xl">Help</h1>

@@ -8,7 +8,7 @@ import { canRequestReturn } from "@/actions/orders/return-request";
 import { ReturnRequestForm } from "@/components/orders/return-request-form";
 
 export const metadata: Metadata = {
-  title: "Request Return/Replacement | VIDYORA",
+  title: "Request Return/Replacement",
 };
 
 export default async function ReturnRequestPage({

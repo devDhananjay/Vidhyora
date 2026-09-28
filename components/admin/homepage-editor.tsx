@@ -8,7 +8,7 @@ import {
   type SetStateAction,
 } from "react";
 import { useRouter } from "next/navigation";
-import { RotateCcw, Save, ArrowUp, ArrowDown, Eye, EyeOff } from "lucide-react";
+import { RotateCcw, Save, ArrowUp, ArrowDown, Eye, EyeOff, Plus, Trash2 } from "lucide-react";
 import {
   resetHomepageConfig,
   saveHomepageConfig,
@@ -263,14 +263,21 @@ export function HomepageEditor({
     setMessage(null);
     setError(null);
     startTransition(async () => {
-      const result = await saveHomepageConfig(data);
-      if (!result.success) {
-        setError(result.error);
-        return;
+      try {
+        const result = await saveHomepageConfig(data);
+        if (!result.success) {
+          setError(result.error);
+          return;
+        }
+        setMessage("Homepage saved. Storefront will use the new config.");
+        setJsonText(JSON.stringify(data, null, 2));
+        router.refresh();
+      } catch (err) {
+        console.error("saveHomepageConfig threw:", err);
+        setError(
+          "Save failed — refresh this page (Cmd/Ctrl+Shift+R) and try again. A deploy may have updated the server.",
+        );
       }
-      setMessage("Homepage saved. Storefront will use the new config.");
-      setJsonText(JSON.stringify(data, null, 2));
-      router.refresh();
     });
   }
 
@@ -285,14 +292,21 @@ export function HomepageEditor({
         setError("Invalid JSON");
         return;
       }
-      const result = await saveHomepageConfig(parsed);
-      if (!result.success) {
-        setError(result.error);
-        return;
+      try {
+        const result = await saveHomepageConfig(parsed);
+        if (!result.success) {
+          setError(result.error);
+          return;
+        }
+        setData(parsed as HomepageConfigData);
+        setMessage("Saved from JSON.");
+        router.refresh();
+      } catch (err) {
+        console.error("saveHomepageConfig (JSON) threw:", err);
+        setError(
+          "Save failed — refresh this page (Cmd/Ctrl+Shift+R) and try again.",
+        );
       }
-      setData(parsed as HomepageConfigData);
-      setMessage("Saved from JSON.");
-      router.refresh();
     });
   }
 
@@ -307,15 +321,22 @@ export function HomepageEditor({
     setMessage(null);
     setError(null);
     startTransition(async () => {
-      const result = await resetHomepageConfig();
-      if (!result.success) {
-        setError(result.error);
-        return;
+      try {
+        const result = await resetHomepageConfig();
+        if (!result.success) {
+          setError(result.error);
+          return;
+        }
+        setData(result.data.data);
+        setJsonText(JSON.stringify(result.data.data, null, 2));
+        setMessage("Reset to default homepage.");
+        router.refresh();
+      } catch (err) {
+        console.error("resetHomepageConfig threw:", err);
+        setError(
+          "Reset failed — refresh this page (Cmd/Ctrl+Shift+R) and try again.",
+        );
       }
-      setData(result.data.data);
-      setJsonText(JSON.stringify(result.data.data, null, 2));
-      setMessage("Reset to default homepage.");
-      router.refresh();
     });
   }
 
@@ -1295,36 +1316,227 @@ function ExchangeForm({ data, setData }: FormProps) {
   );
 }
 
+function createEmptyHeroSlide(
+  layout: "overlay" | "mediaOnly" = "overlay",
+): HomepageConfigData["hero"]["slides"][number] {
+  const id = `hero-${Date.now().toString(36)}`;
+  return {
+    id,
+    layout,
+    image: "/images/banners/under-30k.jpg?v=3",
+    alt: layout === "mediaOnly" ? "Hero media banner" : "New hero banner",
+    panelColor: "#628f8b",
+    panelClassName: "left-[50%]",
+    contentAlign: "right",
+    eyebrow: layout === "mediaOnly" ? undefined : "PRESENTS",
+    titleMode: "serif",
+    titleLines: [layout === "mediaOnly" ? "Media banner" : "New banner"],
+    subtitle:
+      layout === "mediaOnly"
+        ? "Media-only slide"
+        : "Update media, title and CTA for this slide",
+    cta: "SHOP NOW",
+    ctaHref: "/products",
+    ctaClassName: "bg-white text-[#2b1a16] hover:bg-neutral-100",
+    isActive: true,
+  };
+}
+
 function HeroForm({ data, setData }: FormProps) {
+  function moveSlide(index: number, direction: -1 | 1) {
+    setData((prev) => {
+      const next = index + direction;
+      if (next < 0 || next >= prev.hero.slides.length) return prev;
+      const slides = [...prev.hero.slides];
+      const [item] = slides.splice(index, 1);
+      slides.splice(next, 0, item);
+      return { ...prev, hero: { ...prev.hero, slides } };
+    });
+  }
+
+  async function removeSlide(index: number) {
+    if (data.hero.slides.length <= 1) {
+      return;
+    }
+    const slide = data.hero.slides[index];
+    if (!slide) return;
+    const label =
+      (Array.isArray(slide.titleLines) && slide.titleLines.filter(Boolean).join(" ")) ||
+      slide.alt ||
+      slide.id;
+    const ok = await appConfirm(
+      `Delete hero banner “${label}”? This cannot be undone until you save.`,
+      { confirmLabel: "Delete", cancelLabel: "Keep" },
+    );
+    if (!ok) return;
+    setData((prev) => {
+      if (prev.hero.slides.length <= 1) return prev;
+      if (index < 0 || index >= prev.hero.slides.length) return prev;
+      return {
+        ...prev,
+        hero: {
+          ...prev.hero,
+          slides: prev.hero.slides.filter((_, i) => i !== index),
+        },
+      };
+    });
+  }
+
+  function addSlide(layout: "overlay" | "mediaOnly" = "overlay") {
+    setData((prev) => ({
+      ...prev,
+      hero: {
+        ...prev.hero,
+        slides: [...prev.hero.slides, createEmptyHeroSlide(layout)],
+      },
+    }));
+  }
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-base">
-          Hero banners (auto-scrolling)
-        </CardTitle>
-        <p className="text-sm font-normal text-muted-foreground">
-          These are the top homepage banners. Each slide media can be an image
-          or video (videos autoplay muted).
-        </p>
+      <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-3 space-y-0">
+        <div>
+          <CardTitle className="text-base">
+            Hero banners (auto-scrolling)
+          </CardTitle>
+          <p className="mt-1.5 text-sm font-normal text-muted-foreground">
+            Overlay banners include text + CTA. Media-only banners show just an
+            image or video (no copy or buttons). At least one slide is required.
+          </p>
+          <div className="mt-3 rounded-lg border border-[#ead9c4] bg-[#faf7f5] px-3 py-2.5 text-sm">
+            <p className="font-semibold text-[#8b2e2e]">
+              Banner media size: 1920 × 576 px (ratio 10:3)
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Design image/video at this size for a perfect edge-to-edge fit.
+              Upload also auto-crops to 1920×576. Keep important faces in the
+              center — top/bottom edges may crop slightly on mobile.
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => addSlide("overlay")}
+          >
+            <Plus className="size-4" />
+            Add with text
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => addSlide("mediaOnly")}
+          >
+            <Plus className="size-4" />
+            Add media only
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {data.hero.slides.map((slide, index) => (
+        {data.hero.slides.map((slide, index) => {
+          const isMediaOnly = (slide.layout ?? "overlay") === "mediaOnly";
+          return (
           <div key={slide.id} className="space-y-3 rounded-xl border p-4">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-medium">Slide · {slide.id}</p>
-              {slide.isActive === false ? (
-                <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
-                  Hidden
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-medium">
+                  Slide {index + 1} · {slide.id}
+                </p>
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-0.5 text-[10px] font-medium tracking-wide uppercase",
+                    isMediaOnly
+                      ? "bg-neutral-100 text-neutral-600"
+                      : "bg-[#f6ead7] text-[#8b2e2e]",
+                  )}
+                >
+                  {isMediaOnly ? "Media only" : "With text"}
                 </span>
-              ) : slide.visibleFrom || slide.visibleUntil ? (
-                <span className="text-[10px] font-medium tracking-wide text-amber-700 uppercase">
-                  Scheduled
-                </span>
-              ) : null}
+                {slide.isActive === false ? (
+                  <span className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">
+                    Hidden
+                  </span>
+                ) : slide.visibleFrom || slide.visibleUntil ? (
+                  <span className="text-[10px] font-medium tracking-wide text-amber-700 uppercase">
+                    Scheduled
+                  </span>
+                ) : null}
+              </div>
+              <div className="flex flex-wrap items-center gap-1">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8"
+                  disabled={index === 0}
+                  onClick={() => moveSlide(index, -1)}
+                  aria-label="Move slide up"
+                >
+                  <ArrowUp className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8"
+                  disabled={index === data.hero.slides.length - 1}
+                  onClick={() => moveSlide(index, 1)}
+                  aria-label="Move slide down"
+                >
+                  <ArrowDown className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1 text-red-600 hover:bg-red-50 hover:text-red-700"
+                  disabled={data.hero.slides.length <= 1}
+                  onClick={() => void removeSlide(index)}
+                >
+                  <Trash2 className="size-3.5" />
+                  Delete
+                </Button>
+              </div>
             </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#ead9c4]/80 bg-[#faf7f5]/80 px-3 py-2.5">
+              <div>
+                <p className="text-sm font-medium text-neutral-800">
+                  Media only (no text / button)
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  When on, storefront shows only the image or video — full bleed.
+                </p>
+              </div>
+              <Switch
+                checked={isMediaOnly}
+                onCheckedChange={(checked) =>
+                  setData((prev) => ({
+                    ...prev,
+                    hero: {
+                      ...prev.hero,
+                      slides: prev.hero.slides.map((s, i) =>
+                        i === index
+                          ? {
+                              ...s,
+                              layout: checked ? "mediaOnly" : "overlay",
+                            }
+                          : s,
+                      ),
+                    },
+                  }))
+                }
+              />
+            </div>
+
             <div className="grid gap-3 sm:grid-cols-2">
               <Field
-                label="Alt"
+                label="Alt text"
                 value={slide.alt}
                 onChange={(alt) =>
                   setData((prev) => ({
@@ -1338,6 +1550,26 @@ function HeroForm({ data, setData }: FormProps) {
                   }))
                 }
               />
+              <MediaUrlField
+                className="sm:col-span-2"
+                label="Media (image or video)"
+                fit="hero"
+                value={slide.image}
+                onChange={(image) =>
+                  setData((prev) => ({
+                    ...prev,
+                    hero: {
+                      ...prev.hero,
+                      slides: prev.hero.slides.map((s, i) =>
+                        i === index ? { ...s, image } : s,
+                      ),
+                    },
+                  }))
+                }
+              />
+
+              {!isMediaOnly ? (
+                <>
               <Field
                 label="Eyebrow"
                 value={slide.eyebrow ?? ""}
@@ -1377,7 +1609,7 @@ function HeroForm({ data, setData }: FormProps) {
               />
               <Field
                 label="Title lines ( | separated)"
-                value={slide.titleLines.join(" | ")}
+                value={(slide.titleLines ?? []).join(" | ")}
                 onChange={(raw) =>
                   setData((prev) => ({
                     ...prev,
@@ -1510,22 +1742,8 @@ function HeroForm({ data, setData }: FormProps) {
                   }))
                 }
               />
-              <MediaUrlField
-                className="sm:col-span-2"
-                label="Media (image or video)"
-                value={slide.image}
-                onChange={(image) =>
-                  setData((prev) => ({
-                    ...prev,
-                    hero: {
-                      ...prev.hero,
-                      slides: prev.hero.slides.map((s, i) =>
-                        i === index ? { ...s, image } : s,
-                      ),
-                    },
-                  }))
-                }
-              />
+                </>
+              ) : null}
             </div>
 
             <div className="border-t pt-4">
@@ -1560,7 +1778,29 @@ function HeroForm({ data, setData }: FormProps) {
               />
             </div>
           </div>
-        ))}
+          );
+        })}
+
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1 gap-1.5"
+            onClick={() => addSlide("overlay")}
+          >
+            <Plus className="size-4" />
+            Add with text / CTA
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1 gap-1.5"
+            onClick={() => addSlide("mediaOnly")}
+          >
+            <Plus className="size-4" />
+            Add media only (image / video)
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

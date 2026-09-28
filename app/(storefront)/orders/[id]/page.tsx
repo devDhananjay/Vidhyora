@@ -10,7 +10,7 @@ import { OrderActions } from "@/components/orders/order-actions";
 import { OrderTrackingCard } from "@/components/orders/order-tracking-card";
 
 export const metadata: Metadata = {
-  title: "Order Details | VIDYORA",
+  title: "Order Details",
 };
 
 export default async function OrderDetailPage({

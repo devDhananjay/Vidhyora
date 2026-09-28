@@ -26,7 +26,9 @@ import { Sparkles } from "lucide-react";
 import {
   generateProductStructuredData,
   generateBreadcrumbStructuredData,
+  seoPageTitle,
 } from "@/lib/structured-data";
+import { getSiteUrl } from "@/lib/site-url";
 import { getProductReviews } from "@/actions/reviews/get-reviews";
 import { getWishlistProductIds } from "@/actions/wishlist/manage-wishlist";
 import {
@@ -84,31 +86,30 @@ export async function generateMetadata({
     notFound();
   }
 
+  const title = seoPageTitle(
+    product.metaTitle?.trim() || product.name,
+  );
+  const description =
+    product.metaDescription?.trim() ||
+    product.shortDescription ||
+    product.description.slice(0, 160);
+
   return {
-    title: product.metaTitle?.trim() || `${product.name} | VIDYORA`,
-    description:
-      product.metaDescription?.trim() ||
-      product.shortDescription ||
-      product.description.slice(0, 160),
+    title,
+    description,
     alternates: {
       canonical: `/products/${slug}`,
     },
     openGraph: {
-      title: product.metaTitle?.trim() || product.name,
-      description:
-        product.metaDescription?.trim() ||
-        product.shortDescription ||
-        product.description.slice(0, 160),
+      title,
+      description,
       url: `/products/${slug}`,
       images: product.thumbnail ? [product.thumbnail] : [],
     },
     twitter: {
       card: "summary_large_image",
-      title: product.metaTitle?.trim() || product.name,
-      description:
-        product.metaDescription?.trim() ||
-        product.shortDescription ||
-        product.description.slice(0, 160),
+      title,
+      description,
       images: product.thumbnail ? [product.thumbnail] : [],
     },
   };
@@ -182,16 +183,22 @@ export default async function ProductDetailPage({
   const whatsappNumber = siteSettings.contact.whatsappNumber || undefined;
   const cardBadge = resolveProductBadge(product, badgeSets);
 
-  const productStructuredData = generateProductStructuredData(product);
+  const siteUrl = getSiteUrl();
+  const productStructuredData = generateProductStructuredData(product, {
+    aggregateRating: {
+      averageRating: reviews.stats.averageRating,
+      totalReviews: reviews.stats.totalReviews,
+    },
+  });
   const breadcrumbStructuredData = generateBreadcrumbStructuredData([
-    { name: "Home", url: process.env.NEXT_PUBLIC_APP_URL || "/" },
+    { name: "Home", url: siteUrl },
     {
       name: product.category.name,
-      url: `${process.env.NEXT_PUBLIC_APP_URL}/categories/${product.category.slug}`,
+      url: `${siteUrl}/categories/${product.category.slug}`,
     },
     {
       name: product.name,
-      url: `${process.env.NEXT_PUBLIC_APP_URL}/products/${product.slug}`,
+      url: `${siteUrl}/products/${product.slug}`,
     },
   ]);
 

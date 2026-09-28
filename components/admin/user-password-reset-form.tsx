@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { adminResetUserPassword } from "@/actions/admin/manage-users";
+import { PasswordInput } from "@/components/auth/password-input";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export function UserPasswordResetForm({ userId }: { userId: string }) {
@@ -45,9 +45,8 @@ export function UserPasswordResetForm({ userId }: { userId: string }) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="admin-user-password">New password</Label>
-          <Input
+          <PasswordInput
             id="admin-user-password"
-            type="password"
             autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -56,9 +55,8 @@ export function UserPasswordResetForm({ userId }: { userId: string }) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="admin-user-confirm">Confirm password</Label>
-          <Input
+          <PasswordInput
             id="admin-user-confirm"
-            type="password"
             autoComplete="new-password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}

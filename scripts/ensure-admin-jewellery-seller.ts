@@ -1,5 +1,5 @@
 /**
- * Ensure admin@vidyora.co.in is SUPER_ADMIN with an approved jewellery seller profile.
+ * Ensure support@vidyora.co.in is SUPER_ADMIN with an approved jewellery seller profile.
  * Usage: DATABASE_URL=... npx tsx scripts/ensure-admin-jewellery-seller.ts
  */
 import {
@@ -12,11 +12,28 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-const EMAIL = "admin@vidyora.co.in";
+const EMAIL = "support@vidyora.co.in";
 const PASSWORD = "Password@123";
+const LEGACY_EMAILS = ["admin@vidyora.co.in", "admin@vidyora.com"] as const;
 
 async function main() {
   const passwordHash = await bcrypt.hash(PASSWORD, 12);
+
+  // Prefer migrating a legacy admin@ account onto support@ when possible.
+  const existingSupport = await prisma.user.findUnique({ where: { email: EMAIL } });
+  if (!existingSupport) {
+    for (const legacy of LEGACY_EMAILS) {
+      const legacyUser = await prisma.user.findUnique({ where: { email: legacy } });
+      if (legacyUser) {
+        await prisma.user.update({
+          where: { id: legacyUser.id },
+          data: { email: EMAIL },
+        });
+        console.log(`Migrated login email ${legacy} → ${EMAIL}`);
+        break;
+      }
+    }
+  }
 
   const user = await prisma.user.upsert({
     where: { email: EMAIL },
@@ -43,6 +60,18 @@ async function main() {
       where: { id: user.id },
       data: { passwordHash },
     });
+  }
+
+  // Deactivate leftover legacy admin logins so only support@ is used.
+  for (const legacy of LEGACY_EMAILS) {
+    const leftover = await prisma.user.findUnique({ where: { email: legacy } });
+    if (leftover && leftover.id !== user.id) {
+      await prisma.user.update({
+        where: { id: leftover.id },
+        data: { isActive: false },
+      });
+      console.log(`Deactivated legacy admin login: ${legacy}`);
+    }
   }
 
   await prisma.sellerProfile.upsert({

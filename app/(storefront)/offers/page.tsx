@@ -9,7 +9,7 @@ import { ROUTES } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
-  title: "Offers & Contest Details | VIDYORA",
+  title: "Offers & Contest Details",
   description:
     "Live coupon codes, festival contests and boutique lucky draws at VIDYORA.",
   alternates: { canonical: "/offers" },

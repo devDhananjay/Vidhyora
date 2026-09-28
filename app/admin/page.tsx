@@ -21,7 +21,7 @@ import Link from "next/link";
 import { auth } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: "Admin | VIDYORA",
+  title: "Admin",
   description: "Monitor seller admins and moderate the marketplace",
 };
 

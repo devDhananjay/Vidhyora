@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ContentPage } from "@/components/storefront/content-page";
 import { ContactForm } from "@/components/storefront/contact-form";
+import { WhatsAppIcon } from "@/components/shared/whatsapp-icon";
 import { ROUTES } from "@/lib/constants";
 import { getSiteSettings } from "@/lib/content/get-site-settings";
 import {
@@ -10,7 +11,7 @@ import {
 } from "@/lib/content/site-settings-defaults";
 
 export const metadata: Metadata = {
-  title: "About VIDYORA | Contact",
+  title: "About & Contact",
   description: "About VIDYORA jewellery and how to reach our advisors.",
   alternates: { canonical: "/contact" },
 };
@@ -42,13 +43,18 @@ export default async function ContactPage() {
           {supportEmail}
         </a>
         <br />
-        WhatsApp:{" "}
-        <a
-          href={whatsappHref(whatsappNumber)}
-          className="text-[#8b2e2e] underline"
-        >
-          {supportPhone}
-        </a>
+        <span className="inline-flex items-center gap-1.5">
+          <WhatsAppIcon className="size-4 text-[#25D366]" />
+          WhatsApp:{" "}
+          <a
+            href={whatsappHref(whatsappNumber)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#8b2e2e] underline"
+          >
+            {supportPhone}
+          </a>
+        </span>
       </p>
       <ContactForm />
       <h2 className="font-serif text-2xl text-brand">Visit a boutique</h2>

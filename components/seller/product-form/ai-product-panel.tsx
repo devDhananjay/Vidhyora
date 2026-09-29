@@ -35,6 +35,7 @@ import type {
   AiProductDraft,
 } from "@/lib/validations/ai-product-draft";
 import type { CreateProductInput } from "@/lib/validations/product";
+import { MATERIAL_COLOUR_OPTIONS } from "@/lib/products/material-colour-options";
 import {
   DEFAULT_PRODUCT_SIZE,
   PRODUCT_SIZE_OPTIONS,
@@ -272,7 +273,7 @@ function stepMeta(id: GuideStepId): { title: string; hint: string } {
     case "colour":
       return {
         title: "Material colour",
-        hint: "Yellow, White, Rose, Silver, etc.",
+        hint: "Anti-tarnish finishes — Yellow, Rose, Silver, Champagne, Gunmetal, and more.",
       };
     case "weight":
       return {
@@ -1048,14 +1049,11 @@ export function AiProductPanel({
                       disabled={busy}
                     >
                       <option value="">Select colour…</option>
-                      <option value="Yellow">Yellow</option>
-                      <option value="White">White</option>
-                      <option value="Rose">Rose</option>
-                      <option value="Silver">Silver</option>
-                      <option value="Black">Black</option>
-                      <option value="Gunmetal">Gunmetal</option>
-                      <option value="Two Tone">Two Tone</option>
-                      <option value="Tri Color">Tri Color</option>
+                      {MATERIAL_COLOUR_OPTIONS.map((opt) => (
+                        <option key={opt} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
                     </NativeSelect>
                   ) : guideStep === "size" ? (
                     <NativeSelect

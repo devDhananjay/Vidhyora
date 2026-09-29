@@ -73,7 +73,7 @@ For jewellery attributes object, also try to fill when visible in the photo:
 - metal: Default to "Stainless Steel" unless the piece is clearly another finish. Allowed: Gold Finish | Yellow Gold Finish | White Gold Finish | Rose Gold Finish | Silver Finish | Platinum Finish | Stainless Steel | Diamond Finish | Oxidised Finish | Other Finish
 - karatage / purity: e.g. 22K, 18K
 - quality: Default to "316L" when metal is Stainless Steel; otherwise e.g. 22K / 18K related notes if relevant
-- colour / materialColour: Yellow | White | Rose
+- colour / materialColour: Pick the closest anti-tarnish plating tone. Allowed: Yellow | White | Rose | Pink | Silver | Gold | Champagne | Platinum | Rhodium | Antique Gold | Antique Silver | Oxidised | Black | Gunmetal | Ruthenium | Copper | Bronze | Matte Gold | Matte Silver | Two Tone | Tri Color | Multicolor
 - weight / grossWeight: e.g. 4.25g
 - size: Choose by jewellery type when not labeled on the photo:
   - Rings / Finger Rings → "Adjustable"

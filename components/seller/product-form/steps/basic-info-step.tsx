@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { JewelleryLineIcon } from "@/components/storefront/jewellery-icons";
+import { MATERIAL_COLOUR_OPTIONS } from "@/lib/products/material-colour-options";
 import { PRODUCT_SIZE_OPTIONS, suggestProductSize } from "@/lib/products/size-options";
 
 type BasicInfoStepProps = {
@@ -324,14 +325,11 @@ export function BasicInfoStep({
               }}
             >
               <option value="">Select colour…</option>
-              <option value="Yellow">Yellow</option>
-              <option value="White">White</option>
-              <option value="Rose">Rose</option>
-              <option value="Silver">Silver</option>
-              <option value="Black">Black</option>
-              <option value="Gunmetal">Gunmetal</option>
-              <option value="Two Tone">Two Tone</option>
-              <option value="Tri Color">Tri Color</option>
+              {MATERIAL_COLOUR_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
             </NativeSelect>
           </div>
 

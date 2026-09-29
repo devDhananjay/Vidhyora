@@ -73,17 +73,28 @@ export function StorefrontHeader({
         <div className="mx-auto flex max-w-7xl items-center gap-2 px-3 py-1 sm:gap-6 sm:px-4 md:py-1.5">
         <Link
           href={ROUTES.home}
-          className="relative flex h-12 w-12 shrink-0 items-center justify-center sm:h-[72px] sm:w-[72px] md:h-20 md:w-20"
+          className={cn(
+            "flex shrink-0 items-end gap-0.5 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] sm:gap-1",
+            compact && "scale-[0.92] gap-0.5 md:scale-[0.9]",
+          )}
           aria-label="VIDYORA home"
         >
           <BrandLogo
             size="md"
             priority
-            className={cn(
-              "!absolute left-1/2 top-1/2 !h-12 !w-12 -translate-x-1/2 -translate-y-1/2 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform sm:!h-[72px] sm:!w-[72px] md:!h-20 md:!w-20",
-              compact && "scale-[0.72] md:scale-[0.7]",
-            )}
+            className="!h-12 !w-12 sm:!h-[72px] sm:!w-[72px] md:!h-20 md:!w-20"
           />
+          {/* Quiet designer credit — locked to wordmark, no tilt */}
+          <span
+            className={cn(
+              "mb-[0.55rem] whitespace-nowrap font-[family-name:var(--font-caveat)] leading-none text-[#9a6f45]/75 sm:mb-[0.85rem] md:mb-[1rem]",
+              "text-[11px] sm:text-[12px] md:text-[13px]",
+              compact &&
+                "mb-[0.4rem] text-[9px] sm:mb-[0.6rem] sm:text-[10px] md:mb-[0.7rem] md:text-[10px]",
+            )}
+          >
+            by Vidushi
+          </span>
         </Link>
 
         <div className="hidden flex-1 justify-center md:flex">

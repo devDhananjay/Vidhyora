@@ -189,6 +189,13 @@ export default async function ProductDetailPage({
       averageRating: reviews.stats.averageRating,
       totalReviews: reviews.stats.totalReviews,
     },
+    reviews: reviews.reviews.map((review) => ({
+      rating: review.rating,
+      title: review.title,
+      comment: review.comment,
+      authorName: review.user?.name,
+      datePublished: review.createdAt,
+    })),
   });
   const breadcrumbStructuredData = generateBreadcrumbStructuredData([
     { name: "Home", url: siteUrl },

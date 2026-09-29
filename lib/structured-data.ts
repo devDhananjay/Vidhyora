@@ -12,6 +12,14 @@ type AggregateRatingInput = {
   totalReviews: number;
 };
 
+type ReviewInput = {
+  rating: number;
+  title?: string | null;
+  comment?: string | null;
+  authorName?: string | null;
+  datePublished?: Date | string | null;
+};
+
 function absoluteUrl(pathOrUrl: string | null | undefined): string | undefined {
   if (!pathOrUrl) return undefined;
   if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
@@ -19,9 +27,19 @@ function absoluteUrl(pathOrUrl: string | null | undefined): string | undefined {
   return `${base}${pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`}`;
 }
 
+function toIsoDate(value: Date | string | null | undefined): string | undefined {
+  if (!value) return undefined;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return undefined;
+  return date.toISOString().slice(0, 10);
+}
+
 export function generateProductStructuredData(
   product: ProductWithRelations,
-  options?: { aggregateRating?: AggregateRatingInput },
+  options?: {
+    aggregateRating?: AggregateRatingInput;
+    reviews?: ReviewInput[];
+  },
 ) {
   const siteUrl = getSiteUrl();
   const basePrice = Number(product.basePrice);
@@ -74,6 +92,10 @@ export function generateProductStructuredData(
         : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
       priceValidUntil: priceValidUntil.toISOString().slice(0, 10),
+      seller: {
+        "@type": "Organization",
+        name: "VIDYORA",
+      },
     },
   };
 
@@ -86,6 +108,35 @@ export function generateProductStructuredData(
       bestRating: 5,
       worstRating: 1,
     };
+  }
+
+  const reviews = (options?.reviews ?? [])
+    .filter((review) => review.rating >= 1 && review.rating <= 5)
+    .slice(0, 10)
+    .map((review) => {
+      const datePublished = toIsoDate(review.datePublished);
+      return {
+        "@type": "Review",
+        reviewRating: {
+          "@type": "Rating",
+          ratingValue: review.rating,
+          bestRating: 5,
+          worstRating: 1,
+        },
+        author: {
+          "@type": "Person",
+          name: review.authorName?.trim() || "VIDYORA Customer",
+        },
+        ...(review.title?.trim() ? { name: review.title.trim() } : {}),
+        ...(review.comment?.trim()
+          ? { reviewBody: review.comment.trim() }
+          : {}),
+        ...(datePublished ? { datePublished } : {}),
+      };
+    });
+
+  if (reviews.length > 0) {
+    structuredData.review = reviews;
   }
 
   return structuredData;

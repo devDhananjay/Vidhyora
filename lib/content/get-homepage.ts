@@ -71,6 +71,26 @@ export function migrateHomepageRaw(raw: unknown): unknown {
     data.festivalOffer = defaults.festivalOffer;
   }
 
+  // Drop competitor bridal collage if still stored in CMS JSON.
+  const world = data.world;
+  if (world && typeof world === "object") {
+    const w = { ...(world as Record<string, unknown>) };
+    const wedding = w.wedding;
+    if (wedding && typeof wedding === "object") {
+      const bride = { ...(wedding as Record<string, unknown>) };
+      const image = typeof bride.image === "string" ? bride.image : "";
+      if (
+        !image ||
+        image.includes("bridal-rivaah") ||
+        image.includes("unsplash.com")
+      ) {
+        bride.image = "/images/wedding-vidyora.jpg";
+      }
+      w.wedding = bride;
+    }
+    data.world = w;
+  }
+
   return data;
 }
 
@@ -132,7 +152,15 @@ export async function getHomepageConfigForAdmin(): Promise<{
     }
 
     return {
-      data: config,
+      data: {
+        ...config,
+        hero: {
+          ...config.hero,
+          slides: config.hero.slides.filter(
+            (slide) => !slide.id.startsWith("festival-"),
+          ),
+        },
+      },
       updatedAt: row.updatedAt,
       source: "database",
     };

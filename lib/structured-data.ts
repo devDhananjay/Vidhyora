@@ -94,7 +94,7 @@ export function generateProductStructuredData(
       priceValidUntil: priceValidUntil.toISOString().slice(0, 10),
       seller: {
         "@type": "Organization",
-        name: "VIDYORA",
+        name: product.brand?.trim() || "Vidyora by Vidushi",
       },
     },
   };

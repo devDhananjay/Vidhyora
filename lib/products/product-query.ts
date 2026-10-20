@@ -101,9 +101,20 @@ const ITEM_FILTERS: Record<string, { terms: string[]; exclude?: string[] }> = {
       "nosepin",
     ],
   },
-  pendants: { terms: ["pendant"] },
-  necklaces: { terms: ["necklace", "choker"] },
-  chains: { terms: ["chain"] },
+  pendants: {
+    terms: ["pendant"],
+    // Keep pendant sets / pendant necklaces in Pendants; pure long harams stay in Necklaces.
+    exclude: ["earring", "jhumka", "bracelet", "bangle", "ring set"],
+  },
+  necklaces: {
+    terms: ["necklace", "choker", "haram"],
+    exclude: ["earring", "jhumka", "bracelet", "bangle"],
+  },
+  chains: {
+    terms: ["chain"],
+    // Avoid "pendant … with chain" / charm necklaces landing in Chains.
+    exclude: ["pendant", "bracelet", "bangle", "earring", "anklet", "necklace"],
+  },
   bangles: { terms: ["bangle"] },
   bracelets: { terms: ["bracelet"] },
   mangalsutra: { terms: ["mangalsutra", "mangal"] },
@@ -138,8 +149,9 @@ const ITEM_CATEGORY_SLUGS: Record<string, string[]> = {
   jhumkas: ["jhumkas"],
   studs: ["studs"],
   rings: ["rings"],
+  // Keep pendants out of necklaces so homepage tiles and PLP filters stay aligned.
   pendants: ["pendants"],
-  necklaces: ["necklaces", "pendants", "choker"],
+  necklaces: ["necklaces", "choker"],
   chains: ["chains"],
   bangles: ["bangles"],
   bracelets: ["bracelets"],
@@ -152,9 +164,6 @@ const ITEM_CATEGORY_SLUGS: Record<string, string[]> = {
   tikka: ["tikka"],
   coins: ["coins"],
 };
-
-/** Products still on a catch-all category may use name/slug text matching. */
-const CATCH_ALL_CATEGORY_SLUGS = ["jewelry", "jewellery"];
 
 const ITEM_LABELS: Record<string, string> = {
   earrings: "Earrings",
@@ -191,35 +200,59 @@ function nameMatch(terms: string[]): Prisma.ProductWhereInput {
   };
 }
 
-function itemClause(key: string): Prisma.ProductWhereInput {
+function itemTextFilter(key: string): Prisma.ProductWhereInput {
   const config = ITEM_FILTERS[key];
+  if (!config) return nameMatch([key]);
+  const matched = nameMatch(config.terms);
+  if (!config.exclude?.length) return matched;
+  return { AND: [matched, { NOT: nameMatch(config.exclude) }] };
+}
+
+function itemClause(key: string): Prisma.ProductWhereInput {
   const categorySlugs = ITEM_CATEGORY_SLUGS[key] ?? [key];
   const byCategory: Prisma.ProductWhereInput = {
     category: { slug: { in: categorySlugs } },
   };
+  const textFilter = itemTextFilter(key);
 
-  const textFallback = (matched: Prisma.ProductWhereInput): Prisma.ProductWhereInput => ({
-    AND: [
-      { category: { slug: { in: CATCH_ALL_CATEGORY_SLUGS } } },
-      matched,
-    ],
-  });
+  // Match by real category OR by name/slug anywhere.
+  // Many live products sit on metal/catch-all categories (gold/diamond/jewelry)
+  // while the homepage tiles match by product name — PLP must use the same rule
+  // or users see a Pendant photo that disappears after click.
+  return {
+    OR: [byCategory, textFilter],
+  };
+}
 
-  if (!config) {
-    return {
-      OR: [byCategory, textFallback(nameMatch([key]))],
-    };
+/** Same item rules as PLP filters — use for homepage tiles / nav previews. */
+export function productMatchesItemFilter(
+  product: {
+    name: string;
+    slug: string;
+    shortDescription?: string | null;
+    categorySlug?: string | null;
+  },
+  itemKey: string,
+): boolean {
+  const slugs = ITEM_CATEGORY_SLUGS[itemKey] ?? [itemKey];
+  if (product.categorySlug && slugs.includes(product.categorySlug)) {
+    return true;
   }
 
-  const matched = nameMatch(config.terms);
-  const textFilter = config.exclude?.length
-    ? { AND: [matched, { NOT: nameMatch(config.exclude) }] }
-    : matched;
+  const config = ITEM_FILTERS[itemKey];
+  const haystack = [
+    product.name,
+    product.slug,
+    product.shortDescription ?? "",
+  ]
+    .join(" ")
+    .toLowerCase();
 
-  // Prefer real category assignment; only use name heuristics for catch-all catalog leftovers.
-  return {
-    OR: [byCategory, textFallback(textFilter)],
-  };
+  const terms = config?.terms ?? [itemKey];
+  const hit = terms.some((term) => haystack.includes(term.toLowerCase()));
+  if (!hit) return false;
+  if (!config?.exclude?.length) return true;
+  return !config.exclude.some((term) => haystack.includes(term.toLowerCase()));
 }
 
 function textMatch(terms: string[]): Prisma.ProductWhereInput {

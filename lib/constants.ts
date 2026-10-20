@@ -1,7 +1,9 @@
 export const APP_NAME = "VIDYORA";
+/** Storefront display lockup used on banners / hero. */
+export const BRAND_DISPLAY_NAME = "Vidyora by Vidushi";
 export const APP_TAGLINE = "Beyond Ornaments";
 export const APP_DESCRIPTION =
-  "VIDYORA — India's trusted destination for gold, diamond and fine jewellery.";
+  "Vidyora by Vidushi — affordable stainless steel fashion jewellery for everyday wear. Shop gold-finish necklaces, rings, earrings & bracelets online across India.";
 /**
  * Google / search-engine display name only.
  * UI, logos, and on-site copy keep APP_NAME ("VIDYORA").

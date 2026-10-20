@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
-import { Loader2 } from "lucide-react";
+import Image from "next/image";
 import { ProductCard } from "@/components/products/product-card";
 import { loadMoreStorefrontProducts } from "@/actions/storefront/list-products";
 import type { CartPlpLine } from "@/actions/cart/get-cart";
 import type { PlpCardProduct } from "@/lib/products/list-products-page";
 import type { ProductListParams } from "@/lib/products/product-query";
+import { APP_NAME, BRAND_LOGO_SRC } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 type ProductInfiniteGridProps = {
@@ -136,9 +137,21 @@ export function ProductInfiniteGrid({
       <div ref={sentinelRef} className="h-8 w-full" aria-hidden />
 
       {pending ? (
-        <div className="flex items-center justify-center gap-2 py-2 text-sm text-neutral-500">
-          <Loader2 className="size-4 animate-spin text-[#8b2e2e]" />
-          Loading more…
+        <div
+          className="flex flex-col items-center justify-center gap-2 py-4"
+          role="status"
+          aria-live="polite"
+          aria-label={`Loading more ${APP_NAME} products`}
+        >
+          <Image
+            src={BRAND_LOGO_SRC}
+            alt=""
+            width={160}
+            height={48}
+            className="h-10 w-auto animate-pulse object-contain"
+            priority
+          />
+          <span className="sr-only">Loading more products</span>
         </div>
       ) : null}
 

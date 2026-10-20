@@ -101,7 +101,7 @@ export function StorefrontHeader({
           <SearchTypeahead
             className="w-full max-w-xl"
             compact={compact}
-            placeholder="Search for gold necklace, diamond jewellery"
+            placeholder="Search necklace, ring, earrings…"
           />
         </div>
 

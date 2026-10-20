@@ -29,7 +29,7 @@ type SearchTypeaheadProps = {
 export function SearchTypeahead({
   className,
   inputClassName,
-  placeholder = "Search for gold necklace, diamond jewellery",
+  placeholder = "Search necklace, ring, earrings…",
   compact = false,
 }: SearchTypeaheadProps) {
   const router = useRouter();

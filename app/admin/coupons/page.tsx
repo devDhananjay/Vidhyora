@@ -52,6 +52,22 @@ export default async function AdminCouponsPage() {
           {coupons.map((coupon) => {
             const isExpired = coupon.expiryDate < new Date();
             const isActive = coupon.isActive && !isExpired;
+            const usageLimit = coupon.usageLimit ?? null;
+            const usagePct =
+              usageLimit && usageLimit > 0
+                ? (coupon.usageCount / usageLimit) * 100
+                : 0;
+            const nearCap = usageLimit != null && usagePct >= 80;
+            const maxPerUse = Number(
+              coupon.maximumDiscount ?? coupon.discountValue,
+            );
+            const spentEstimate = coupon.usageCount * maxPerUse;
+            const remainingUses =
+              usageLimit != null
+                ? Math.max(0, usageLimit - coupon.usageCount)
+                : null;
+            const remainingLiability =
+              remainingUses != null ? remainingUses * maxPerUse : null;
 
             return (
               <Card key={coupon.id}>
@@ -74,9 +90,20 @@ export default async function AdminCouponsPage() {
                             ? `${Number(coupon.discountValue)}% OFF`
                             : `${formatCurrency(Number(coupon.discountValue))} OFF`}
                         </Badge>
+                        {nearCap ? (
+                          <Badge variant="destructive">
+                            {Math.round(usagePct)}% usage — near cap
+                          </Badge>
+                        ) : null}
                       </div>
 
-                      <div className="mt-3 grid gap-2 text-sm md:grid-cols-2 lg:grid-cols-5">
+                      {coupon.description ? (
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          {coupon.description}
+                        </p>
+                      ) : null}
+
+                      <div className="mt-3 grid gap-2 text-sm md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
                         <div>
                           <span className="text-muted-foreground">
                             Minimum Order:
@@ -107,12 +134,38 @@ export default async function AdminCouponsPage() {
                           </span>
                         </div>
                         <div>
+                          <span className="text-muted-foreground">
+                            Per customer:
+                          </span>{" "}
+                          <span className="font-medium">
+                            {coupon.perUserLimit}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">
+                            Discount given (est.):
+                          </span>{" "}
+                          <span className="font-medium">
+                            {formatCurrency(spentEstimate)}
+                          </span>
+                        </div>
+                        <div>
                           <span className="text-muted-foreground">Revenue:</span>{" "}
                           <span className="font-medium">
                             {formatCurrency(coupon.revenue)}
                             {coupon.orderCount
                               ? ` (${coupon.orderCount} orders)`
                               : ""}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground">
+                            Remaining liability (est.):
+                          </span>{" "}
+                          <span className="font-medium">
+                            {remainingLiability != null
+                              ? formatCurrency(remainingLiability)
+                              : " uncapped"}
                           </span>
                         </div>
                         <div>

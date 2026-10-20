@@ -27,6 +27,7 @@ import type {
 } from "@/lib/validations/homepage";
 import { appConfirm } from "@/components/shared/app-dialog";
 import { DEFAULT_HOMEPAGE_CONFIG } from "@/lib/content/homepage-defaults";
+import { FestivalHeroBannersPanel } from "@/components/admin/festival-hero-banners-panel";
 import {
   DEFAULT_HOMEPAGE_SECTION_ORDER,
   DEFAULT_HOMEPAGE_VISIBILITY,
@@ -1401,7 +1402,8 @@ function HeroForm({ data, setData }: FormProps) {
           </CardTitle>
           <p className="mt-1.5 text-sm font-normal text-muted-foreground">
             Overlay banners include text + CTA. Media-only banners show just an
-            image or video (no copy or buttons). At least one slide is required.
+            image or video (no copy or buttons). Festival banners above are
+            auto-managed by calendar. At least one manual slide is required.
           </p>
           <div className="mt-3 rounded-lg border border-[#ead9c4] bg-[#faf7f5] px-3 py-2.5 text-sm">
             <p className="font-semibold text-[#8b2e2e]">
@@ -1438,6 +1440,14 @@ function HeroForm({ data, setData }: FormProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        <FestivalHeroBannersPanel />
+
+        <div className="border-t pt-4">
+          <p className="mb-4 text-sm font-medium text-neutral-800">
+            Manual hero banners
+          </p>
+        </div>
+
         {data.hero.slides.map((slide, index) => {
           const isMediaOnly = (slide.layout ?? "overlay") === "mediaOnly";
           return (

@@ -154,7 +154,7 @@ export const DEFAULT_HOMEPAGE_CONFIG: HomepageConfigData = {
     wedding: {
       title: "Wedding",
       subtitle: "Unforgettable jewels for the most memorable moment",
-      image: "/images/bridal-rivaah.jpg",
+      image: "/images/wedding-vidyora.jpg",
       href: "/collections/wedding",
     },
     diamond: {

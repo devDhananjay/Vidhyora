@@ -10,7 +10,6 @@ import {
   Shield,
   Sparkles,
 } from "lucide-react";
-import prisma from "@/lib/prisma";
 import { ProductCard } from "@/components/products/product-card";
 import {
   imageUrlsForProduct,
@@ -49,6 +48,16 @@ import {
   SEO_BRAND_NAME,
 } from "@/lib/constants";
 import { getSiteUrl } from "@/lib/site-url";
+import {
+  enrichHomepageWithProductMedia,
+  getInStockHomepageCatalog,
+  pickFeaturedFromCatalog,
+} from "@/lib/products/homepage-products";
+import { mergeFestivalHeroSlides } from "@/lib/content/festival-banners";
+import { ensureActiveFestivalCoupons } from "@/lib/coupons/ensure-festival-coupons";
+
+/** Rotate featured / tile product imagery about every 5 minutes. */
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   // Absolute title for Google SERP — site UI still shows VIDYORA branding
@@ -82,45 +91,25 @@ export const metadata: Metadata = {
 const ASSURANCE_ICONS = [Hammer, HeartHandshake, Gem] as const;
 const EXCHANGE_ICONS = [RefreshCcw, Shield, Sparkles, Award] as const;
 
-async function getFeaturedProducts() {
-  const [products, cartLines, badgeSets] = await Promise.all([
-    prisma.product.findMany({
-      where: {
-        status: "ACTIVE",
-        approvalStatus: "APPROVED",
-      },
-      include: {
-        variants: {
-          where: { isActive: true },
-          select: {
-            id: true,
-            stock: true,
-            reservedStock: true,
-            attributes: true,
-          },
-          orderBy: { price: "asc" as const },
-        },
-        images: {
-          select: { url: true },
-          orderBy: { sortOrder: "asc" },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 8,
-    }),
+async function getHomepageProductData() {
+  const [catalog, cartLines, badgeSets] = await Promise.all([
+    getInStockHomepageCatalog(72),
     getCartLinesForPlp(),
     getProductBadgeSets(),
   ]);
 
+  const featured = pickFeaturedFromCatalog(catalog, 8);
+
   return {
+    catalog,
     cartLines,
-    products: products.map((p) => ({
+    products: featured.map((p) => ({
       id: p.id,
       name: p.name,
       slug: p.slug,
       brand: p.brand,
-      basePrice: Number(p.basePrice),
-      compareAtPrice: p.compareAtPrice ? Number(p.compareAtPrice) : null,
+      basePrice: p.basePrice,
+      compareAtPrice: p.compareAtPrice,
       thumbnail: p.thumbnail,
       images: imageUrlsForProduct(p),
       badge: resolveProductBadge(p, badgeSets),
@@ -147,11 +136,25 @@ function SectionHeading({
 }
 
 export default async function HomePage() {
-  const [featuredProducts, homepage, siteSettings] = await Promise.all([
-    getFeaturedProducts(),
+  const [productData, homepageRaw, siteSettings] = await Promise.all([
+    getHomepageProductData(),
     getHomepageConfig(),
     getSiteSettings(),
+    // Keep banner coupon codes live whenever a festival slide is active.
+    ensureActiveFestivalCoupons().catch((error) => {
+      console.error("ensureActiveFestivalCoupons", error);
+      return null;
+    }),
   ]);
+
+  const homepage = enrichHomepageWithProductMedia(
+    homepageRaw,
+    productData.catalog,
+  );
+  const featuredProducts = {
+    cartLines: productData.cartLines,
+    products: productData.products,
+  };
 
   const {
     collections,
@@ -169,6 +172,9 @@ export default async function HomePage() {
   } = homepage;
   const visibility = resolveHomepageVisibility(homepage);
   const sectionOrder = resolveHomepageSectionOrder(homepage);
+  const heroSlides = filterVisibleHeroSlides(
+    mergeFestivalHeroSlides(hero.slides),
+  );
   const siteUrl = getSiteUrl();
   const organizationLd = generateOrganizationStructuredData({
     name: SEO_BRAND_NAME,
@@ -191,7 +197,7 @@ export default async function HomePage() {
   });
 
   const sections: Record<HomepageSectionId, ReactNode> = {
-    hero: <HeroBannerSlider slides={filterVisibleHeroSlides(hero.slides)} />,
+    hero: <HeroBannerSlider slides={heroSlides} />,
     collections: (
       <section className="mx-auto max-w-6xl px-4 py-16 md:py-20">
         <SectionHeading
@@ -500,7 +506,7 @@ export default async function HomePage() {
 
       {/* Primary page heading for SEO / a11y — visually hidden so hero stays brand-led */}
       <h1 className="sr-only">
-        {SEO_BRAND_NAME} — gold, diamond and fine jewellery
+        {SEO_BRAND_NAME} — stainless steel fashion jewellery for everyday wear
       </h1>
 
       {sectionOrder.map((id) =>

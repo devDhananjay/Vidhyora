@@ -7,6 +7,20 @@ export type CouponDiscountResult = {
   discount: number;
 };
 
+/** First-order-only promo codes — login + zero prior orders required. */
+export const FIRST_ORDER_COUPON_CODES = new Set([
+  "FIRST499",
+  "FIRST999",
+  "FIRST2K",
+  "WELCOME50",
+  "WELCOME100",
+  "WELCOME10",
+]);
+
+export function isFirstOrderCoupon(code: string): boolean {
+  return FIRST_ORDER_COUPON_CODES.has(code.trim().toUpperCase());
+}
+
 export function computeCouponDiscount(
   coupon: Pick<
     Coupon,
@@ -25,9 +39,24 @@ export function computeCouponDiscount(
 
   if (coupon.maximumDiscount != null) {
     discount = Math.min(discount, Number(coupon.maximumDiscount));
+  } else if (coupon.discountType === "PERCENTAGE") {
+    // Hard safety cap when admin forgets maximumDiscount
+    discount = Math.min(discount, 250);
   }
 
   return Math.min(Math.max(0, discount), subtotal);
+}
+
+async function userHasPriorOrders(userId: string): Promise<boolean> {
+  const prior = await prisma.order.count({
+    where: {
+      userId,
+      orderStatus: {
+        notIn: ["CANCELLED"],
+      },
+    },
+  });
+  return prior > 0;
 }
 
 export async function validateCouponForUser(
@@ -38,6 +67,14 @@ export async function validateCouponForUser(
   const normalized = code.trim().toUpperCase();
   if (!normalized) {
     return { ok: false, error: "Enter a promo code" };
+  }
+
+  // Login required so per-user limits and first-order checks can be enforced
+  if (!userId) {
+    return {
+      ok: false,
+      error: "Please sign in to apply a promo code",
+    };
   }
 
   const coupon = await prisma.coupon.findUnique({
@@ -60,14 +97,21 @@ export async function validateCouponForUser(
     return { ok: false, error: "This promo code has reached its usage limit" };
   }
 
-  if (userId) {
-    const userUsageCount = await prisma.couponUsage.count({
-      where: { couponId: coupon.id, userId },
-    });
-    if (userUsageCount >= coupon.perUserLimit) {
+  const userUsageCount = await prisma.couponUsage.count({
+    where: { couponId: coupon.id, userId },
+  });
+  if (userUsageCount >= coupon.perUserLimit) {
+    return {
+      ok: false,
+      error: "You have already used this promo code the maximum number of times",
+    };
+  }
+
+  if (isFirstOrderCoupon(coupon.code)) {
+    if (await userHasPriorOrders(userId)) {
       return {
         ok: false,
-        error: "You have already used this promo code the maximum number of times",
+        error: "This promo code is only for your first order",
       };
     }
   }
@@ -83,6 +127,17 @@ export async function validateCouponForUser(
   const discount = computeCouponDiscount(coupon, subtotal);
   if (discount <= 0) {
     return { ok: false, error: "This promo code cannot be applied to your cart" };
+  }
+
+  // Guard: never discount more than 20% of cart without an explicit fixed coupon
+  if (
+    coupon.discountType === "PERCENTAGE" &&
+    discount > subtotal * 0.2 + 0.01
+  ) {
+    return {
+      ok: false,
+      error: "This promo code cannot be applied to your cart",
+    };
   }
 
   return {

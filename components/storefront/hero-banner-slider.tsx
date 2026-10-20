@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { DEFAULT_HOMEPAGE_CONFIG } from "@/lib/content/homepage-defaults";
 import type { HomepageHeroSlide } from "@/lib/validations/homepage";
+import { BRAND_DISPLAY_NAME } from "@/lib/constants";
 import { MediaFill } from "@/components/storefront/media-fill";
 import { isVideoUrl } from "@/lib/media/is-video-url";
 import { cn } from "@/lib/utils";
@@ -147,14 +148,14 @@ export function HeroBannerSlider({
                       <div className="flex max-w-md flex-col items-center text-center">
                         <Image
                           src="/brand/vidyora-monogram-clear.png"
-                          alt="VIDYORA"
+                          alt={BRAND_DISPLAY_NAME}
                           width={120}
                           height={120}
                           className="h-10 w-10 object-contain drop-shadow-md sm:h-14 sm:w-14 md:h-20 md:w-20 lg:h-24 lg:w-24"
                           unoptimized
                         />
-                        <p className="mt-1 font-serif text-xs tracking-[0.28em] text-white sm:mt-1 sm:text-base md:text-lg lg:text-xl">
-                          VIDYORA
+                        <p className="mt-1 font-serif text-[10px] tracking-[0.14em] text-white sm:mt-1 sm:text-sm md:text-base lg:text-lg">
+                          {BRAND_DISPLAY_NAME}
                         </p>
                         {slide.eyebrow ? (
                           <p className="mt-1 text-[8px] tracking-[0.35em] text-white/85 uppercase sm:mt-1.5 sm:text-[10px]">

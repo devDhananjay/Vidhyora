@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 export const metadata: Metadata = {
   title: "Offers & Contest Details",
   description:
-    "Live coupon codes, festival contests and boutique lucky draws at VIDYORA.",
+    "Live coupon codes, festive discounts and Instagram style contests at VIDYORA.",
   alternates: { canonical: "/offers" },
 };
 
@@ -47,8 +47,9 @@ export default async function OffersPage() {
           Offers & Contest Details
         </h1>
         <p className="mt-4 max-w-2xl text-neutral-600">
-          Coupon codes below are live in the VIDYORA catalogue. Super Admin can
-          add or pause them anytime. Contests have their own windows and rules.
+          First-order rewards (shop up to ₹2,000), festive flat-offs and Instagram
+          style contests on 316L stainless steel jewellery. Sign in to apply
+          codes — limits are capped so savings stay fair.
         </p>
 
         <h2 className="mt-12 font-serif text-3xl text-brand">
@@ -173,7 +174,7 @@ export default async function OffersPage() {
             <Link href={ROUTES.products}>Shop jewellery</Link>
           </Button>
           <Button asChild variant="outline" className="rounded-full px-6">
-            <Link href={ROUTES.storeLocator}>Find a boutique</Link>
+            <Link href={ROUTES.help}>Help & FAQs</Link>
           </Button>
         </div>
       </div>

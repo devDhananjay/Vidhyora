@@ -20,14 +20,14 @@ import { getSiteUrl } from "@/lib/site-url";
 export const metadata: Metadata = {
   title: "All Jewellery",
   description:
-    "Browse gold, diamond and fine jewellery online at VIDYORA — rings, earrings, necklaces and more with secure checkout.",
+    "Browse stainless steel fashion jewellery online at VIDYORA — gold-finish rings, earrings, necklaces & bracelets for everyday wear with secure checkout.",
   alternates: {
     canonical: "/products",
   },
   openGraph: {
     title: "All Jewellery",
     description:
-      "Browse gold, diamond and fine jewellery online at VIDYORA.",
+      "Shop affordable stainless steel jewellery online at VIDYORA — necklaces, rings, earrings and more.",
     url: "/products",
     images: [{ url: BRAND_OG_IMAGE_SRC, width: 1200, height: 630, alt: "VIDYORA jewellery" }],
   },
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "All Jewellery",
     description:
-      "Browse gold, diamond and fine jewellery online at VIDYORA.",
+      "Shop affordable stainless steel jewellery online at VIDYORA — necklaces, rings, earrings and more.",
     images: [BRAND_OG_IMAGE_SRC],
   },
 };

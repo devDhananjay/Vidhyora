@@ -28,6 +28,7 @@ import {
   generateBreadcrumbStructuredData,
   seoPageTitle,
 } from "@/lib/structured-data";
+import { buildProductSeoMeta } from "@/lib/seo/product-meta";
 import { getSiteUrl } from "@/lib/site-url";
 import { getProductReviews } from "@/actions/reviews/get-reviews";
 import { getWishlistProductIds } from "@/actions/wishlist/manage-wishlist";
@@ -86,13 +87,16 @@ export async function generateMetadata({
     notFound();
   }
 
-  const title = seoPageTitle(
-    product.metaTitle?.trim() || product.name,
-  );
-  const description =
-    product.metaDescription?.trim() ||
-    product.shortDescription ||
-    product.description.slice(0, 160);
+  const seo = buildProductSeoMeta({
+    name: product.name,
+    shortDescription: product.shortDescription,
+    description: product.description,
+    categoryName: product.category?.name,
+    metaTitle: product.metaTitle,
+    metaDescription: product.metaDescription,
+  });
+  const title = seoPageTitle(seo.title);
+  const description = seo.description;
 
   return {
     title,

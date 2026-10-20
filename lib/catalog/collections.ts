@@ -17,15 +17,15 @@ export type CollectionDefinition = {
 export const COLLECTION_MAP: Record<string, CollectionDefinition> = {
   "under-50k": {
     title: "Jewellery Under ₹50,000",
-    metaTitle: "Buy Jewellery Under 50000 Online",
+    metaTitle: "Buy Affordable Jewellery Online Under 50000",
     description:
-      "Shop gold, diamond and everyday jewellery under ₹50,000 on VIDYORA. Certified pieces, secure checkout and pan-India delivery.",
+      "Shop affordable stainless steel fashion jewellery under ₹50,000 on VIDYORA — gold-finish rings, earrings, necklaces and bracelets with pan-India delivery.",
     intro:
-      "Discover fine jewellery under ₹50,000 — rings, earrings, pendants and more curated for everyday luxury and thoughtful gifting without stretching your budget.",
+      "Discover everyday jewellery under ₹50,000 — stylish gold-finish pieces curated for daily wear and thoughtful gifting without stretching your budget.",
     keywords: [
       "jewellery under 50000",
-      "affordable diamond jewellery",
-      "gold jewellery under 50k",
+      "affordable fashion jewellery",
+      "gold finish jewellery under 50k",
       "buy jewellery online India",
     ],
     filters: { maxPrice: "50000", collection: "Under 50K" },
@@ -94,9 +94,9 @@ export const COLLECTION_MAP: Record<string, CollectionDefinition> = {
     title: "Jewellery Gifting",
     metaTitle: "Jewellery Gift Ideas Online",
     description:
-      "Find jewellery gift ideas on VIDYORA — festive, birthday and anniversary gifts in gold and diamond, ready for pan-India delivery.",
+      "Find jewellery gift ideas on VIDYORA — festive, birthday and anniversary gifts in gold-finish stainless steel, ready for pan-India delivery.",
     intro:
-      "Whether it is a festival, anniversary or a just-because surprise, explore gift-ready jewellery with elegant designs and price points that make choosing easy.",
+      "Whether it is a festival, anniversary or a just-because surprise, explore gift-ready fashion jewellery with elegant designs and price points that make choosing easy.",
     keywords: [
       "jewellery gift ideas",
       "gift jewellery online",

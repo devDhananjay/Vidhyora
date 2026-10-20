@@ -14,6 +14,19 @@ import {
   homepageConfigSchema,
   type HomepageConfigData,
 } from "@/lib/validations/homepage";
+import { stripFestivalHeroSlides } from "@/lib/content/festival-banners";
+
+function withoutCalendarFestivalSlides(
+  config: HomepageConfigData,
+): HomepageConfigData {
+  return {
+    ...config,
+    hero: {
+      ...config.hero,
+      slides: stripFestivalHeroSlides(config.hero.slides),
+    },
+  };
+}
 
 export async function loadHomepageAdmin(): Promise<
   ActionResult<{
@@ -29,7 +42,7 @@ export async function loadHomepageAdmin(): Promise<
     return {
       success: true,
       data: {
-        data: result.data,
+        data: withoutCalendarFestivalSlides(result.data),
         updatedAt: result.updatedAt?.toISOString() ?? null,
         source: result.source,
       },
@@ -53,15 +66,17 @@ export async function saveHomepageConfig(
       };
     }
 
+    const data = withoutCalendarFestivalSlides(parsed.data);
+
     const row = await prisma.homepageConfig.upsert({
       where: { id: HOMEPAGE_CONFIG_ID },
       create: {
         id: HOMEPAGE_CONFIG_ID,
-        data: parsed.data,
+        data,
         updatedBy: session.user.id,
       },
       update: {
-        data: parsed.data,
+        data,
         updatedBy: session.user.id,
       },
     });

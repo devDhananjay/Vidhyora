@@ -12,6 +12,7 @@ import {
   syncProductVariants,
 } from "@/lib/products/sync-product-variants";
 import { ensureUniqueVariantSkus } from "@/lib/products/unique-sku";
+import { enqueueMeeshoListingForProduct } from "@/lib/meesho/enqueue";
 import type { ActionResult } from "@/lib/utils";
 
 export async function createProduct(
@@ -123,8 +124,15 @@ export async function createProduct(
       },
     });
 
+    if (!needsApproval) {
+      void enqueueMeeshoListingForProduct(product.id).catch((error) =>
+        console.error("Meesho enqueue failed:", error),
+      );
+    }
+
     revalidatePath("/seller/products");
     revalidatePath("/admin/products");
+    revalidatePath("/admin/meesho");
 
     return {
       success: true,

@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/auth-helpers";
 import { revalidatePath } from "next/cache";
 import { notifyProductApproved, notifyProductRejected } from "@/lib/email/transactional";
+import { enqueueMeeshoListingForProduct } from "@/lib/meesho/enqueue";
 import type { ActionResult } from "@/lib/utils";
 
 export async function getAdminProductById(productId: string) {
@@ -127,8 +128,13 @@ export async function approveProduct(
       console.error("Product approve email failed:", error),
     );
 
+    void enqueueMeeshoListingForProduct(productId).catch((error) =>
+      console.error("Meesho enqueue failed:", error),
+    );
+
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${productId}`);
+    revalidatePath("/admin/meesho");
 
     return {
       success: true,
@@ -271,8 +277,13 @@ export async function activateProduct(
       },
     });
 
+    void enqueueMeeshoListingForProduct(productId).catch((error) =>
+      console.error("Meesho enqueue failed:", error),
+    );
+
     revalidatePath("/admin/products");
     revalidatePath(`/admin/products/${productId}`);
+    revalidatePath("/admin/meesho");
 
     return {
       success: true,
@@ -311,11 +322,15 @@ export async function bulkApproveProducts(
       void notifyProductApproved(id).catch((error) =>
         console.error("Product approve email failed:", error),
       );
+      void enqueueMeeshoListingForProduct(id).catch((error) =>
+        console.error("Meesho enqueue failed:", error),
+      );
       revalidatePath(`/admin/products/${id}`);
     }
 
     revalidatePath("/admin/products");
     revalidatePath("/products");
+    revalidatePath("/admin/meesho");
 
     return {
       success: true,

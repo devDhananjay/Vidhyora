@@ -30,6 +30,7 @@ import {
   MessagesSquare,
   BookOpen,
   Clock,
+  Share2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BrandLogo } from "@/components/brand/brand-logo";
@@ -42,6 +43,7 @@ const ADMIN_NAV = [
   { label: "Users", href: "/admin/users", icon: Users },
   { label: "Seller Admins", href: "/admin/sellers", icon: Store },
   { label: "Products", href: "/admin/products", icon: Package },
+  { label: "Meesho Sync", href: "/admin/meesho", icon: Share2 },
   { label: "Inventory", href: "/admin/inventory", icon: TrendingUp },
   { label: "Categories", href: "/admin/categories", icon: FolderTree },
   { label: "Mega Menu", href: "/admin/mega-menu", icon: PanelTop },

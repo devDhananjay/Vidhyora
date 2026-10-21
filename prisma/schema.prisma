@@ -48,6 +48,15 @@ enum ProductApprovalStatus {
   SUSPENDED
 }
 
+enum MeeshoListingStatus {
+  PENDING
+  READY
+  UPLOADED
+  LIVE
+  FAILED
+  SKIPPED
+}
+
 enum ProductAlertType {
   PRICE_DROP
   BACK_IN_STOCK
@@ -374,6 +383,7 @@ model Product {
   cartItems  CartItem[]
   wishlistItems WishlistItem[]
   alerts     ProductAlert[]
+  meeshoListing MeeshoListing?
 
   @@index([slug])
   @@index([categoryId])
@@ -381,6 +391,31 @@ model Product {
   @@index([status])
   @@index([approvalStatus])
   @@index([brand])
+  @@index([createdAt])
+}
+
+/// Queue row: website APPROVED → Meesho-ready payload (Excel/CSV upload or future API).
+model MeeshoListing {
+  id              String              @id @default(cuid())
+  productId       String              @unique
+  variantId       String?
+  sku             String
+  status          MeeshoListingStatus @default(PENDING)
+  meeshoCategory  String?
+  groupId         String?
+  payload         Json?
+  errorMessage    String?             @db.Text
+  meeshoCatalogId String?
+  uploadedAt      DateTime?
+  liveAt          DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([meeshoCategory, status])
+  @@index([sku])
   @@index([createdAt])
 }
 
